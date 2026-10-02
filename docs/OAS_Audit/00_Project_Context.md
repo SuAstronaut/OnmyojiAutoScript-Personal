@@ -14,7 +14,7 @@ OnmyojiAutoScript-Personal 是以当前 OAS 为生产核心的个人维护版本
 |---|---|---|
 | 当前本地项目 | `D:\Entertainment\Tool\OAS` | 本轮检查的真实目录 |
 | 当前个人仓库 | `https://github.com/SuAstronaut/OnmyojiAutoScript-Personal.git` | 本地 origin；不是本轮新增的远端 |
-| 当前分支与基线 | main；`be4160dffb2615e66f97d20163196a420dbdd68a` | 提交说明为 Initial commit: OAS baseline；本地可达历史为 1 个提交 |
+| 整理开始时的分支与代码基线 | main；`be4160dffb2615e66f97d20163196a420dbdd68a` | 提交说明为 Initial commit: OAS baseline；当时本地可达历史为 1 个提交，后续文档提交不作为业务代码基线变化 |
 | 历史直接维护来源 | FLAG12321 的 run_now_2 | W1/W2 记录曾使用其 GitHub/Gitee 来源；S3 也确认旧 OAS 与官方的谱系关系 |
 | 更早的框架来源 | runhey/OnmyojiAutoScript；其 README 说明继承 Alas 思想 | 当前项目 README 和 S3 |
 | yys | 与 OAS 高度同源的参考项目 | S3 未找到其审计分支与官方的共同 Git 祖先；不能断言平台 fork 关系 |
