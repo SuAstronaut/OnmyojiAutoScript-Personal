@@ -1,0 +1,120 @@
+# This Python file uses the following encoding: utf-8
+# @author runhey
+# github https://github.com/runhey
+from pydantic import BaseModel, Field, field_validator
+from enum import Enum
+
+# 庭院皮肤
+class MainType(str, Enum):
+    COSTUME_MAIN = 'costume_main'  # 初语谧景
+    COSTUME_MAIN_1 = 'costume_main_1'  # 织梦莲庭
+    COSTUME_MAIN_2 = 'costume_main_2'  # 琼夜淬光
+    COSTUME_MAIN_3 = 'costume_main_3'  # 烬夜韶阁
+    COSTUME_MAIN_4 = 'costume_main_4'  # 笔墨山河
+    COSTUME_MAIN_5 = 'costume_main_5'  # 枫色秋庭
+    COSTUME_MAIN_6 = 'costume_main_6'  # 暖池青苑
+    COSTUME_MAIN_7 = 'costume_main_7'  # 盛夏幽庭
+    COSTUME_MAIN_8 = 'costume_main_8'  # 远海航船
+    COSTUME_MAIN_9 = 'costume_main_9'  # 结缘神社
+    COSTUME_MAIN_10 = 'costume_main_10'  # 望月幽庭
+    COSTUME_MAIN_11 = 'costume_main_11'  # 鏖刀禁府
+    COSTUME_MAIN_12 = 'costume_main_12'  # 龙吟溯玉
+    COSTUME_MAIN_13 = 'costume_main_13'  # 云景阆苑
+    COSTUME_MAIN_14 = 'costume_main_14'  # 雪月华庭
+    COSTUME_MAIN_15 = 'costume_main_15'  # 初语谧景·焕新
+    COSTUME_MAIN_16 = 'costume_main_16'  # 狐栖归处
+    COSTUME_MAIN_17 = 'costume_main_17'  # 茨心乐园
+
+# 结界皮肤
+# 默认套（妖伞结界）的资产在 tasks/KekkaiUtilize/realm/ 下，由 KekkaiUtilizeAssets 持有；
+# 其余各套的资产在 tasks/Component/CostumeRealm/realm<N>/ 下，由 CostumeRealmAssets 持有，
+# 运行时由 costume_base.check_costume_realm() 就地改写 KekkaiUtilize 上的对应资产。
+# 中文名：1~4 沿用 i18n 镜像 module/config/i18n/zh-CN.json 里原作者留下的取值，5~8 由用户提供。
+# DEFAULT 那条镜像写的是「妖扇结界」，与游戏内不符，已在补充源 assets/i18n/zh-CN.json 里改正。
+class RealmType(str, Enum):
+    COSTUME_REALM_DEFAULT = 'costume_realm_default'  # 妖伞结界
+    COSTUME_REALM_1 = 'costume_realm_1'  # 鬼灵咒符
+    COSTUME_REALM_2 = 'costume_realm_2'  # 狐梦之乡
+    COSTUME_REALM_3 = 'costume_realm_3'  # 编心织忆
+    COSTUME_REALM_4 = 'costume_realm_4'  # 花海繁生
+    COSTUME_REALM_5 = 'costume_realm_5'  # 莲心梦乡
+    COSTUME_REALM_6 = 'costume_realm_6'  # 歌弈花坊
+    COSTUME_REALM_7 = 'costume_realm_7'  # 斗鱼之地
+    COSTUME_REALM_8 = 'costume_realm_8'  # 金鱼梦境
+
+# 鲤鱼旗皮肤
+class CarpBannerType(str, Enum):
+    COSTUME_CARPBANNER_DEFAULT = 'costume_carpbanner_default'  # 吉鲤游风
+    COSTUME_CARPBANNER_1 = 'costume_carpbanner_1'  # 无垢莲台
+    COSTUME_CARPBANNER_2 = 'costume_carpbanner_2'  # 萤灯月夜
+    COSTUME_CARPBANNER_3 = 'costume_carpbanner_3'  # 鸢戏游鲤
+
+# 主题，就是庭院最右下角的展开按钮
+class ThemeType(str, Enum):
+    COSTUME_THEME_DEFAULT = 'costume_theme_default'  # 伊始之卷
+    COSTUME_THEME_1 = 'costume_theme_1'  # 拾光永恒
+    COSTUME_THEME_2 = 'costume_theme_2'  # 新语明霄
+
+# 幕间，就是式神录这里
+class ShikigamiType(str, Enum):
+    COSTUME_SHIKIGAMI_DEFAULT = 'costume_shikigami_default'  # 静栖走廊
+    COSTUME_SHIKIGAMI_1 = 'costume_shikigami_1'  # 妙音空境
+    COSTUME_SHIKIGAMI_2 = 'costume_shikigami_2'  # 缘台樱垂
+    COSTUME_SHIKIGAMI_3 = 'costume_shikigami_3'  # 启程之刻
+    COSTUME_SHIKIGAMI_4 = 'costume_shikigami_4'  # 冥夜游火
+    COSTUME_SHIKIGAMI_5 = 'costume_shikigami_5'  # 契光水境
+    COSTUME_SHIKIGAMI_6 = 'costume_shikigami_6'  # 月下火舞
+    COSTUME_SHIKIGAMI_7 = 'costume_shikigami_7'  # 赤溟幽界
+    COSTUME_SHIKIGAMI_8 = 'costume_shikigami_8'  # 童梦基地
+    COSTUME_SHIKIGAMI_9 = 'costume_shikigami_9'  # 鹿眠之森
+    COSTUME_SHIKIGAMI_10 = 'costume_shikigami_10'  # 今宵胧明
+
+# 签到主题
+class SignType(str, Enum):
+    COSTUME_SIGN_DEFAULT = 'costume_sign_default'  # 默认
+
+# 战斗主题
+class BattleType(str, Enum):
+    COSTUME_BATTLE_DEFAULT = 'costume_battle_default'  # 简约主题 / 不支持怀旧
+    COSTUME_BATTLE_1 = 'costume_battle_1'  # 雅乐之邦
+    COSTUME_BATTLE_2 = 'costume_battle_2'  # 蝶寻花踪
+    COSTUME_BATTLE_3 = 'costume_battle_3'  # 凛霜寒雪
+    COSTUME_BATTLE_4 = 'costume_battle_4'  # 春缕含青
+    COSTUME_BATTLE_5 = 'costume_battle_5'  # 祥夜幽芳
+    COSTUME_BATTLE_6 = 'costume_battle_6'  # 桂馥金秋
+    COSTUME_BATTLE_7 = 'costume_battle_7'  # 笼梦之境
+    COSTUME_BATTLE_8 = 'costume_battle_8'  # 藏金台阁
+    COSTUME_BATTLE_9 = 'costume_battle_9'  # 莲华圣域
+    COSTUME_BATTLE_10 = 'costume_battle_10'  # 流焰蝶舞
+    COSTUME_BATTLE_11 = 'costume_battle_11'  # 辰烁奇夜
+    COSTUME_BATTLE_12 = 'costume_battle_12'  # 招财纳福
+    COSTUME_BATTLE_13 = 'costume_battle_13'  # 茸茨跃动
+
+
+
+class CostumeConfig(BaseModel):
+    # 皮肤配置
+    costume_main_type: MainType = Field(default=MainType.COSTUME_MAIN, description='costume_main_type_help')
+    costume_realm_type: RealmType = Field(default=RealmType.COSTUME_REALM_DEFAULT, description='costume_realm_type_help')
+    costume_carpbanner_type: CarpBannerType = Field(default=CarpBannerType.COSTUME_CARPBANNER_DEFAULT,description='costume_carpbanner_type_help')
+    costume_theme_type: ThemeType = Field(default=ThemeType.COSTUME_THEME_DEFAULT, description='costume_theme_type_help')
+    costume_shikigami_type: ShikigamiType = Field(default=ShikigamiType.COSTUME_SHIKIGAMI_DEFAULT, description='costume_shikigami_type_help')
+    costume_sign_type: SignType = Field(default=SignType.COSTUME_SIGN_DEFAULT, description='costume_sign_type_help')
+    costume_battle_type: BattleType = Field(default=BattleType.COSTUME_BATTLE_DEFAULT, description='costume_battle_type_help')
+
+    @field_validator('costume_realm_type', mode='before')
+    @classmethod
+    def validate_realm(cls, v):
+        if v and v not in RealmType._value2member_map_:
+            return RealmType.COSTUME_REALM_DEFAULT
+        return v
+
+
+
+
+
+
+
+
+
+

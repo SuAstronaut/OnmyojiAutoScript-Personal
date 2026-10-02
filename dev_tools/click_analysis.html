@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>点击分布对照分析</title>
+<style>
+  /* 极简样式：无外部依赖，本地 file:// 直接打开 */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  /* 双主题：body.theme-dark（默认）/ body.theme-light，JS 切换类名 */
+  body.theme-dark { background: #1e1e1e; color: #d4d4d4; }
+  body.theme-light { background: #ffffff; color: #333; }
+  body { font-family: "Microsoft YaHei", sans-serif; padding: 16px; }
+  h1 { font-size: 18px; margin-bottom: 4px; }
+  .hint { font-size: 12px; color: #888; margin-bottom: 12px; }
+  .toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  .toolbar label { font-size: 13px; }
+  .charts { display: flex; flex-wrap: wrap; gap: 16px; }
+  .theme-dark .card { background: #252526; border: 1px solid #3c3c3c; }
+  .theme-light .card { background: #fafafa; border: 1px solid #ddd; }
+  .card { border-radius: 6px; padding: 10px; }
+  .theme-dark .card h2 { color: #9cdcfe; }
+  .theme-light .card h2 { color: #1a6fb5; }
+  .card h2 { font-size: 14px; margin-bottom: 6px; }
+  .theme-dark .card canvas { background: #141414; }
+  .theme-light .card canvas { background: #ffffff; }
+  .card canvas { display: block; image-rendering: auto; }
+  .legend { font-size: 12px; margin-top: 6px; }
+  .legend .item { display: inline-flex; align-items: center; gap: 4px; margin-right: 12px; cursor: pointer; }
+  .legend .swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  .legend .item.off { opacity: 0.35; }
+  .theme-dark .stats { color: #aaa; }
+  .theme-light .stats { color: #666; }
+  .stats { font-size: 12px; margin-top: 6px; white-space: pre; }
+  /* 标签页：四图分开显示，点哪个显示哪个；隐藏的图 display:none 不占布局 */
+  .tabs { display: flex; gap: 4px; margin-bottom: 8px; }
+  .theme-dark .tabs button { background: #2d2d2d; color: #bbb; border: 1px solid #3c3c3c; }
+  .theme-light .tabs button { background: #eee; color: #555; border: 1px solid #ccc; }
+  .theme-dark .tabs button.active { background: #252526; color: #9cdcfe; border-bottom-color: #252526; }
+  .theme-light .tabs button.active { background: #fafafa; color: #1a6fb5; border-bottom-color: #fafafa; }
+  .tabs button { border-radius: 4px 4px 0 0; padding: 6px 14px; cursor: pointer; font-size: 13px; }
+  .card.hidden { display: none; }
+</style>
+</head>
+<body class="theme-dark">
+<h1>点击分布对照分析（720p 授权空间）</h1>
+<div class="hint">选择若干 jsonl（手动采集 / 脚本提取），散点与热力图叠加对比、间隔直方图并列。点击图例可显隐数据集。</div>
+
+<div class="toolbar">
+  <input type="file" id="fileInput" multiple accept=".jsonl">
+  <label>主题
+    <select id="themeSelect">
+      <option value="dark" selected>深色</option>
+      <option value="light">白色</option>
+    </select>
+  </label>
+  <label>点大小 <input type="range" id="pointSize" min="1" max="4" step="0.5" value="1"> <span id="pointSizeVal">1</span>px</label>
+  <label>热力图网格 <input type="range" id="gridSize" min="16" max="64" step="8" value="32"> <span id="gridSizeVal">32</span>px</label>
+  <label>间隔轴上限 <input type="range" id="intervalMax" min="1" max="60" step="1" value="20"> <span id="intervalMaxVal">20</span>s</label>
+  <label>距离轴上限 <input type="range" id="centroidMax" min="50" max="800" step="50" value="400"> <span id="centroidMaxVal">400</span>px</label>
+</div>
+
+<div class="legend" id="legend"></div>
+
+<div class="tabs" id="tabs">
+  <button data-tab="scatter" class="active">点击散点叠加</button>
+  <button data-tab="heatmap">热力图</button>
+  <button data-tab="interval">点击间隔直方图</button>
+  <button data-tab="centroid">距质心距离分布</button>
+</div>
+
+<div class="charts">
+  <div class="card" id="card-scatter">
+    <h2>点击散点叠加</h2>
+    <canvas id="scatter" width="640" height="360"></canvas>
+  </div>
+  <div class="card hidden" id="card-heatmap">
+    <h2>热力图（当前数据集合计）</h2>
+    <canvas id="heatmap" width="640" height="360"></canvas>
+  </div>
+  <div class="card hidden" id="card-interval">
+    <h2>点击间隔直方图</h2>
+    <canvas id="interval" width="640" height="360"></canvas>
+  </div>
+  <div class="card hidden" id="card-centroid">
+    <h2>距质心距离分布</h2>
+    <canvas id="centroid" width="640" height="360"></canvas>
+  </div>
+</div>
+<div class="stats" id="stats"></div>
+
+<script>
+'use strict';
+// ---------------------------------------------------------------- 数据集
+// 每份 jsonl 一个数据集：{name, visible, color, events:[{ts,x,y,source,window}]}
+const datasets = [];
+// 双主题调色板：深色主题用亮色点、白色主题用深色点，保证各自背景上高对比
+const PALETTE_DARK = ['#e6194b', '#4363d8', '#f58231', '#3cb44b', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c'];
+const PALETTE_LIGHT = ['#c0392b', '#1f3a93', '#b9770e', '#1e8449', '#6c3483', '#00838f', '#ad1457', '#5d6d7e'];
+// 当前主题（'dark' | 'light'），切换时重算所有数据集颜色并重绘
+let theme = 'dark';
+function currentPalette() {
+  return theme === 'dark' ? PALETTE_DARK : PALETTE_LIGHT;
+}
+
+function addDataset(name, events) {
+  const ds = { name, events, visible: true, color: currentPalette()[datasets.length % 8] };
+  datasets.push(ds);
+  renderAll();
+}
+
+// ---------------------------------------------------------------- 文件加载
+document.getElementById('fileInput').addEventListener('change', e => {
+  for (const file of e.target.files) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const events = [];
+      for (const line of reader.result.split('\n')) {
+        const t = line.trim();
+        if (!t) continue;
+        try { events.push(JSON.parse(t)); } catch (err) { console.warn('坏行忽略', err); }
+      }
+      addDataset(file.name, events);
+    };
+    reader.readAsText(file, 'utf-8');
+  }
+});
+
+// 拖拽支持：拖 jsonl 到页面即加载
+document.body.addEventListener('dragover', e => e.preventDefault());
+document.body.addEventListener('drop', e => {
+  e.preventDefault();
+  for (const file of e.dataTransfer.files) {
+    if (!file.name.endsWith('.jsonl')) continue;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const events = reader.result.split('\n').filter(t => t.trim()).map(t => JSON.parse(t));
+      addDataset(file.name, events);
+    };
+    reader.readAsText(file, 'utf-8');
+  }
+});
+
+// ---------------------------------------------------------------- 图例
+const legendEl = document.getElementById('legend');
+function renderLegend() {
+  legendEl.innerHTML = '';
+  for (const ds of datasets) {
+    const item = document.createElement('span');
+    item.className = 'item' + (ds.visible ? '' : ' off');
+    item.innerHTML = `<span class="swatch" style="background:${ds.color}"></span>${ds.name}（${ds.events.length}）`;
+    item.onclick = () => { ds.visible = !ds.visible; renderAll(); };
+    legendEl.appendChild(item);
+  }
+}
+
+// ---------------------------------------------------------------- 统计
+function activeEvents() {
+  return datasets.filter(ds => ds.visible).flatMap(ds => ds.events);
+}
+
+function renderStats() {
+  const el = document.getElementById('stats');
+  const lines = [];
+  for (const ds of datasets) {
+    if (!ds.visible || !ds.events.length) continue;
+    const xs = ds.events.map(e => e.x), ys = ds.events.map(e => e.y);
+    const cx = xs.reduce((a, b) => a + b, 0) / xs.length;
+    const cy = ys.reduce((a, b) => a + b, 0) / ys.length;
+    const dCentroid = Math.sqrt(xs.map((x, i) => (x - cx) ** 2 + (ys[i] - cy) ** 2)
+      .reduce((a, b) => a + b, 0) / xs.length);
+    const ts = ds.events.map(e => e.ts).sort((a, b) => a - b);
+    const intervals = ts.slice(1).map((t, i) => t - ts[i]);
+    const medInt = intervals.length ? intervals.sort((a, b) => a - b)[Math.floor(intervals.length / 2)] : 0;
+    const span = ts.length ? (ts[ts.length - 1] - ts[0]) / 1000 : 0;
+    lines.push(`${ds.name}  n=${ds.events.length}  时长=${span.toFixed(0)}s  质心=(${cx.toFixed(0)},${cy.toFixed(0)})  距质心均值=${dCentroid.toFixed(1)}px  间隔中位=${medInt}ms`);
+  }
+  el.textContent = lines.join('\n');
+}
+
+// ---------------------------------------------------------------- Canvas 绘图工具
+// 授权空间 1280×720 → 各图内部再缩放（scatter/heatmap: 0.5；直方图类: 自定）
+const BASE_W = 1280, BASE_H = 720;
+// 响应式 + HiDPI：CSS 尺寸跟随卡片可用宽度（窗口缩放时等比例变化），高度按
+// 基准宽高比（640×360 → 16:9）保持；canvas 内部像素 = CSS 尺寸 × 2（DPR 补偿，
+// 散点/热力图网格更锐利）。基准尺寸只在首次读 DOM 属性：设置 canvas.width 会
+// 同步改写属性，重复读会指数级放大——用 dataset 锁定基准幂等执行
+function setupHidpi(canvas) {
+  if (!canvas.dataset.baseW) {
+    canvas.dataset.baseW = parseInt(canvas.getAttribute('width'));
+    canvas.dataset.baseH = parseInt(canvas.getAttribute('height'));
+  }
+  const ratio = +canvas.dataset.baseH / +canvas.dataset.baseW;
+  // 可用宽度：卡片内容宽（卡片 padding 10px，canvas 为卡片最后一个块级子元素）
+  const avail = canvas.parentElement.clientWidth - 20;
+  // 上限为基准的 2 倍（1280px），下限 320px 防止小窗口时图缩没
+  const cssW = Math.max(320, Math.min(avail, +canvas.dataset.baseW * 2));
+  const cssH = Math.round(cssW * ratio);
+  canvas.style.width = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+  canvas.width = cssW * 2;
+  canvas.height = cssH * 2;
+}
+
+function clearCanvas(canvas) {
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  return ctx;
+}
+
+// ---------------------------------------------------------------- 散点图
+function renderScatter() {
+  const canvas = document.getElementById('scatter');
+  const ctx = clearCanvas(canvas);
+  const sx = canvas.width / BASE_W, sy = canvas.height / BASE_H;
+  for (const ds of datasets) {
+    if (!ds.visible) continue;
+    ctx.fillStyle = ds.color;
+    ctx.globalAlpha = 0.7;
+    // 设备像素级细点：canvas 内部尺寸放大 2 倍（DPR 补偿），点半径 1 逻辑像素
+    for (const e of ds.events) {
+      ctx.beginPath();
+      // 点大小可调（滑块 pointSize，单位：画布像素）：数据密集时调小分辨单点，
+      // 稀疏时调大看得清
+      const r = parseFloat(document.getElementById('pointSize').value);
+      ctx.arc(e.x * sx, e.y * sy, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ---------------------------------------------------------------- 热力图
+// 网格计数 -> 取计数 max 做归一 -> 透明度渐变上色（多数据集合计一张图）
+function renderHeatmap() {
+  const canvas = document.getElementById('heatmap');
+  const ctx = clearCanvas(canvas);
+  const grid = parseInt(document.getElementById('gridSize').value);
+  const sx = canvas.width / BASE_W, sy = canvas.height / BASE_H;
+  // 授权空间下的网格数（按画布像素网格近似即可：网格单位是画布像素）
+  const cols = Math.ceil(canvas.width / grid), rows = Math.ceil(canvas.height / grid);
+  const counts = new Float32Array(cols * rows);
+  for (const ds of datasets) {
+    if (!ds.visible) continue;
+    for (const e of ds.events) {
+      const c = Math.min(cols - 1, Math.floor(e.x * sx / grid));
+      const r = Math.min(rows - 1, Math.floor(e.y * sy / grid));
+      counts[r * cols + c] += 1;
+    }
+  }
+  let max = 0;
+  for (const v of counts) max = Math.max(max, v);
+  if (!max) return;
+  // 计数→热度：1 处弱、max 处饱和；色带从深蓝到红（近似 jet）
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const v = counts[r * cols + c];
+      if (!v) continue;
+      const t = Math.pow(v / max, 0.6); // 伽马提亮低计数区
+      const [rr, gg, bb] = jetColor(t);
+      ctx.fillStyle = `rgba(${rr},${gg},${bb},${0.25 + 0.75 * t})`;
+      ctx.fillRect(c * grid, r * grid, grid, grid);
+    }
+  }
+}
+
+// jet 色带近似：t∈[0,1] 蓝→青→黄→红
+function jetColor(t) {
+  const r = Math.round(255 * Math.min(1, Math.max(0, 1.5 - Math.abs(4 * t - 3))));
+  const g = Math.round(255 * Math.min(1, Math.max(0, 1.5 - Math.abs(4 * t - 2))));
+  const b = Math.round(255 * Math.min(1, Math.max(0, 1.5 - Math.abs(4 * t - 1))));
+  return [r, g, b];
+}
+
+// ---------------------------------------------------------------- 直方图（间隔 / 距质心）
+// 各数据集并列（offset 分组柱），对数计数更利于长尾观察
+function renderHistogram(canvasId, valueFn, xMax, xLabel) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = clearCanvas(canvas);
+  const active = datasets.filter(ds => ds.visible && ds.events.length > 1);
+  if (!active.length) return;
+  const BINS = 30;
+  const w = canvas.width, h = canvas.height;
+  const padL = 40, padB = 24, padT = 8;
+  const plotW = w - padL - 8, plotH = h - padB - padT;
+  const binW = plotW / BINS;
+  // 分组柱：同一 bin 内各数据集错开
+  const groupW = binW * 0.8 / active.length;
+
+  const bins = active.map(ds => {
+    const arr = new Float64Array(BINS);
+    for (const v of valueFn(ds)) {
+      const idx = Math.min(BINS - 1, Math.floor(v / xMax * BINS));
+      if (v >= 0) arr[idx] += 1;
+    }
+    return arr;
+  });
+  let maxCount = 0;
+  for (const arr of bins) for (const v of arr) maxCount = Math.max(maxCount, v);
+
+  // 坐标轴
+  // 轴与刻度颜色随主题：深色主题浅灰、白色主题深灰（对比度各自成立）
+  ctx.strokeStyle = theme === 'dark' ? '#666' : '#444';
+  ctx.fillStyle = theme === 'dark' ? '#888' : '#555';
+  ctx.font = '10px sans-serif';
+  ctx.beginPath();
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, h - padB); ctx.lineTo(w - 8, h - padB);
+  ctx.stroke();
+  // Y 轴刻度（对数刻度柱高：h = log(1+c)/log(1+max)）
+  for (let i = 0; i <= 3; i++) {
+    const c = maxCount * i / 3;
+    const y = h - padB - plotH * Math.log(1 + c) / Math.log(1 + maxCount);
+    ctx.fillText(Math.round(c), 4, y + 3);
+  }
+  // X 轴刻度
+  for (let i = 0; i <= 5; i++) {
+    const x = padL + plotW * i / 5;
+    ctx.fillText((xMax * i / 5) + xLabel, x - 12, h - 8);
+  }
+
+  active.forEach((ds, di) => {
+    ctx.fillStyle = ds.color;
+    for (let b = 0; b < BINS; b++) {
+      const c = bins[di][b];
+      if (!c) continue;
+      const bh = plotH * Math.log(1 + c) / Math.log(1 + maxCount);
+      ctx.fillRect(padL + b * binW + di * groupW, h - padB - bh, groupW * 0.9, bh);
+    }
+  });
+}
+
+function intervalsOf(ds) {
+  const ts = ds.events.map(e => e.ts).sort((a, b) => a - b);
+  return ts.slice(1).map((t, i) => t - ts[i]);
+}
+
+function centroidDistsOf(ds) {
+  const xs = ds.events.map(e => e.x), ys = ds.events.map(e => e.y);
+  const cx = xs.reduce((a, b) => a + b, 0) / xs.length;
+  const cy = ys.reduce((a, b) => a + b, 0) / ys.length;
+  return xs.map((x, i) => Math.hypot(x - cx, ys[i] - cy));
+}
+
+// ---------------------------------------------------------------- 标签页切换
+// 四图分开显示：点哪个显示哪个，其余 display:none 隐藏（不占布局，切换即重绘当前图）
+document.getElementById('tabs').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-tab]');
+  if (!btn) return;
+  for (const b of document.querySelectorAll('#tabs button')) {
+    b.classList.toggle('active', b === btn);
+  }
+  for (const card of document.querySelectorAll('.card')) {
+    card.classList.toggle('hidden', card.id !== 'card-' + btn.dataset.tab);
+  }
+});
+
+// ---------------------------------------------------------------- 总渲染
+function renderAll() {
+  // HiDPI 设置每次渲染前幂等执行（width 属性重读）
+  for (const id of ['scatter', 'heatmap', 'interval', 'centroid']) {
+    setupHidpi(document.getElementById(id));
+  }
+  renderLegend();
+  renderScatter();
+  renderHeatmap();
+  // X 轴上限从滑块读（可调）：间隔图单位秒、距离图单位 px
+  const xMaxMs = parseFloat(document.getElementById('intervalMax').value) * 1000;
+  renderHistogram('interval', intervalsOf, xMaxMs, 's');
+  // 距质心距离：X 轴上限可调（720p 空间对角线 ~1469px）
+  const xMaxPx = parseFloat(document.getElementById('centroidMax').value);
+  renderHistogram('centroid', centroidDistsOf, xMaxPx, 'px');
+  renderStats();
+}
+
+// 窗口尺寸变化时重算 CSS 尺寸并重绘（节流 100ms，拖拽窗口不狂刷）
+window.addEventListener('resize', () => {
+  clearTimeout(window._resizeTimer);
+  window._resizeTimer = setTimeout(renderAll, 100);
+});
+
+// 主题切换：换 body 类名 + 重算各数据集颜色（已导入数据的序号不变，只换色）+ 重绘
+document.getElementById('themeSelect').addEventListener('change', e => {
+  theme = e.target.value;
+  document.body.className = 'theme-' + theme;
+  datasets.forEach((ds, i) => { ds.color = currentPalette()[i % 8]; });
+  renderAll();
+});
+
+// 点大小滑块：只影响散点图，实时重绘
+document.getElementById('pointSize').addEventListener('input', e => {
+  document.getElementById('pointSizeVal').textContent = e.target.value;
+  renderScatter();
+});
+
+// 间隔轴上限滑块：拖动即重绘（值单位秒）
+document.getElementById('intervalMax').addEventListener('input', e => {
+  document.getElementById('intervalMaxVal').textContent = e.target.value;
+  renderHistogram('interval', intervalsOf, e.target.value * 1000, 's');
+});
+
+// 距离轴上限滑块：拖动即重绘（值单位 px）
+document.getElementById('centroidMax').addEventListener('input', e => {
+  document.getElementById('centroidMaxVal').textContent = e.target.value;
+  renderHistogram('centroid', centroidDistsOf, parseFloat(e.target.value), 'px');
+});
+
+// 网格滑块
+document.getElementById('gridSize').addEventListener('input', e => {
+  document.getElementById('gridSizeVal').textContent = e.target.value;
+  renderHeatmap();
+});
+</script>
+</body>
+</html>

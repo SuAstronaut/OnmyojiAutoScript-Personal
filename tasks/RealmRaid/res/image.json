@@ -1,0 +1,110 @@
+[
+  {
+    "itemName": "realm_raid",
+    "imageName": "realm_raid.png",
+    "roiFront": "261,638,44,40",
+    "roiBack": "246,628,63,64",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "点击结界突破的图片"
+  },
+  {
+    "itemName": "back_red",
+    "imageName": "res_back_red.png",
+    "roiFront": "1178,101,57,64",
+    "roiBack": "1178,101,57,64",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "右上角红色的关闭"
+  },
+  {
+    "itemName": "unlock",
+    "imageName": "unlock.png",
+    "roiFront": "821,581,22,38",
+    "roiBack": "809,564,51,72",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "没有锁的状态图标"
+  },
+  {
+    "itemName": "lock",
+    "imageName": "lock.png",
+    "roiFront": "820,581,27,38",
+    "roiBack": "808,572,60,77",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "以锁的状态图片"
+  },
+  {
+    "itemName": "fresh",
+    "imageName": "res_fresh.png",
+    "roiFront": "1006,581,80,36",
+    "roiBack": "957,564,182,66",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "刷新按钮"
+  },
+  {
+    "itemName": "fire",
+    "imageName": "res_fire.png",
+    "roiFront": "982,494,136,63",
+    "roiBack": "140,129,1024,584",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "进攻"
+  },
+  {
+    "itemName": "soul_raid",
+    "imageName": "res_soul_raid.png",
+    "roiFront": "577,502,100,100",
+    "roiBack": "577,502,100,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "打完个后出现的领取奖励"
+  },
+  {
+    "itemName": "fresh_ensure",
+    "imageName": "res_fresh_ensure.png",
+    "roiFront": "672,403,173,59",
+    "roiBack": "672,403,173,59",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "刷新确认"
+  },
+  {
+    "itemName": "medal",
+    "imageName": "res_medal.png",
+    "roiFront": "907,221,31,31",
+    "roiBack": "131,130,1021,437",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "勋章"
+  },
+  {
+    "itemName": "no_medal",
+    "imageName": "res_no_medal.png",
+    "roiFront": "1024,211,33,47",
+    "roiBack": "131,130,1021,437",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "空勋章"
+  },
+  {
+    "itemName": "finish_sign",
+    "imageName": "res_finish_sign.png",
+    "roiFront": "406,168,48,52",
+    "roiBack": "147,136,995,408",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "攻破的标志"
+  },
+  {
+    "itemName": "failure_sign",
+    "imageName": "res_failure_sign.png",
+    "roiFront": "1057,146,76,48",
+    "roiBack": "137,136,1006,415",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "失败的标志"
+  }
+]

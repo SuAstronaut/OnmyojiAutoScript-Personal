@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "m_picture",
+    "roiFront": "294,10,658,74",
+    "roiBack": "292,9,661,77",
+    "description": "description",
+    "imageName": "m_picture.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  }
+]

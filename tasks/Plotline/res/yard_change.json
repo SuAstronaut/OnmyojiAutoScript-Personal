@@ -1,0 +1,74 @@
+[
+  {
+    "itemName": "to_collet",
+    "imageName": "res_to_collet.png",
+    "roiFront": "99,603,48,46",
+    "roiBack": "20,575,1138,137",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "to_collet_2",
+    "imageName": "res_to_collet_2.png",
+    "roiFront": "852,659,55,46",
+    "roiBack": "447,437,760,283",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "to_main_change",
+    "imageName": "res_to_main_change.png",
+    "roiFront": "122,452,146,47",
+    "roiBack": "20,24,308,687",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "main_select",
+    "imageName": "res_main_select.png",
+    "roiFront": "883,506,146,47",
+    "roiBack": "729,52,470,635",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "flag_used",
+    "imageName": "res_flag_used.png",
+    "roiFront": "958,611,132,37",
+    "roiBack": "729,52,470,635",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "flag_not_use",
+    "imageName": "res_flag_not_use.png",
+    "roiFront": "999,609,132,37",
+    "roiBack": "729,52,470,635",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "swipe_start",
+    "imageName": "res_swipe_start.png",
+    "roiFront": "1169,269,44,46",
+    "roiBack": "1140,71,98,536",
+    "method": "Template matching",
+    "threshold": 0.65,
+    "description": ""
+  },
+  {
+    "itemName": "page_main_change",
+    "imageName": "res_page_main_change.png",
+    "roiFront": "328,100,155,39",
+    "roiBack": "301,45,323,118",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  }
+]

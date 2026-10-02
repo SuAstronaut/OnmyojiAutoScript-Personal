@@ -1,0 +1,14 @@
+[
+  {
+    "itemName": "to_account",
+    "roiFront": "21,27,72,63",
+    "roiBack": "21,27,72,63",
+    "description": "description"
+  },
+  {
+    "itemName": "net_click",
+    "roiFront": "191,219,187,296",
+    "roiBack": "190,218,190,299",
+    "description": "description"
+  }
+]

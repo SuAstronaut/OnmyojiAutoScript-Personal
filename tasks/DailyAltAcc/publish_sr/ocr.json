@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "check_count",
+    "roiFront": "690,356,53,31",
+    "roiBack": "0,0,100,100",
+    "description": "description",
+    "mode": "DIGIT",
+    "method": "Default",
+    "keyword": "99"
+  }
+]

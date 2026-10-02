@@ -1,0 +1,20 @@
+[
+  {
+    "itemName": "theme_1_scroll_close",
+    "imageName": "theme1_theme_1_scroll_close.png",
+    "roiFront": "1185,637,44,72",
+    "roiBack": "1129,604,151,116",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "拾光永恒关"
+  },
+  {
+    "itemName": "theme_1_scroll_open",
+    "imageName": "theme1_theme_1_scroll_open.png",
+    "roiFront": "1189,627,44,72",
+    "roiBack": "1129,604,151,116",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "拾光永恒开"
+  }
+]

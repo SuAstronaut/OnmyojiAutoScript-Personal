@@ -1,0 +1,236 @@
+[
+  {
+    "itemName": "utilize_add",
+    "imageName": "utilize_utilize_add.png",
+    "roiFront": "1149,54,74,67",
+    "roiBack": "1149,54,74,67",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "右上角的放置好友寄养"
+  },
+  {
+    "itemName": "utilize_friend_group",
+    "imageName": "utilize_utilize_friend_group.png",
+    "roiFront": "216,92,109,70",
+    "roiBack": "216,92,109,70",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "好友这组"
+  },
+  {
+    "itemName": "utilize_zones_group",
+    "imageName": "utilize_utilize_zones_group.png",
+    "roiFront": "337,92,109,66",
+    "roiBack": "337,92,109,66",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "跨区"
+  },
+  {
+    "itemName": "u_taiko_3",
+    "imageName": "utilize_u_taiko_3.png",
+    "roiFront": "548,424,47,44",
+    "roiBack": "541,183,75,398",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "u_taiko_4",
+    "imageName": "utilize_u_taiko_4.png",
+    "roiFront": "543,316,60,43",
+    "roiBack": "541,171,73,438",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "u_taiko_5",
+    "imageName": "utilize_u_taiko_5.png",
+    "roiFront": "543,201,62,54",
+    "roiBack": "538,179,79,426",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "u_taiko_6",
+    "imageName": "utilize_u_taiko_6.png",
+    "roiFront": "543,521,62,54",
+    "roiBack": "533,156,87,450",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "u_fish_3",
+    "imageName": "utilize_u_fish_3.png",
+    "roiFront": "552,216,41,33",
+    "roiBack": "543,178,69,412",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "u_fish_4",
+    "imageName": "utilize_u_fish_4.png",
+    "roiFront": "549,310,51,50",
+    "roiBack": "542,177,73,401",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "u_fish_5",
+    "imageName": "utilize_u_fish_5.png",
+    "roiFront": "543,412,62,54",
+    "roiBack": "541,183,71,403",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "u_fish_6",
+    "imageName": "utilize_u_fish_6.png",
+    "roiFront": "542,197,62,54",
+    "roiBack": "530,184,82,416",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "u_enter_realm",
+    "imageName": "utilize_u_enter_realm.png",
+    "roiFront": "792,531,178,67",
+    "roiBack": "792,531,178,67",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "进入结界"
+  },
+  {
+    "itemName": "u_big_3",
+    "imageName": "utilize_u_big_3.png",
+    "roiFront": "835,321,100,25",
+    "roiBack": "835,321,100,25",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "右侧大的图片"
+  },
+  {
+    "itemName": "u_big_4",
+    "imageName": "utilize_u_big_4.png",
+    "roiFront": "836,322,100,25",
+    "roiBack": "836,322,100,25",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "u_big_5",
+    "imageName": "utilize_u_big_5.png",
+    "roiFront": "834,320,100,26",
+    "roiBack": "834,320,100,26",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "u_big_6",
+    "imageName": "utilize_u_big_6.png",
+    "roiFront": "833,320,100,27",
+    "roiBack": "833,320,100,27",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "u_add_1",
+    "imageName": "utilize_u_add_1.png",
+    "roiFront": "1144,59,86,69",
+    "roiBack": "1144,59,86,69",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "右上，右数第一个"
+  },
+  {
+    "itemName": "u_add_2",
+    "imageName": "utilize_u_add_2.png",
+    "roiFront": "979,52,76,69",
+    "roiBack": "979,52,76,69",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "右上，右数第二个"
+  },
+  {
+    "itemName": "u_confirm_small",
+    "imageName": "utilize_u_confirm_small.png",
+    "roiFront": "672,513,131,60",
+    "roiBack": "672,513,131,60",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "select_realm_on_1",
+    "imageName": "select_realm_on_1.png",
+    "roiFront": "608,191,21,59",
+    "roiBack": "608,191,21,59",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "select_realm_on_2",
+    "imageName": "select_realm_on_2.png",
+    "roiFront": "606,298,21,59",
+    "roiBack": "606,298,21,59",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "select_realm_on_3",
+    "imageName": "select_realm_on_3.png",
+    "roiFront": "607,404,21,59",
+    "roiBack": "607,404,21,59",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "select_realm_on",
+    "imageName": "select_realm_on.png",
+    "roiFront": "609,253,22,39",
+    "roiBack": "227,139,415,474",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "serach_name",
+    "imageName": "utilize_serach_name.png",
+    "roiFront": "584,109,38,35",
+    "roiBack": "553,94,93,70",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "点击以显示或隐藏搜索栏"
+  },
+  {
+    "itemName": "serach_on",
+    "imageName": "utilize_serach_on.png",
+    "roiFront": "547,172,58,35",
+    "roiBack": "527,161,98,54",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "点击开始搜索"
+  },
+  {
+    "itemName": "name_delete",
+    "imageName": "utilize_name_delete.png",
+    "roiFront": "497,177,28,24",
+    "roiBack": "472,156,73,68",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "删除名字"
+  }
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "itemName": "realm_3_grown",
+    "roiFront": "610,305,24,53",
+    "roiBack": "610,305,24,53",
+    "description": "编心织忆进式神育成的点击区域（起点抄默认套，按实际截图调）"
+  },
+  {
+    "itemName": "realm_3_card",
+    "roiFront": "945,306,20,53",
+    "roiBack": "945,306,20,53",
+    "description": "编心织忆进结界卡的点击区域（起点抄默认套，按实际截图调）"
+  }
+]

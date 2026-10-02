@@ -1,0 +1,290 @@
+[
+  {
+    "itemName": "check_main",
+    "imageName": "page_check_main.png",
+    "roiFront": "1186,142,40,35",
+    "roiBack": "1166,122,80,75",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "庭院判据（右侧「活动」入口图标）。皮肤无关，故不列入 main_costume_model 的替换项"
+  },
+  {
+    "itemName": "main_buff",
+    "imageName": "page_main_buff.png",
+    "roiFront": "365,32,22,48",
+    "roiBack": "345,12,62,88",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "庭院判据的第二个锚点（左上「加成」按钮），兜住「活动」入口没开时的画面"
+  },
+  {
+    "itemName": "main_scroll_close",
+    "imageName": "page_main_scroll_close.png",
+    "roiFront": "1181,634,28,39",
+    "roiBack": "1162,595,77,112",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "庭院卷轴关闭标识"
+  },
+  {
+    "itemName": "main_goto_exploration",
+    "imageName": "page_main_goto_exploration.png",
+    "roiFront": "493,116,45,75",
+    "roiBack": "243,100,933,211",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "check_exploration",
+    "imageName": "check_exploration.png",
+    "roiFront": "1240,116,23,30",
+    "roiBack": "1219,99,53,65",
+    "method": "Template matching",
+    "threshold": 0.65,
+    "description": "description"
+  },
+  {
+    "itemName": "exploration_goto_awake_zone",
+    "imageName": "exploration_goto_awake_zone.png",
+    "roiFront": "67,639,47,46",
+    "roiBack": "56,613,1067,102",
+    "method": "Template matching",
+    "threshold": 0.65,
+    "description": "探索前往觉醒"
+  },
+  {
+    "itemName": "exploration_goto_soul_zone",
+    "imageName": "exploration_goto_soul_zone.png",
+    "roiFront": "163,640,50,42",
+    "roiBack": "56,613,1067,102",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "探索前往御魂"
+  },
+  {
+    "itemName": "exploration_goto_realm_raid",
+    "imageName": "exploration_goto_realm_raid.png",
+    "roiFront": "256,636,50,44",
+    "roiBack": "56,613,1067,102",
+    "method": "Template matching",
+    "threshold": 0.65,
+    "description": "探索前往结界突破"
+  },
+  {
+    "itemName": "exploration_goto_goryou_realm",
+    "imageName": "exploration_goto_goryou_realm.png",
+    "roiFront": "358,635,44,50",
+    "roiBack": "56,613,1067,102",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "探索前往御灵"
+  },
+  {
+    "itemName": "exploration_goto_delegation",
+    "imageName": "exploration_goto_delegation.png",
+    "roiFront": "451,636,47,42",
+    "roiBack": "56,613,1067,102",
+    "method": "Template matching",
+    "threshold": 0.65,
+    "description": "探索前往式神委派"
+  },
+  {
+    "itemName": "exploration_goto_secret_zones",
+    "imageName": "exploration_goto_secret_zones.png",
+    "roiFront": "549,635,46,47",
+    "roiBack": "56,613,1067,102",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "探索前往秘闻"
+  },
+  {
+    "itemName": "exploration_goto_area_boss",
+    "imageName": "exploration_goto_area_boss.png",
+    "roiFront": "644,639,44,47",
+    "roiBack": "56,613,1067,102",
+    "method": "Template matching",
+    "threshold": 0.65,
+    "description": "探索前往地域鬼王"
+  },
+  {
+    "itemName": "exploration_goto_heian_kitan",
+    "imageName": "page_exploration_goto_heian_kitan.png",
+    "roiFront": "739,643,52,44",
+    "roiBack": "56,613,1067,102",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "探索前往平安奇谭"
+  },
+  {
+    "itemName": "exploration_goto_six_gates",
+    "imageName": "exploration_goto_six_gates.png",
+    "roiFront": "930,631,50,52",
+    "roiBack": "56,613,1067,102",
+    "method": "Template matching",
+    "threshold": 0.65,
+    "description": "探索前往六道之门"
+  },
+  {
+    "itemName": "exploration_goto_bondling_fairyland",
+    "imageName": "exploration_goto_bondling_fairyland.png",
+    "roiFront": "1021,631,54,50",
+    "roiBack": "56,613,1067,102",
+    "method": "Template matching",
+    "threshold": 0.65,
+    "description": "探索前往契灵之境"
+  },
+  {
+    "itemName": "back_blue",
+    "imageName": "page_back_blue.png",
+    "roiFront": "32,37,54,52",
+    "roiBack": "3,2,130,114",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "check_awake",
+    "imageName": "check_awake.png",
+    "roiFront": "147,15,141,43",
+    "roiBack": "23,6,356,81",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "check_soul_zones",
+    "imageName": "check_soul_zones.png",
+    "roiFront": "141,10,89,51",
+    "roiBack": "42,7,264,84",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "check_realm_raid",
+    "imageName": "check_realm_raid.png",
+    "roiFront": "129,632,52,48",
+    "roiBack": "66,526,233,188",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "check_goryou",
+    "imageName": "check_goryou.png",
+    "roiFront": "149,13,138,47",
+    "roiBack": "141,6,155,66",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "check_delegation",
+    "imageName": "page_check_delegation.png",
+    "roiFront": "839,132,49,45",
+    "roiBack": "839,132,49,45",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "check_secret_zones",
+    "imageName": "page_check_secret_zones.png",
+    "roiFront": "1145,592,110,119",
+    "roiBack": "1145,592,110,119",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "check_area_boss",
+    "imageName": "page_check_area_boss.png",
+    "roiFront": "20,320,150,130",
+    "roiBack": "20,320,150,130",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "check_heian_kitan",
+    "imageName": "page_check_heian_kitan.png",
+    "roiFront": "27,48,47,39",
+    "roiBack": "27,48,47,39",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "check_six_gates",
+    "imageName": "page_check_six_gates.png",
+    "roiFront": "1174,621,55,44",
+    "roiBack": "1174,621,55,44",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "check_bondling_fairyland",
+    "imageName": "check_bondling_fairyland.png",
+    "roiFront": "62,632,39,39",
+    "roiBack": "29,600,108,102",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "six_gates_goto_exploration",
+    "imageName": "page_six_gates_goto_exploration.png",
+    "roiFront": "18,19,52,55",
+    "roiBack": "18,19,52,55",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "bondling_goto_exploration",
+    "imageName": "page_bondling_goto_exploration.png",
+    "roiFront": "20,13,60,59",
+    "roiBack": "20,13,60,59",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "ryoutoppa_goto_realmraid",
+    "imageName": "page_ryoutoppa_goto_realmraid.png",
+    "roiFront": "1201,234,62,105",
+    "roiBack": "1201,234,62,105",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "exploration_goto_youki",
+    "imageName": "exploration_goto_youki.png",
+    "roiFront": "734,639,52,40",
+    "roiBack": "56,613,1067,102",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "check_youki",
+    "imageName": "check_youki.png",
+    "roiFront": "153,18,128,39",
+    "roiBack": "141,5,155,68",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "check_yard",
+    "imageName": "page_check_yard.png",
+    "roiFront": "42,35,35,40",
+    "roiBack": "0,6,172,120",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  }
+]

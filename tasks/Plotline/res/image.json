@@ -1,0 +1,461 @@
+[
+  {
+    "itemName": "click_dialogue_1",
+    "imageName": "click_dialogue_1.png",
+    "roiFront": "651,165,26,18",
+    "roiBack": "0,0,1280,720",
+    "method": "Template matching",
+    "threshold": 0.85,
+    "description": "description"
+  },
+  {
+    "itemName": "click_jump",
+    "imageName": "click_jump.png",
+    "roiFront": "846,559,51,29",
+    "roiBack": "0,0,1280,720",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "page_click_any",
+    "imageName": "page_click_any.png",
+    "roiFront": "374,211,541,28",
+    "roiBack": "0,0,1279,720",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "click_cursor",
+    "imageName": "click_cursor.png",
+    "roiFront": "640,617,23,31",
+    "roiBack": "0,0,1280,720",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "page_summon",
+    "imageName": "page_summon.png",
+    "roiFront": "381,89,77,85",
+    "roiBack": "255,66,834,556",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "click_summon",
+    "imageName": "click_summon.png",
+    "roiFront": "454,629,103,35",
+    "roiBack": "269,575,731,135",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "click_attack",
+    "imageName": "click_attack.png",
+    "roiFront": "620,200,16,21",
+    "roiBack": "0,0,1280,720",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "click_eye",
+    "imageName": "click_eye.png",
+    "roiFront": "596,126,83,63",
+    "roiBack": "0,0,1280,720",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "click_dialogue_2",
+    "imageName": "click_dialogue_2.png",
+    "roiFront": "603,274,18,33",
+    "roiBack": "0,0,1280,720",
+    "method": "Template matching",
+    "threshold": 0.85,
+    "description": "description"
+  },
+  {
+    "itemName": "click_speed_x2",
+    "imageName": "click_speed_x2.png",
+    "roiFront": "1193,41,41,34",
+    "roiBack": "925,13,325,111",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "click_speed_x1",
+    "imageName": "click_speed_x1.png",
+    "roiFront": "1194,41,38,35",
+    "roiBack": "997,11,257,127",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "click_to_auto",
+    "imageName": "click_to_auto.png",
+    "roiFront": "37,646,27,31",
+    "roiBack": "9,620,100,81",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "click_battle_speed_x1",
+    "imageName": "click_battle_speed_x1.png",
+    "roiFront": "114,605,26,23",
+    "roiBack": "99,589,62,57",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "click_auto",
+    "imageName": "click_auto.png",
+    "roiFront": "37,646,27,31",
+    "roiBack": "9,620,100,81",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "click_back_red",
+    "imageName": "click_back_red.png",
+    "roiFront": "1149,75,43,43",
+    "roiBack": "771,10,496,320",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "click_lv",
+    "imageName": "click_lv.png",
+    "roiFront": "854,244,25,22",
+    "roiBack": "704,134,387,374",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "click_to_exploration",
+    "imageName": "click_to_exploration.png",
+    "roiFront": "609,460,61,35",
+    "roiBack": "582,349,233,172",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "page_main",
+    "imageName": "page_main.png",
+    "roiFront": "370,37,19,39",
+    "roiBack": "18,19,507,94",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "click_to_privileges",
+    "imageName": "click_to_privileges.png",
+    "roiFront": "338,325,41,39",
+    "roiBack": "75,159,733,312",
+    "method": "Template matching",
+    "threshold": 0.65,
+    "description": "description"
+  },
+  {
+    "itemName": "page_privileges",
+    "imageName": "page_privileges.png",
+    "roiFront": "92,17,159,43",
+    "roiBack": "18,5,363,92",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "click_privileges_subpage",
+    "imageName": "click_privileges_subpage.png",
+    "roiFront": "50,332,108,43",
+    "roiBack": "11,108,181,391",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "subpage_privileges",
+    "imageName": "subpage_privileges.png",
+    "roiFront": "241,189,62,73",
+    "roiBack": "195,75,326,599",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "flag_lease",
+    "imageName": "flag_lease.png",
+    "roiFront": "338,248,67,18",
+    "roiBack": "320,181,298,92",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "flag_help",
+    "imageName": "flag_help.png",
+    "roiFront": "743,379,22,23",
+    "roiBack": "0,0,1280,720",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "flag_change",
+    "imageName": "flag_change.png",
+    "roiFront": "42,646,57,33",
+    "roiBack": "11,449,174,253",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "click_skill",
+    "imageName": "click_skill.png",
+    "roiFront": "1057,656,17,23",
+    "roiBack": "834,591,441,120",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "click_cv",
+    "imageName": "click_cv.png",
+    "roiFront": "264,116,29,17",
+    "roiBack": "0,0,1280,720",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "click_eye_2",
+    "imageName": "click_eye_2.png",
+    "roiFront": "599,108,87,35",
+    "roiBack": "0,0,1278,720",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "page_summon_2",
+    "imageName": "page_summon_2.png",
+    "roiFront": "645,571,180,35",
+    "roiBack": "321,519,666,187",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "page_privileges_2",
+    "imageName": "page_privileges_2.png",
+    "roiFront": "951,337,31,32",
+    "roiBack": "919,288,79,112",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "click_privileges_subpage_2",
+    "imageName": "click_privileges_subpage_2.png",
+    "roiFront": "58,353,92,30",
+    "roiBack": "19,115,193,468",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "page_skip",
+    "imageName": "page_skip.png",
+    "roiFront": "729,468,127,42",
+    "roiBack": "685,446,231,98",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "check_untick",
+    "imageName": "check_untick.png",
+    "roiFront": "425,402,27,34",
+    "roiBack": "344,374,196,77",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "check_tick",
+    "imageName": "check_tick.png",
+    "roiFront": "425,402,27,34",
+    "roiBack": "344,374,196,77",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "page_click_any2",
+    "imageName": "page_click_any2.png",
+    "roiFront": "162,415,34,37",
+    "roiBack": "0,0,1280,720",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "page_exp_battle",
+    "imageName": "page_exp_battle.png",
+    "roiFront": "1127,103,47,62",
+    "roiBack": "1056,61,180,164",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "flag_help2",
+    "imageName": "flag_help2.png",
+    "roiFront": "607,539,29,30",
+    "roiBack": "135,484,972,216",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "flag_on_field",
+    "imageName": "flag_on_field.png",
+    "roiFront": "650,515,26,23",
+    "roiBack": "628,488,79,154",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "click_battle",
+    "imageName": "click_battle.png",
+    "roiFront": "599,108,87,35",
+    "roiBack": "0,0,1280,720",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "click_jump2",
+    "imageName": "click_jump2.png",
+    "roiFront": "720,446,120,33",
+    "roiBack": "637,407,277,110",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "plotline_new_main_check",
+    "imageName": "plotline_new_main_check.png",
+    "roiFront": "1076,71,73,51",
+    "roiBack": "896,61,312,143",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "Plotline 新庭院 main 页面检测资源"
+  },
+  {
+    "itemName": "plotline_new_main_goto_exploration",
+    "imageName": "plotline_new_main_goto_exploration.png",
+    "roiFront": "656,142,37,63",
+    "roiBack": "305,106,725,211",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "Plotline 新庭院进入探索入口资源"
+  },
+  {
+    "itemName": "click_attack1",
+    "imageName": "click_attack1.png",
+    "roiFront": "694,112,33,14",
+    "roiBack": "0,0,1280,720",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "click_attack2",
+    "imageName": "click_attack2.png",
+    "roiFront": "712,111,30,14",
+    "roiBack": "0,0,1280,720",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "click_attack3",
+    "imageName": "click_attack3.png",
+    "roiFront": "577,111,33,19",
+    "roiBack": "0,0,1280,720",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "page_collet",
+    "imageName": "page_collet.png",
+    "roiFront": "103,609,41,38",
+    "roiBack": "18,577,936,130",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "plotline_old_main_check",
+    "imageName": "res_plotline_old_main_check.png",
+    "roiFront": "839,176,73,51",
+    "roiBack": "204,68,1007,482",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "旧庭院判断"
+  },
+  {
+    "itemName": "page_summon2",
+    "imageName": "res_page_summon2.png",
+    "roiFront": "381,89,77,85",
+    "roiBack": "255,66,834,556",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": ""
+  },
+  {
+    "itemName": "page_click_any3",
+    "imageName": "res_page_click_any3.png",
+    "roiFront": "562,666,152,30",
+    "roiBack": "242,604,771,111",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "plotline_new_main_check_2",
+    "imageName": "res_plotline_new_main_check_2.png",
+    "roiFront": "846,151,66,39",
+    "roiBack": "270,133,817,66",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "p_login_scrooll_close",
+    "imageName": "res_p_login_scrooll_close.png",
+    "roiFront": "1172,628,72,51",
+    "roiBack": "1085,587,195,133",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  }
+]

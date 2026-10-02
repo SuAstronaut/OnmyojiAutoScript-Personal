@@ -1,0 +1,29 @@
+[
+  {
+    "itemName": "ad_disappear",
+    "imageName": "additional_ad_disappear.png",
+    "roiFront": "412,405,37,40",
+    "roiBack": "412,405,37,40",
+    "method": "Template matching",
+    "threshold": 0.75,
+    "description": "description"
+  },
+  {
+    "itemName": "records_close",
+    "imageName": "additional_records_close.png",
+    "roiFront": "914,143,30,30",
+    "roiBack": "914,143,30,30",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "ad_disappear_2",
+    "roiFront": "414,397,41,42",
+    "roiBack": "383,378,91,73",
+    "description": "description",
+    "imageName": "ad_disappear_2.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  }
+]

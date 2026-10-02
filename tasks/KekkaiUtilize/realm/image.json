@@ -1,0 +1,146 @@
+[
+  {
+    "itemName": "shi_grown",
+    "imageName": "realm_shi_grown.png",
+    "roiFront": "595,291,35,38",
+    "roiBack": "530,220,202,267",
+    "method": "Template matching",
+    "threshold": 0.6,
+    "description": "育成"
+  },
+  {
+    "itemName": "shi_card",
+    "imageName": "realm_shi_card.png",
+    "roiFront": "891,300,31,55",
+    "roiBack": "823,210,252,297",
+    "method": "Template matching",
+    "threshold": 0.6,
+    "description": "结界卡"
+  },
+  {
+    "itemName": "shi_defense",
+    "imageName": "realm_shi_defense.png",
+    "roiFront": "303,308,34,52",
+    "roiBack": "178,209,261,274",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "card_exp",
+    "imageName": "realm_card_exp.png",
+    "roiFront": "889,151,57,54",
+    "roiBack": "829,33,231,257",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "收取经验（没有满的图）"
+  },
+  {
+    "itemName": "box_ap",
+    "imageName": "realm_box_ap.png",
+    "roiFront": "815,435,57,51",
+    "roiBack": "744,336,395,216",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "收取体力（没有满）"
+  },
+  {
+    "itemName": "box_exp",
+    "imageName": "realm_box_exp.png",
+    "roiFront": "893,440,42,45",
+    "roiBack": "677,106,561,603",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "收取盒子的经验（没有满）"
+  },
+  {
+    "itemName": "realm_shin",
+    "imageName": "realm_realm_shin.png",
+    "roiFront": "176,460,54,58",
+    "roiBack": "22,197,418,490",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "结界皮肤"
+  },
+  {
+    "itemName": "utilize_exp",
+    "imageName": "realm_utilize_exp.png",
+    "roiFront": "583,144,58,42",
+    "roiBack": "399,100,423,506",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "寄养别人的经验"
+  },
+  {
+    "itemName": "ap_extract",
+    "imageName": "realm_ap_extract.png",
+    "roiFront": "592,501,100,75",
+    "roiBack": "592,501,100,75",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "取出"
+  },
+  {
+    "itemName": "exp_extract",
+    "imageName": "realm_exp_extract.png",
+    "roiFront": "592,448,100,73",
+    "roiBack": "592,448,100,73",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "提取"
+  },
+  {
+    "itemName": "box_exp_max",
+    "imageName": "realm_box_exp_max.png",
+    "roiFront": "888,430,61,64",
+    "roiBack": "677,106,561,603",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "盒子经验满"
+  },
+  {
+    "itemName": "plant_tree_close",
+    "imageName": "realm_plant_tree_close.png",
+    "roiFront": "777,91,36,34",
+    "roiBack": "711,52,367,259",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "种树活动关闭标识"
+  },
+  {
+    "itemName": "plant_flower_ensure",
+    "imageName": "plant_flower_ensure.png",
+    "roiFront": "1167,576,46,55",
+    "roiBack": "951,391,325,317",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "plant_flower_ensure2",
+    "imageName": "plant_flower_ensure2.png",
+    "roiFront": "1085,171,31,31",
+    "roiBack": "939,55,318,253",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "plant_tree_close_2",
+    "imageName": "plant_tree_close_2.png",
+    "roiFront": "1022,71,34,35",
+    "roiBack": "704,31,398,312",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "realm_page",
+    "imageName": "realm_page.png",
+    "roiFront": "1154,279,60,41",
+    "roiBack": "1110,231,146,139",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "结界页面判据（默认皮肤 costume_realm_default；占位待采集）"
+  }
+]

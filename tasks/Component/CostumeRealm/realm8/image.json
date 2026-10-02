@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "realm_8_page",
+    "imageName": "realm8_realm_8_page.png",
+    "roiFront": "281,114,79,57",
+    "roiBack": "248,80,137,100",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "金鱼梦境结界页判据（起点抄默认套，按实际截图调）"
+  }
+]

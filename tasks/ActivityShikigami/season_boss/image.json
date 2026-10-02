@@ -1,0 +1,92 @@
+[
+  {
+    "itemName": "season_boss_mode_switch",
+    "imageName": "mode_switch.png",
+    "roiFront": "1164,538,32,28",
+    "roiBack": "1150,528,60,50",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "普通/注灵搜寻切换控件(搜寻按钮右上角小图标)"
+  },
+  {
+    "itemName": "season_boss_discover",
+    "imageName": "discover.png",
+    "roiFront": "1085,570,130,100",
+    "roiBack": "1070,556,160,130",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "普通搜寻按钮(单行「搜寻」)"
+  },
+  {
+    "itemName": "season_boss_discover_premium",
+    "imageName": "discover_premium.png",
+    "roiFront": "1085,570,130,100",
+    "roiBack": "1070,556,160,130",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "注灵搜寻按钮(双行「注灵/搜寻」)"
+  },
+  {
+    "itemName": "season_boss_locked",
+    "imageName": "locked.png",
+    "roiFront": "1125,607,34,34",
+    "roiBack": "1120,594,54,54",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "搜寻按钮上的锁图标(已搜到御灵未击败, 此时无法判断门票模式)"
+  },
+  {
+    "itemName": "season_boss_fight_free",
+    "imageName": "fight_free.png",
+    "roiFront": "1102,528,82,40",
+    "roiBack": "1085,512,120,72",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "继续挑战(不消耗道具, 只取首行「继续」区分)"
+  },
+  {
+    "itemName": "season_boss_fight_pay",
+    "imageName": "fight_pay.png",
+    "roiFront": "1102,528,82,40",
+    "roiBack": "1085,512,120,72",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "开启挑战(消耗道具, 只取首行「开启」区分)"
+  },
+  {
+    "itemName": "check_season_boss_monster",
+    "imageName": "check_monster.png",
+    "roiFront": "560,66,162,40",
+    "roiBack": "540,50,200,72",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "收服御灵页确认(标题「收服御灵」)"
+  },
+  {
+    "itemName": "season_boss_card",
+    "imageName": "card.png",
+    "roiFront": "230,62,64,52",
+    "roiBack": "215,50,95,80",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "左上角怪物卡片(取「自己发现」标签, 不随怪物品阶变化)"
+  },
+  {
+    "itemName": "season_boss_red_exit",
+    "imageName": "red_exit.png",
+    "roiFront": "1180,72,44,42",
+    "roiBack": "1165,58,75,70",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "收服页红色关闭按钮"
+  },
+  {
+    "itemName": "season_boss_shikigami_record",
+    "imageName": "shikigami_record.png",
+    "roiFront": "996,593,44,40",
+    "roiBack": "968,568,102,90",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "收服页底部「式神录」入口(狐面图标), 点击进入式神录切御魂"
+  }
+]

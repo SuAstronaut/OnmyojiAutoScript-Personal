@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "piece_flag",
+    "roiFront": "0,0,100,100",
+    "roiBack": "0,0,100,100",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "碎片数量"
+  }
+]

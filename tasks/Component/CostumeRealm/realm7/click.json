@@ -1,0 +1,14 @@
+[
+  {
+    "itemName": "realm_7_grown",
+    "roiFront": "639,319,24,53",
+    "roiBack": "639,319,24,53",
+    "description": "斗鱼之地进式神育成的点击区域（起点抄默认套，按实际截图调）"
+  },
+  {
+    "itemName": "realm_7_card",
+    "roiFront": "936,321,24,53",
+    "roiBack": "936,321,24,53",
+    "description": "斗鱼之地进结界卡的点击区域（起点抄默认套，按实际截图调）"
+  }
+]

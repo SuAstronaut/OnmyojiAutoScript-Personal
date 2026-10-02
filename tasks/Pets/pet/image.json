@@ -1,0 +1,173 @@
+[
+  {
+    "itemName": "pet_house",
+    "imageName": "pet_house.png",
+    "roiFront": "1012,414,56,25",
+    "roiBack": "672,387,603,180",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "宠物小屋"
+  },
+  {
+    "itemName": "pet_claw",
+    "imageName": "pet_pet_claw.png",
+    "roiFront": "1171,625,55,56",
+    "roiBack": "1171,625,55,56",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "爪印"
+  },
+  {
+    "itemName": "pet_happy",
+    "imageName": "pet_pet_happy.png",
+    "roiFront": "853,614,67,70",
+    "roiBack": "853,614,67,70",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "其乐融融"
+  },
+  {
+    "itemName": "pet_feast",
+    "imageName": "pet_pet_feast.png",
+    "roiFront": "849,624,69,49",
+    "roiBack": "849,624,69,49",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "快速喂养"
+  },
+  {
+    "itemName": "pet_play",
+    "imageName": "pet_pet_play.png",
+    "roiFront": "788,500,75,75",
+    "roiBack": "788,500,75,75",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "玩耍"
+  },
+  {
+    "itemName": "pet_feed",
+    "imageName": "pet_pet_feed.png",
+    "roiFront": "899,511,79,68",
+    "roiBack": "884,485,127,123",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "喂食"
+  },
+  {
+    "itemName": "pet_skip",
+    "imageName": "pet_pet_skip.png",
+    "roiFront": "1089,119,72,41",
+    "roiBack": "999,42,242,147",
+    "method": "Template matching",
+    "threshold": 0.65,
+    "description": "跳过"
+  },
+  {
+    "itemName": "pet_exit",
+    "imageName": "pet_pet_exit.png",
+    "roiFront": "37,24,39,39",
+    "roiBack": "7,6,102,81",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "退出"
+  },
+  {
+    "itemName": "pet_to_yard",
+    "imageName": "pet_to_yard.png",
+    "roiFront": "34,628,49,47",
+    "roiBack": "7,585,138,118",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "pet_yard",
+    "imageName": "pet_yard.png",
+    "roiFront": "17,633,65,77",
+    "roiBack": "3,560,144,151",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "pet_to_feed",
+    "imageName": "pet_to_feed.png",
+    "roiFront": "807,241,59,67",
+    "roiBack": "83,159,997,484",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "pet_sort",
+    "imageName": "pet_sort.png",
+    "roiFront": "382,95,54,34",
+    "roiBack": "260,85,213,59",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "pet_sort_reverse",
+    "imageName": "pet_sort_reverse.png",
+    "roiFront": "382,95,54,34",
+    "roiBack": "260,85,213,59",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "pet_find_food",
+    "imageName": "pet_find_food.png",
+    "roiFront": "383,192,46,37",
+    "roiBack": "181,148,361,140",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "pet_select_food",
+    "imageName": "pet_select_food.png",
+    "roiFront": "383,192,46,37",
+    "roiBack": "682,249,356,120",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "pet_ensure",
+    "imageName": "pet_ensure.png",
+    "roiFront": "799,569,128,37",
+    "roiBack": "757,539,219,96",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "pet_award",
+    "imageName": "pet_award.png",
+    "roiFront": "710,336,32,32",
+    "roiBack": "495,253,441,211",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "pet_flag_1",
+    "imageName": "pet_flag_1.png",
+    "roiFront": "335,544,63,20",
+    "roiBack": "290,502,152,111",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "pet_flag_2",
+    "imageName": "pet_flag_2.png",
+    "roiFront": "806,382,61,11",
+    "roiBack": "729,341,191,102",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  }
+]

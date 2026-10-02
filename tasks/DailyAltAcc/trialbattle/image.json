@@ -1,0 +1,74 @@
+[
+  {
+    "itemName": "trialbattle_stop_flag",
+    "imageName": "trialbattle_stop_flag.png",
+    "roiFront": "0,0,100,100",
+    "roiBack": "0,0,100,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "试炼战斗停止标志"
+  },
+  {
+    "itemName": "trialbattle_start",
+    "imageName": "trialbattle_start.png",
+    "roiFront": "280,443,49,35",
+    "roiBack": "118,389,259,241",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "to_trialbattle",
+    "imageName": "to_trialbattle.png",
+    "roiFront": "993,96,58,53",
+    "roiBack": "921,51,213,158",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "trialbattle_fire",
+    "imageName": "trialbattle_fire.png",
+    "roiFront": "1098,575,58,51",
+    "roiBack": "1026,492,197,180",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "trialbattle_end",
+    "imageName": "trialbattle_end.png",
+    "roiFront": "1004,433,103,27",
+    "roiBack": "994,580,245,130",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "to_trialbattle_2",
+    "imageName": "to_trialbattle_2.png",
+    "roiFront": "1005,434,100,26",
+    "roiBack": "905,403,298,103",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "trialbattle_back_red",
+    "imageName": "trialbattle_back_red.png",
+    "roiFront": "1036,220,41,39",
+    "roiBack": "975,185,130,123",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "trialbattle_start_2",
+    "imageName": "trialbattle_trialbattle_start_2.png",
+    "roiFront": "399,132,33,22",
+    "roiBack": "303,99,153,162",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "集结和传家宝共存特殊资源"
+  }
+]

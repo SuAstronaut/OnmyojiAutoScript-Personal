@@ -1,0 +1,26 @@
+[
+  {
+    "itemName": "r_toreceive_flag_click",
+    "roiFront": "1063,600,47,54",
+    "roiBack": "1062,598,50,57",
+    "description": "description"
+  },
+  {
+    "itemName": "r_toreceive_flag2_click",
+    "roiFront": "979,319,41,70",
+    "roiBack": "978,318,43,73",
+    "description": "description"
+  },
+  {
+    "itemName": "r_award_click",
+    "roiFront": "1016,110,89,444",
+    "roiBack": "1015,109,91,447",
+    "description": "description"
+  },
+  {
+    "itemName": "r_tosend_click",
+    "roiFront": "968,632,54,39",
+    "roiBack": "967,630,57,42",
+    "description": "description"
+  }
+]

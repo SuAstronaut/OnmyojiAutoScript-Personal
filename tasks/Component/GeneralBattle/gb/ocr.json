@@ -1,0 +1,47 @@
+[
+  {
+    "itemName": "battle_prepare",
+    "roiFront": "1122,546,92,51",
+    "roiBack": "1122,546,92,51",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "准备",
+    "description": "准备"
+  },
+  {
+    "itemName": "preset",
+    "roiFront": "20,620,60,80",
+    "roiBack": "20,620,60,80",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "预",
+    "description": "预设,部分场景预设按钮上的文字为'预设'+数字,导致点击preset失败"
+  },
+  {
+    "itemName": "preset_full",
+    "roiFront": "20,620,60,80",
+    "roiBack": "20,620,60,80",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "预设",
+    "description": "预设"
+  },
+  {
+    "itemName": "boss_mark",
+    "roiFront": "379,44,50,21",
+    "roiBack": "379,44,50,21",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "已标记",
+    "description": "已标记"
+  },
+  {
+    "itemName": "point_or_speed",
+    "roiFront": "106,598,42,33",
+    "roiBack": "1122,546,92,51",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "纸人是否运行×2 X2 x2都视为没有运行 其他纯数字0-200视为正在运行"
+  }
+]

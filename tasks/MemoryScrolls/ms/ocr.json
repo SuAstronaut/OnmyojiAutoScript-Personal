@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "number",
+    "roiFront": "393,584,100,43",
+    "roiBack": "383,569,121,72",
+    "mode": "Digit",
+    "method": "Default",
+    "keyword": "",
+    "description": "Ocr-description"
+  }
+]

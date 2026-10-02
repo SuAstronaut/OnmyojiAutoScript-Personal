@@ -1,0 +1,14 @@
+[
+  {
+    "itemName": "realm_8_grown",
+    "roiFront": "628,276,24,53",
+    "roiBack": "628,276,24,53",
+    "description": "金鱼梦境进式神育成的点击区域（起点抄默认套，按实际截图调）"
+  },
+  {
+    "itemName": "realm_8_card",
+    "roiFront": "978,281,24,53",
+    "roiBack": "978,281,24,53",
+    "description": "金鱼梦境进结界卡的点击区域（起点抄默认套，按实际截图调）"
+  }
+]

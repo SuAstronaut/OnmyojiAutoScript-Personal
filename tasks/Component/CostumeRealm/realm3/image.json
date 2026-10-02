@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "realm_3_page",
+    "imageName": "realm3_realm_3_page.png",
+    "roiFront": "803,102,99,60",
+    "roiBack": "785,58,146,139",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "编心织忆结界页判据（起点抄默认套，按实际截图调）"
+  }
+]

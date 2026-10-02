@@ -1,0 +1,13 @@
+  
+[
+  
+{
+    "itemName": "summon_back_y",
+    "roiFront": "102,17,135,47",
+    "roiBack": "33,25,35,35",
+    "description": "description",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "召唤活动"
+  }
+]

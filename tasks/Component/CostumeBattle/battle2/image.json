@@ -1,0 +1,38 @@
+[
+  {
+    "itemName": "local_2",
+    "imageName": "battle2_local_2.png",
+    "roiFront": "30,569,21,22",
+    "roiBack": "30,569,21,22",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "exit_2",
+    "imageName": "battle2_exit_2.png",
+    "roiFront": "17,16,35,34",
+    "roiBack": "17,16,35,34",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "friends_2",
+    "imageName": "battle2_friends_2.png",
+    "roiFront": "88,15,34,39",
+    "roiBack": "88,15,34,39",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "battle_info_2",
+    "imageName": "battle2_battle_info_2.png",
+    "roiFront": "230,12,37,39",
+    "roiBack": "210,1,148,72",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "战斗信息标识"
+  }
+]

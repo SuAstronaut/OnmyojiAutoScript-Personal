@@ -1,0 +1,92 @@
+[
+  {
+    "itemName": "m_main_to_mail",
+    "imageName": "mail_m_main_to_mail.png",
+    "roiFront": "1135,31,41,31",
+    "roiBack": "1114,3,82,89",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "邮件"
+  },
+  {
+    "itemName": "m_get_mail",
+    "imageName": "mail_m_get_mail.png",
+    "roiFront": "65,575,87,66",
+    "roiBack": "61,563,98,92",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "领取邮件"
+  },
+  {
+    "itemName": "m_page_get",
+    "imageName": "mail_m_page_get.png",
+    "roiFront": "554,48,195,51",
+    "roiBack": "539,33,225,88",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "m_ensure_get",
+    "imageName": "mail_m_ensure_get.png",
+    "roiFront": "737,553,76,40",
+    "roiBack": "698,550,151,52",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "m_award",
+    "imageName": "mail_m_award.png",
+    "roiFront": "476,193,328,42",
+    "roiBack": "381,100,551,178",
+    "method": "Template matching",
+    "threshold": "0.7",
+    "description": "奖励"
+  },
+  {
+    "itemName": "m_back_red",
+    "imageName": "mail_m_back_red.png",
+    "roiFront": "1152,91,49,47",
+    "roiBack": "1131,74,91,82",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "m_page_mail",
+    "imageName": "mail_m_page_mail.png",
+    "roiFront": "609,54,70,47",
+    "roiBack": "585,38,115,89",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "m_picture",
+    "roiFront": "507,51,260,66",
+    "roiBack": "449,22,388,101",
+    "description": "description",
+    "imageName": "m_picture.png",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "m_picture_refuse",
+    "roiFront": "469,408,109,43",
+    "roiBack": "412,375,224,105",
+    "description": "description",
+    "imageName": "m_picture_refuse.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "m_frame_back_red",
+    "roiFront": "1196,31,53,49",
+    "roiBack": "1165,13,102,86",
+    "description": "description",
+    "imageName": "mail_m_back_red.png",
+    "method": "Template matching",
+    "threshold": "0.7"
+  }
+]

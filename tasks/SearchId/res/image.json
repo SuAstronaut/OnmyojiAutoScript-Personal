@@ -1,0 +1,74 @@
+[
+  {
+    "itemName": "search_ensure",
+    "roiFront": "1053,25,63,34",
+    "roiBack": "1005,5,147,86",
+    "description": "description",
+    "imageName": "search_ensure.png",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "server_all",
+    "roiFront": "212,120,57,29",
+    "roiBack": "195,111,98,50",
+    "description": "description",
+    "imageName": "server_all.png",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "server_all_select",
+    "roiFront": "185,159,55,37",
+    "roiBack": "164,150,106,54",
+    "description": "description",
+    "imageName": "server_all_select.png",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "search_flag",
+    "roiFront": "1037,119,57,33",
+    "roiBack": "1002,106,124,53",
+    "description": "description",
+    "imageName": "search_flag.png",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "to_search",
+    "roiFront": "1208,297,34,69",
+    "roiBack": "1179,265,91,132",
+    "description": "description",
+    "imageName": "to_search.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "search_result",
+    "roiFront": "183,185,100,33",
+    "roiBack": "138,167,187,58",
+    "description": "description",
+    "imageName": "search_result.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "to_space",
+    "roiFront": "502,290,120,41",
+    "roiBack": "124,54,589,596",
+    "description": "description",
+    "imageName": "to_space.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "page_space",
+    "roiFront": "151,503,46,42",
+    "roiBack": "62,41,1153,656",
+    "description": "description",
+    "imageName": "page_space.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  }
+]

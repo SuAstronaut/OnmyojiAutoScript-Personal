@@ -1,0 +1,14 @@
+[
+  {
+    "itemName": "realm_grown",
+    "roiFront": "602,303,26,74",
+    "roiBack": "602,303,26,74",
+    "description": "进式神育成（2026-09-11 实机帧实测，见 Spec §4.2）"
+  },
+  {
+    "itemName": "realm_card",
+    "roiFront": "893,295,26,100",
+    "roiBack": "893,295,26,100",
+    "description": "进结界卡（2026-09-11 实机帧实测，见 Spec §4.2）"
+  }
+]

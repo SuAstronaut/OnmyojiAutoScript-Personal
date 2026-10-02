@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "realm_5_page",
+    "imageName": "realm5_realm_5_page.png",
+    "roiFront": "583,122,151,55",
+    "roiBack": "504,92,320,145",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "莲心梦乡结界页判据（起点抄默认套，按实际截图调）"
+  }
+]

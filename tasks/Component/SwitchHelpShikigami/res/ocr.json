@@ -1,0 +1,11 @@
+[
+ {
+  "itemName": "find_shikigami_help",
+  "roiFront": "228,605,874,87",
+  "roiBack": "0,0,100,100",
+  "mode": "Full",
+  "method": "Default",
+  "keyword": "15",
+  "description": "助战列表区域，OCR 定位援助式神卡的 N/15 协战次数标签"
+ }
+]

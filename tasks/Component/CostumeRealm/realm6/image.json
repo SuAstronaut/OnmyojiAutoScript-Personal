@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "realm_6_page",
+    "imageName": "realm6_realm_6_page.png",
+    "roiFront": "170,301,145,84",
+    "roiBack": "91,228,333,196",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "歌弈花坊结界页判据（起点抄默认套，按实际截图调）"
+  }
+]

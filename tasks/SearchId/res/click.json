@@ -1,0 +1,26 @@
+[
+  {
+    "itemName": "click_input",
+    "roiFront": "484,127,394,25",
+    "roiBack": "483,126,397,27",
+    "description": "description"
+  },
+  {
+    "itemName": "click_server",
+    "roiFront": "195,119,91,31",
+    "roiBack": "193,118,94,34",
+    "description": "description"
+  },
+  {
+    "itemName": "click_character",
+    "roiFront": "176,261,43,42",
+    "roiBack": "175,260,46,45",
+    "description": "description"
+  },
+  {
+    "itemName": "click_space_exit",
+    "roiFront": "1161,99,35,33",
+    "roiBack": "1159,98,38,35",
+    "description": "description"
+  }
+]

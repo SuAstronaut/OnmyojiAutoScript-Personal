@@ -1,0 +1,101 @@
+[
+  {
+    "itemName": "fire",
+    "roiFront": "1135,606,83,41",
+    "roiBack": "1135,588,85,91",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "挑战",
+    "description": "挑战"
+  },
+  {
+    "itemName": "remain_ap",
+    "roiFront": "593,14,71,31",
+    "roiBack": "590,12,70,34",
+    "mode": "DigitCounter",
+    "method": "Default",
+    "keyword": "",
+    "description": "体力的数量检测"
+  },
+  {
+    "itemName": "remain_pass",
+    "roiFront": "775,15,71,33",
+    "roiBack": "775,15,66,30",
+    "mode": "DigitCounter",
+    "method": "Default",
+    "keyword": "",
+    "description": "活动体力的剩余检测"
+  },
+  {
+    "itemName": "remain_buy",
+    "roiFront": "808,531,39,42",
+    "roiBack": "808,531,39,42",
+    "mode": "DigitCounter",
+    "method": "Default",
+    "keyword": "",
+    "description": "还有多少次购买体力的机会"
+  },
+  {
+    "itemName": "remain_pass2",
+    "roiFront": "750,17,88,29",
+    "roiBack": "750,17,88,29",
+    "mode": "Digit",
+    "method": "Default",
+    "keyword": "",
+    "description": "活动票数（没有百分比）"
+  },
+  {
+    "itemName": "remain_boss",
+    "roiFront": "1097,668,166,34",
+    "roiBack": "1080,656,192,56",
+    "mode": "DigitCounter",
+    "method": "Default",
+    "keyword": "",
+    "description": "boss剩余攻击次数"
+  },
+  {
+    "itemName": "remain_ap100",
+    "roiFront": "922,21,112,39",
+    "roiBack": "913,8,131,62",
+    "mode": "Digit",
+    "method": "Default",
+    "keyword": "",
+    "description": "100体活动门票检测"
+  },
+  {
+    "itemName": "enter_ap100",
+    "roiFront": "73,98,95,32",
+    "roiBack": "5,79,256,108",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "将魂试炼",
+    "description": "进入100体活动标识"
+  },
+  {
+    "itemName": "fire2",
+    "roiFront": "1127,590,96,50",
+    "roiBack": "1121,582,107,83",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "挑战",
+    "description": "description"
+  },
+  {
+    "itemName": "remain_x5",
+    "roiFront": "936,14,104,34",
+    "roiBack": "935,10,107,44",
+    "mode": "DigitCounter",
+    "method": "Default",
+    "keyword": "",
+    "description": "五倍券数量"
+  },
+  {
+    "itemName": "boss_score",
+    "roiFront": "955,113,274,46",
+    "roiBack": "955,113,274,46",
+    "mode": "Digit",
+    "method": "Default",
+    "keyword": "",
+    "description": "boss战斗当前成绩"
+  }
+]

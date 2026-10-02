@@ -1,0 +1,83 @@
+[
+  {
+    "itemName": "b_bondling_class",
+    "roiFront": "266,271,79,112",
+    "roiBack": "287,271,36,112",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "Ocr-description"
+  },
+  {
+    "itemName": "b_low_number",
+    "roiFront": "543,14,96,33",
+    "roiBack": "543,14,96,33",
+    "mode": "DigitCounter",
+    "method": "Default",
+    "keyword": "",
+    "description": "小盘子"
+  },
+  {
+    "itemName": "b_medium_number",
+    "roiFront": "734,19,99,25",
+    "roiBack": "734,19,99,25",
+    "mode": "DigitCounter",
+    "method": "Default",
+    "keyword": "",
+    "description": "中盘子"
+  },
+  {
+    "itemName": "b_high_number",
+    "roiFront": "928,17,94,30",
+    "roiBack": "928,17,94,30",
+    "mode": "DigitCounter",
+    "method": "Default",
+    "keyword": "",
+    "description": "大盘子"
+  },
+  {
+    "itemName": "b_stone_number",
+    "roiFront": "1135,16,78,32",
+    "roiBack": "1135,16,78,32",
+    "mode": "DigitCounter",
+    "method": "Default",
+    "keyword": "",
+    "description": "鸣契石"
+  },
+  {
+    "itemName": "b_summon_ball_number",
+    "roiFront": "546,540,100,45",
+    "roiBack": "546,540,100,45",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "召唤契灵数量"
+  },
+  {
+    "itemName": "b_ball_number",
+    "roiFront": "1186,666,65,26",
+    "roiBack": "1186,666,65,26",
+    "mode": "DigitCounter",
+    "method": "Default",
+    "keyword": "",
+    "description": "抓捕契灵剩余数量"
+  },
+  {
+    "itemName": "friend",
+    "roiFront": "357,89,100,54",
+    "roiBack": "357,89,100,54",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "好友邀请"
+  },
+  {
+    "itemName": "kuaqu",
+    "roiFront": "472,88,100,54",
+    "roiBack": "472,88,100,54",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "跨区邀请"
+  }
+]

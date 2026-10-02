@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "o_test_ocr",
+    "roiFront": "126,136,360,491",
+    "roiBack": "0,0,100,100",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "",
+    "description": "Ocr-description"
+  }
+]

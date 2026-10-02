@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "realm_1_page",
+    "imageName": "realm1_realm_1_page.png",
+    "roiFront": "731,103,54,64",
+    "roiBack": "668,57,146,139",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "鬼灵咒符结界页判据（起点抄默认套，按实际截图调）"
+  }
+]

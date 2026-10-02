@@ -1,0 +1,20 @@
+[
+  {
+    "itemName": "theme_2_scroll_close",
+    "imageName": "theme2_theme_2_scroll_close.png",
+    "roiFront": "1188,626,44,72",
+    "roiBack": "1129,604,151,116",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "新语明霄关"
+  },
+  {
+    "itemName": "theme_2_scroll_open",
+    "imageName": "theme2_theme_2_scroll_open.png",
+    "roiFront": "1201,620,44,72",
+    "roiBack": "1129,604,151,116",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "新语明霄开"
+  }
+]

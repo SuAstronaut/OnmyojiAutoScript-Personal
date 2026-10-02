@@ -1,0 +1,16 @@
+[
+  {
+    "itemName": "to_battle_swipe",
+    "roiFront": "916,614,47,11",
+    "roiBack": "67,324,36,157",
+    "description": "description",
+    "mode": "default"
+  },
+  {
+    "itemName": "find_task_guard",
+    "roiFront": "910,614,54,13",
+    "roiBack": "911,450,59,13",
+    "description": "description",
+    "mode": "default"
+  }
+]

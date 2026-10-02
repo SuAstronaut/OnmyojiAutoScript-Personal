@@ -1,0 +1,20 @@
+[
+  {
+    "itemName": "t_exit_success",
+    "roiFront": "1187,361,63,119",
+    "roiBack": "1185,360,66,122",
+    "description": "description"
+  },
+  {
+    "itemName": "t_exit_sign",
+    "roiFront": "851,95,38,30",
+    "roiBack": "850,94,41,33",
+    "description": "description"
+  },
+  {
+    "itemName": "t_tonormal",
+    "roiFront": "1132,137,74,47",
+    "roiBack": "1131,135,77,50",
+    "description": "description"
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "itemName": "fire_ap20",
+    "roiFront": "1137,587,90,50",
+    "roiBack": "1162,603,37,21",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "挑战",
+    "description": "AP20挑战按钮OCR"
+  },
+  {
+    "itemName": "remain_ap20",
+    "roiFront": "1109,670,151,30",
+    "roiBack": "0,0,0,0",
+    "mode": "DigitCounter",
+    "method": "Default",
+    "keyword": "",
+    "description": "AP20剩余攻击次数(格式: X/20)"
+  }
+]

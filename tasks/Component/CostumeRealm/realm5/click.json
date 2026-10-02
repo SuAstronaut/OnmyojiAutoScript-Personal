@@ -1,0 +1,14 @@
+[
+  {
+    "itemName": "realm_5_grown",
+    "roiFront": "649,351,24,53",
+    "roiBack": "649,351,24,53",
+    "description": "莲心梦乡进式神育成的点击区域（起点抄默认套，按实际截图调）"
+  },
+  {
+    "itemName": "realm_5_card",
+    "roiFront": "933,354,24,53",
+    "roiBack": "933,354,24,53",
+    "description": "莲心梦乡进结界卡的点击区域（起点抄默认套，按实际截图调）"
+  }
+]

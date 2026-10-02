@@ -1,0 +1,9 @@
+[
+    {
+        "itemName": "login_character_list_up",
+        "roiFront": "275,620,20,20",
+        "roiBack": "275,220,20,20",
+        "mode": "default",
+        "description": "角色列表向上滑动"
+    }
+]

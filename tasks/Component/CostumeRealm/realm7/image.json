@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "realm_7_page",
+    "imageName": "realm7_realm_7_page.png",
+    "roiFront": "1148,546,116,113",
+    "roiBack": "1109,504,171,177",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "斗鱼之地结界页判据（起点抄默认套，按实际截图调）"
+  }
+]

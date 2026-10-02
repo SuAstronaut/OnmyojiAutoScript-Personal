@@ -1,0 +1,16 @@
+[
+  {
+    "itemName": "sa_svr_swipe_left",
+    "roiFront": "595,576,57,22",
+    "roiBack": "587,287,54,26",
+    "mode": "default",
+    "description": "登录界面 服务器列表的手指向左滑动"
+  },
+  {
+    "itemName": "sa_account_list_up",
+    "roiFront": "697,537,28,9",
+    "roiBack": "676,290,33,9",
+    "mode": "default",
+    "description": "登录界面 账号列表的手指向上滑动"
+  }
+]

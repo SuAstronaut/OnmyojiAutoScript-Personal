@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "monopoly_remain_pass",
+    "roiFront": "1167,19,54,29",
+    "roiBack": "1141,11,86,38",
+    "description": "大富翁剩余次数 OCR",
+    "mode": "DigitCounter",
+    "method": "Default",
+    "keyword": ""
+  }
+]

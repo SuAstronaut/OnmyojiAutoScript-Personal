@@ -1,0 +1,51 @@
+[
+  {
+    "itemName": "click_cursor",
+    "roiFront": "0,0,20,20",
+    "roiBack": "0,0,20,20",
+    "description": "description"
+  },
+  {
+    "itemName": "click_lease",
+    "roiFront": "296,417,55,95",
+    "roiBack": "294,415,58,98",
+    "description": "description"
+  },
+  {
+    "itemName": "click_change",
+    "roiFront": "308,452,75,75",
+    "roiBack": "306,451,78,78",
+    "description": "description"
+  },
+  {
+    "itemName": "click_random_1",
+    "roiFront": "1013,645,29,42",
+    "roiBack": "1012,644,31,45",
+    "description": "description"
+  },
+  {
+    "itemName": "click_random_2",
+    "roiFront": "1110,641,27,47",
+    "roiBack": "1109,640,30,50",
+    "description": "description"
+  },
+  {
+    "itemName": "click_random_3",
+    "roiFront": "1203,642,27,46",
+    "roiBack": "1202,641,30,49",
+    "description": "description"
+  },
+  {
+    "itemName": "click_timeout",
+    "roiFront": "957,573,15,19",
+    "roiBack": "956,572,18,22",
+    "description": "description"
+  },
+  {
+    "itemName": "click_find_flag",
+    "roiFront": "51,545,76,56",
+    "roiBack": "50,544,79,59",
+    "description": "description",
+    "mode": "default"
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "itemName": "later_enter_check",
+    "roiFront": "928,16,48,35",
+    "roiBack": "928,16,48,35",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "检查是否迟到"
+  },
+  {
+    "itemName": "dialog_open_task",
+    "roiFront": "519,334,195,42",
+    "roiBack": "707,404,79,39",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "当前选择难度",
+    "description": ""
+  }
+]

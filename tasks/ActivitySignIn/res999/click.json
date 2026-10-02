@@ -1,0 +1,14 @@
+[
+  {
+    "itemName": "b_summon_flag",
+    "roiFront": "569,622,112,44",
+    "roiBack": "569,622,112,44",
+    "description": ""
+  },
+  {
+    "itemName": "b_select_pool",
+    "roiFront": "204,358,111,63",
+    "roiBack": "204,358,111,63",
+    "description": ""
+  }
+]

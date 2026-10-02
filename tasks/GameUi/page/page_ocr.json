@@ -1,0 +1,110 @@
+[
+  {
+    "itemName": "battle_auto",
+    "roiFront": "37,642,51,36",
+    "roiBack": "0,589,133,128",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "自动",
+    "description": "战斗界面自动标识"
+  },
+  {
+    "itemName": "battle_hand",
+    "roiFront": "35,644,52,34",
+    "roiBack": "0,589,136,129",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "手动",
+    "description": "战斗页面手动标志"
+  },
+  {
+    "itemName": "page_mall",
+    "roiFront": "654,654,67,33",
+    "roiBack": "674,631,17,25",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "商店",
+    "description": "description"
+  },
+  {
+    "itemName": "page_daily",
+    "roiFront": "759,654,81,30",
+    "roiBack": "786,628,18,30",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "合战",
+    "description": "description"
+  },
+  {
+    "itemName": "page_shikigami_records",
+    "roiFront": "1096,656,79,30",
+    "roiBack": "1115,622,19,26",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "式神录",
+    "description": "description"
+  },
+  {
+    "itemName": "page_onmyodo",
+    "roiFront": "983,653,84,33",
+    "roiBack": "1010,629,18,27",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "阴阳术",
+    "description": "description"
+  },
+  {
+    "itemName": "page_friends",
+    "roiFront": "885,656,59,31",
+    "roiBack": "897,634,17,22",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "好友",
+    "description": "description"
+  },
+  {
+    "itemName": "page_guild",
+    "roiFront": "531,656,83,30",
+    "roiBack": "560,620,15,29",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "阴阳寮",
+    "description": "description"
+  },
+  {
+    "itemName": "page_team",
+    "roiFront": "430,657,61,30",
+    "roiBack": "443,628,19,22",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "组队",
+    "description": "description"
+  },
+  {
+    "itemName": "page_collection",
+    "roiFront": "98,653,60,33",
+    "roiBack": "111,616,15,27",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "图鉴",
+    "description": "description"
+  },
+  {
+    "itemName": "page_travel",
+    "roiFront": "196,657,81,30",
+    "roiBack": "216,626,22,35",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "珍旅居",
+    "description": "description"
+  },
+  {
+    "itemName": "page_six_gates",
+    "roiFront": "0,0,100,100",
+    "roiBack": "0,0,100,100",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "六道之门",
+    "description": "description"
+  }
+]

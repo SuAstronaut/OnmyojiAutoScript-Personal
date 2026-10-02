@@ -1,0 +1,14 @@
+[
+  {
+    "itemName": "realm_2_grown",
+    "roiFront": "663,328,26,74",
+    "roiBack": "663,328,26,74",
+    "description": "狐梦之乡进式神育成的点击区域（起点抄默认套，按实际截图调）"
+  },
+  {
+    "itemName": "realm_2_card",
+    "roiFront": "945,334,21,79",
+    "roiBack": "945,334,21,79",
+    "description": "狐梦之乡进结界卡的点击区域（起点抄默认套，按实际截图调）"
+  }
+]

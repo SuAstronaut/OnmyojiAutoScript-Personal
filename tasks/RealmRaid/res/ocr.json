@@ -1,0 +1,20 @@
+[
+  {
+    "itemName": "number",
+    "roiFront": "1143,13,80,39",
+    "roiBack": "0,0,100,100",
+    "mode": "DigitCounter",
+    "method": "Default",
+    "keyword": "",
+    "description": "右上角 突破卷的数量"
+  },
+  {
+    "itemName": "text",
+    "roiFront": "1143,13,80,39",
+    "roiBack": "0,0,100,100",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "text"
+  }
+]

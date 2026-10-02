@@ -1,0 +1,335 @@
+[
+  {
+    "itemName": "a_to_main",
+    "imageName": "res999_a_to_main.png",
+    "roiFront": "1189,221,38,41",
+    "roiBack": "1143,120,124,472",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "前往石长姬领取"
+  },
+  {
+    "itemName": "b_to_main",
+    "imageName": "res999_b_to_main.png",
+    "roiFront": "1188,377,40,48",
+    "roiBack": "1143,120,124,472",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "前往十连十金领取"
+  },
+  {
+    "itemName": "a_skip",
+    "imageName": "res999_a_skip.png",
+    "roiFront": "1154,35,64,26",
+    "roiBack": "1127,19,117,80",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "跳过对话"
+  },
+  {
+    "itemName": "a_main",
+    "imageName": "res999_a_main.png",
+    "roiFront": "502,9,275,59",
+    "roiBack": "412,1,463,85",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "召唤界面"
+  },
+  {
+    "itemName": "a_skip_2",
+    "imageName": "res999_a_skip_2.png",
+    "roiFront": "1135,40,70,33",
+    "roiBack": "1101,12,150,87",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "跳过2"
+  },
+  {
+    "itemName": "a_skip_3",
+    "imageName": "res999_a_skip_3.png",
+    "roiFront": "1182,628,65,45",
+    "roiBack": "1121,609,150,87",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "跳过3"
+  },
+  {
+    "itemName": "b_to_main_2",
+    "imageName": "res999_b_to_main_2.png",
+    "roiFront": "706,505,103,118",
+    "roiBack": "665,458,181,210",
+    "method": "Template matching",
+    "threshold": 0.65,
+    "description": ""
+  },
+  {
+    "itemName": "b_select_pool",
+    "imageName": "res999_b_select_pool.png",
+    "roiFront": "853,598,98,44",
+    "roiBack": "809,570,190,99",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "b_select_pool_2",
+    "imageName": "res999_b_select_pool_2.png",
+    "roiFront": "299,602,100,39",
+    "roiBack": "255,572,190,99",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "b_ensure",
+    "imageName": "res999_b_ensure.png",
+    "roiFront": "585,598,100,39",
+    "roiBack": "540,569,190,99",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "b_main",
+    "imageName": "res999_b_main.png",
+    "roiFront": "148,14,131,47",
+    "roiBack": "102,2,216,86",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "b_summon",
+    "imageName": "res999_b_summon.png",
+    "roiFront": "609,570,90,71",
+    "roiBack": "552,558,190,99",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "b_page_summon",
+    "imageName": "res999_b_page_summon.png",
+    "roiFront": "358,79,78,87",
+    "roiBack": "330,52,170,145",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "b_cancel",
+    "imageName": "res999_b_cancel.png",
+    "roiFront": "962,657,34,31",
+    "roiBack": "919,634,124,76",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "b_skip",
+    "imageName": "res999_b_skip.png",
+    "roiFront": "1116,67,96,28",
+    "roiBack": "1091,39,152,83",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "b_summon_flag",
+    "imageName": "res999_b_summon_flag.png",
+    "roiFront": "1167,609,84,87",
+    "roiBack": "1125,543,155,177",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "b_summon_gold",
+    "imageName": "res999_b_summon_gold.png",
+    "roiFront": "518,654,41,30",
+    "roiBack": "302,479,676,241",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "b_summon_chip_get",
+    "imageName": "res999_b_summon_chip_get.png",
+    "roiFront": "599,490,122,37",
+    "roiBack": "546,470,229,76",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": ""
+  },
+  {
+    "itemName": "b_ensure_2",
+    "imageName": "res999_b_ensure_2.png",
+    "roiFront": "599,407,92,46",
+    "roiBack": "526,377,243,98",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "b_back_red",
+    "imageName": "res999_b_back_red.png",
+    "roiFront": "989,89,38,41",
+    "roiBack": "925,0,355,338",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "a_finish",
+    "imageName": "res999_a_finish.png",
+    "roiFront": "33,46,124,469",
+    "roiBack": "1,0,250,681",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "b_finish",
+    "imageName": "res999_b_finish.png",
+    "roiFront": "591,635,93,36",
+    "roiBack": "543,599,218,105",
+    "method": "Template matching",
+    "threshold": 0.85,
+    "description": ""
+  },
+  {
+    "itemName": "c_to_main",
+    "imageName": "res999_c_to_main.png",
+    "roiFront": "329,474,63,91",
+    "roiBack": "73,254,699,347",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "c_skip",
+    "imageName": "res999_c_skip.png",
+    "roiFront": "1153,34,68,28",
+    "roiBack": "1072,0,208,130",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "c_get",
+    "imageName": "res999_c_get.png",
+    "roiFront": "698,537,158,41",
+    "roiBack": "651,509,241,87",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "c_main",
+    "imageName": "res999_c_main.png",
+    "roiFront": "984,66,94,110",
+    "roiBack": "581,0,699,347",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "c_to_main_2",
+    "imageName": "res999_c_to_main_2.png",
+    "roiFront": "809,53,45,44",
+    "roiBack": "673,25,296,197",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "d_to_main",
+    "imageName": "res999_d_to_main.png",
+    "roiFront": "1187,216,45,44",
+    "roiBack": "1143,120,124,472",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "d_to_get",
+    "imageName": "res999_d_to_get.png",
+    "roiFront": "1071,654,142,40",
+    "roiBack": "1024,639,237,76",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "d_get",
+    "imageName": "res999_d_get.png",
+    "roiFront": "1017,480,85,93",
+    "roiBack": "968,445,181,178",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "d_main",
+    "imageName": "res999_d_main.png",
+    "roiFront": "1089,650,104,45",
+    "roiBack": "1024,607,238,113",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "e_to_main",
+    "imageName": "res999_e_to_main.png",
+    "roiFront": "1182,297,45,44",
+    "roiBack": "1143,120,124,472",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "e_to_share",
+    "imageName": "res999_e_to_share.png",
+    "roiFront": "1178,598,50,68",
+    "roiBack": "1101,524,169,196",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "e_wechat_share",
+    "imageName": "res999_e_wechat_share.png",
+    "roiFront": "324,641,58,50",
+    "roiBack": "205,568,790,152",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "e_wechat_success",
+    "imageName": "res999_e_wechat_success.png",
+    "roiFront": "517,492,261,30",
+    "roiBack": "449,346,418,269",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "e_main",
+    "imageName": "res999_e_main.png",
+    "roiFront": "1161,583,79,92",
+    "roiBack": "1020,519,260,201",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "d_to_main_2",
+    "imageName": "res999_d_to_main_2.png",
+    "roiFront": "598,343,135,113",
+    "roiBack": "369,106,588,485",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  }
+]

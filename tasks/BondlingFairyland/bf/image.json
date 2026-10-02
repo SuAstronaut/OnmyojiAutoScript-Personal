@@ -1,0 +1,110 @@
+[
+  {
+    "itemName": "bf_searsh",
+    "imageName": "bf_bf_searsh.png",
+    "roiFront": "1144,580,88,85",
+    "roiBack": "1102,531,176,188",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "探查按钮"
+  },
+  {
+    "itemName": "bf_lock",
+    "imageName": "bf_bf_lock.png",
+    "roiFront": "826,653,24,26",
+    "roiBack": "826,653,24,26",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "bf_unlock",
+    "imageName": "bf_bf_unlock.png",
+    "roiFront": "822,651,28,28",
+    "roiBack": "822,651,28,28",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "bf_store",
+    "imageName": "bf_store.png",
+    "roiFront": "268,628,50,47",
+    "roiBack": "233,600,116,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "bf_records",
+    "imageName": "bf_bf_records.png",
+    "roiFront": "1028,566,43,42",
+    "roiBack": "1028,566,43,42",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "点击式神录"
+  },
+  {
+    "itemName": "bf_local_1_azure_basan",
+    "imageName": "bf_bf_local_1_azure_basan.png",
+    "roiFront": "237,536,28,25",
+    "roiBack": "225,523,53,50",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "左边第一个球：截屏的时候是火灵"
+  },
+  {
+    "itemName": "bf_local_2_snowball",
+    "imageName": "bf_bf_local_2_snowball.png",
+    "roiFront": "418,490,24,25",
+    "roiBack": "406,475,53,50",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "第二个，茨球"
+  },
+  {
+    "itemName": "bf_local_3_little_kuro",
+    "imageName": "bf_bf_local_3_little_kuro.png",
+    "roiFront": "704,509,29,26",
+    "roiBack": "690,492,62,58",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "截图时是小黑"
+  },
+  {
+    "itemName": "bf_local_4_none",
+    "imageName": "bf_bf_local_4_none.png",
+    "roiFront": "911,488,26,25",
+    "roiBack": "899,468,53,56",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "bf_local_5_tomb_guard",
+    "imageName": "bf_bf_local_5_tomb_guard.png",
+    "roiFront": "1039,487,31,31",
+    "roiBack": "1026,481,56,51",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "镇墓兽"
+  },
+  {
+    "itemName": "bf_switch_ui",
+    "roiFront": "1175,338,31,45",
+    "roiBack": "1125,276,131,143",
+    "description": "切换新契灵页面",
+    "imageName": "bf_switch_ui.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "bf_switch_ui2",
+    "roiFront": "73,321,30,51",
+    "roiBack": "22,257,148,189",
+    "description": "切换原契灵页面",
+    "imageName": "bf_switch_ui2.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  }
+]

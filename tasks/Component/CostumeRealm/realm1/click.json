@@ -1,0 +1,14 @@
+[
+  {
+    "itemName": "realm_1_grown",
+    "roiFront": "626,296,26,74",
+    "roiBack": "626,296,26,74",
+    "description": "鬼灵咒符进式神育成的点击区域（起点抄默认套，按实际截图调）"
+  },
+  {
+    "itemName": "realm_1_card",
+    "roiFront": "930,290,24,70",
+    "roiBack": "930,290,24,70",
+    "description": "鬼灵咒符进结界卡的点击区域（起点抄默认套，按实际截图调）"
+  }
+]

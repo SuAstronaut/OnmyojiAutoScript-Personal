@@ -1,0 +1,65 @@
+[
+  {
+    "itemName": "eternity_sea",
+    "imageName": "eternity_sea.png",
+    "roiFront": "1171,83,56,244",
+    "roiBack": "1062,59,191,276",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "选择永生之海"
+  },
+  {
+    "itemName": "form_team",
+    "imageName": "form_team.png",
+    "roiFront": "967,605,84,48",
+    "roiBack": "919,550,162,154",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "组队"
+  },
+  {
+    "itemName": "eternity_sea_fire",
+    "imageName": "eternity_sea_fire.png",
+    "roiFront": "1145,599,88,38",
+    "roiBack": "1124,562,142,142",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "挑战"
+  },
+  {
+    "itemName": "eternitysea_unlock",
+    "imageName": "eternitysea_unlock.png",
+    "roiFront": "700,656,31,29",
+    "roiBack": "657,636,244,76",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "开锁"
+  },
+  {
+    "itemName": "neweternitysea_lock",
+    "imageName": "neweternitysea_lock.png",
+    "roiFront": "698,655,30,30",
+    "roiBack": "668,643,229,70",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "关锁"
+  },
+  {
+    "itemName": "pet_present",
+    "imageName": "res_pet_present.png",
+    "roiFront": "873,184,62,147",
+    "roiBack": "873,184,62,147",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "小小宠物，发现宝藏"
+  },
+  {
+    "itemName": "back_bottom",
+    "imageName": "res_back_bottom.png",
+    "roiFront": "1126,49,46,45",
+    "roiBack": "1126,49,46,45",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  }
+]

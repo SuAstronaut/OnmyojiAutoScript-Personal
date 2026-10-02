@@ -1,0 +1,9 @@
+[
+  {
+    "itemName": "ap20_swipe_left",
+    "roiFront": "917,308,49,25",
+    "roiBack": "1174,310,47,21",
+    "mode": "Default",
+    "description": "AP20入口列表向左滑动"
+  }
+]

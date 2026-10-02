@@ -1,0 +1,137 @@
+[
+  {
+    "itemName": "fp_access",
+    "imageName": "fp_fp_access.png",
+    "roiFront": "1178,168,43,34",
+    "roiBack": "1051,101,210,472",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "从庭院进入花车活动"
+  },
+  {
+    "itemName": "fp_getall0",
+    "imageName": "fp_fp_getall0.png",
+    "roiFront": "1153,287,65,56",
+    "roiBack": "1134,261,100,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "fp_getall1",
+    "imageName": "fp_fp_getall1.png",
+    "roiFront": "1198,555,53,54",
+    "roiBack": "1163,506,113,164",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "fp_batch",
+    "imageName": "fp_fp_batch.png",
+    "roiFront": "985,520,94,31",
+    "roiBack": "978,507,112,64",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "fp_batch_true",
+    "imageName": "fp_fp_batch_true.png",
+    "roiFront": "938,518,35,37",
+    "roiBack": "924,506,64,62",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "fp_batch_false",
+    "imageName": "fp_fp_batch_false.png",
+    "roiFront": "936,515,40,45",
+    "roiBack": "924,505,63,65",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "fp_tasks",
+    "imageName": "fp_fp_tasks.png",
+    "roiFront": "1175,617,79,76",
+    "roiBack": "1162,605,100,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "右下角的任务"
+  },
+  {
+    "itemName": "fp_upgrade",
+    "imageName": "fp_fp_upgrade.png",
+    "roiFront": "1086,74,116,49",
+    "roiBack": "1040,52,169,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "升级"
+  },
+  {
+    "itemName": "fp_red_close",
+    "imageName": "fp_fp_red_close.png",
+    "roiFront": "1170,109,43,44",
+    "roiBack": "1157,101,72,62",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "红色关闭"
+  },
+  {
+    "itemName": "toggle_button",
+    "imageName": "fp_toggle_button.png",
+    "roiFront": "1193,462,21,23",
+    "roiBack": "1116,127,150,377",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "寻找花车的切换按钮"
+  },
+  {
+    "itemName": "batch_selection",
+    "imageName": "fp_batch_selection.png",
+    "roiFront": "933,517,44,40",
+    "roiBack": "933,517,44,40",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "批量选择"
+  },
+  {
+    "itemName": "batch_selection_confirm",
+    "imageName": "fp_batch_selection_confirm.png",
+    "roiFront": "676,392,130,63",
+    "roiBack": "676,392,130,63",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "批量选择确认"
+  },
+  {
+    "itemName": "fp_gift_close",
+    "imageName": "fp_fp_gift_close.png",
+    "roiFront": "1056,96,36,38",
+    "roiBack": "1046,89,60,60",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "礼包关闭"
+  },
+  {
+    "itemName": "fp_gift_flag1",
+    "imageName": "fp_fp_gift_flag1.png",
+    "roiFront": "559,295,55,44",
+    "roiBack": "559,295,55,44",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "礼包类型1"
+  },
+  {
+    "itemName": "fp_gift_flag2",
+    "imageName": "fp_fp_gift_flag2.png",
+    "roiFront": "557,293,58,47",
+    "roiBack": "557,293,58,47",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "礼包类型2"
+  }
+]

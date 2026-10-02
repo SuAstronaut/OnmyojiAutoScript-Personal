@@ -1,0 +1,47 @@
+[
+  {
+    "itemName": "page_account",
+    "imageName": "cooperation_page_account.png",
+    "roiFront": "222,489,54,54",
+    "roiBack": "169,394,156,190",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "real_flag",
+    "imageName": "cooperation_real_flag_1.png",
+    "roiFront": "159,293,29,31",
+    "roiBack": "130,110,1022,508",
+    "method": "Template matching",
+    "threshold": 0.75,
+    "description": "现世协作的「享」标记；整块协作板批量搜索，槽位由 get_cooperation_info 按 x 归位"
+  },
+  {
+    "itemName": "normal_flag",
+    "imageName": "cooperation_normal_flag.png",
+    "roiFront": "154,288,34,33",
+    "roiBack": "130,110,1022,508",
+    "method": "Template matching",
+    "threshold": 0.75,
+    "description": "普通协作的「协」标记；与「享」同槽位互斥，同样整板批量搜索"
+  },
+  {
+    "itemName": "net_check",
+    "roiFront": "121,130,334,487",
+    "roiBack": "119,129,336,489",
+    "description": "description",
+    "imageName": "net_check.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "net_normal_flag",
+    "roiFront": "1020,328,27,31",
+    "roiBack": "129,110,1022,507",
+    "description": "description",
+    "imageName": "net_normal_flag.png",
+    "method": "Template matching",
+    "threshold": "0.7"
+  }
+]

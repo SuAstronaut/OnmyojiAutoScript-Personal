@@ -1,0 +1,110 @@
+[
+  {
+    "itemName": "to_tree",
+    "roiFront": "22,251,103,31",
+    "roiBack": "9,2,251,637",
+    "description": "description",
+    "imageName": "to_tree.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "to_planting",
+    "roiFront": "1176,627,53,62",
+    "roiBack": "1046,567,208,148",
+    "description": "description",
+    "imageName": "to_planting.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "planting",
+    "roiFront": "548,637,35,50",
+    "roiBack": "458,587,665,123",
+    "description": "description",
+    "imageName": "planting.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "donate_2",
+    "roiFront": "563,512,95,34",
+    "roiBack": "462,482,366,108",
+    "description": "description",
+    "imageName": "donate.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "get_flower",
+    "roiFront": "313,633,53,33",
+    "roiBack": "270,612,167,92",
+    "description": "description",
+    "imageName": "get_flower.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "buy_flower",
+    "roiFront": "341,281,116,33",
+    "roiBack": "292,118,264,479",
+    "description": "description",
+    "imageName": "buy_flower.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "to_buy",
+    "roiFront": "843,470,131,45",
+    "roiBack": "342,282,652,108",
+    "description": "description",
+    "imageName": "to_buy.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "flower",
+    "roiFront": "766,446,39,47",
+    "roiBack": "209,92,766,325",
+    "description": "description",
+    "imageName": "flower.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "click_max",
+    "roiFront": "765,447,42,39",
+    "roiBack": "386,338,503,286",
+    "description": "description",
+    "imageName": "click_max.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "click_buy",
+    "roiFront": "613,544,41,39",
+    "roiBack": "522,518,259,90",
+    "description": "description",
+    "imageName": "click_buy.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "tree_back_y",
+    "roiFront": "1021,73,34,42",
+    "roiBack": "947,47,174,154",
+    "description": "description",
+    "imageName": "tree_back_y.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "to_buy_disable",
+    "roiFront": "840,340,134,38",
+    "roiBack": "342,282,644,112",
+    "description": "description",
+    "imageName": "to_buy_disable.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  }
+]

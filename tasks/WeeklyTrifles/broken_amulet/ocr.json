@@ -1,0 +1,29 @@
+[
+  {
+    "itemName": "ba_amount_1",
+    "roiFront": "535,11,124,36",
+    "roiBack": "535,11,124,36",
+    "mode": "Digit",
+    "method": "Default",
+    "keyword": "",
+    "description": "左上角的数量"
+  },
+  {
+    "itemName": "ba_amount_2",
+    "roiFront": "762,570,125,35",
+    "roiBack": "762,570,125,35",
+    "mode": "DigitCounter",
+    "method": "Default",
+    "keyword": "",
+    "description": "召唤的时候的数量"
+  },
+  {
+    "itemName": "ba_times",
+    "roiFront": "741,564,174,44",
+    "roiBack": "0,0,100,100",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "",
+    "description": "破碎符咒召唤次数"
+  }
+]

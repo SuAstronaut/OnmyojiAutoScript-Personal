@@ -1,0 +1,632 @@
+[
+  {
+    "itemName": "sr_1",
+    "imageName": "sr_1.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_1"
+  },
+  {
+    "itemName": "sr_2",
+    "imageName": "sr_2.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_2"
+  },
+  {
+    "itemName": "sr_3",
+    "imageName": "sr_3.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_3"
+  },
+  {
+    "itemName": "sr_4",
+    "imageName": "sr_4.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_4"
+  },
+  {
+    "itemName": "sr_5",
+    "imageName": "sr_5.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_5"
+  },
+  {
+    "itemName": "sr_6",
+    "imageName": "sr_6.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_6"
+  },
+  {
+    "itemName": "sr_7",
+    "imageName": "sr_7.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_7"
+  },
+  {
+    "itemName": "sr_8",
+    "imageName": "sr_8.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_8"
+  },
+  {
+    "itemName": "sr_9",
+    "imageName": "sr_9.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_9"
+  },
+  {
+    "itemName": "sr_10",
+    "imageName": "sr_10.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_10"
+  },
+  {
+    "itemName": "sr_11",
+    "imageName": "sr_11.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_11"
+  },
+  {
+    "itemName": "sr_12",
+    "imageName": "sr_12.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_12"
+  },
+  {
+    "itemName": "sr_13",
+    "imageName": "sr_13.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_13"
+  },
+  {
+    "itemName": "sr_14",
+    "imageName": "sr_14.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_14"
+  },
+  {
+    "itemName": "sr_15",
+    "imageName": "sr_15.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_15"
+  },
+  {
+    "itemName": "sr_16",
+    "imageName": "sr_16.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_16"
+  },
+  {
+    "itemName": "sr_17",
+    "imageName": "sr_17.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_17"
+  },
+  {
+    "itemName": "sr_18",
+    "imageName": "sr_18.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_18"
+  },
+  {
+    "itemName": "sr_19",
+    "imageName": "sr_19.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_19"
+  },
+  {
+    "itemName": "sr_20",
+    "imageName": "sr_20.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_20"
+  },
+  {
+    "itemName": "sr_21",
+    "imageName": "sr_21.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_21"
+  },
+  {
+    "itemName": "sr_22",
+    "imageName": "sr_22.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_22"
+  },
+  {
+    "itemName": "sr_23",
+    "imageName": "sr_23.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_23"
+  },
+  {
+    "itemName": "sr_24",
+    "imageName": "sr_24.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_24"
+  },
+  {
+    "itemName": "sr_25",
+    "imageName": "sr_25.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_25"
+  },
+  {
+    "itemName": "sr_26",
+    "imageName": "sr_26.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_26"
+  },
+  {
+    "itemName": "sr_27",
+    "imageName": "sr_27.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_27"
+  },
+  {
+    "itemName": "sr_28",
+    "imageName": "sr_28.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_28"
+  },
+  {
+    "itemName": "sr_29",
+    "imageName": "sr_29.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_29"
+  },
+  {
+    "itemName": "sr_30",
+    "imageName": "sr_30.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_30"
+  },
+  {
+    "itemName": "sr_31",
+    "imageName": "sr_31.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_31"
+  },
+  {
+    "itemName": "sr_32",
+    "imageName": "sr_32.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_32"
+  },
+  {
+    "itemName": "sr_33",
+    "imageName": "sr_33.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_33"
+  },
+  {
+    "itemName": "sr_34",
+    "imageName": "sr_34.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_34"
+  },
+  {
+    "itemName": "sr_35",
+    "imageName": "sr_35.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_35"
+  },
+  {
+    "itemName": "sr_36",
+    "imageName": "sr_36.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_36"
+  },
+  {
+    "itemName": "sr_37",
+    "imageName": "sr_37.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_37"
+  },
+  {
+    "itemName": "sr_38",
+    "imageName": "sr_38.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_38"
+  },
+  {
+    "itemName": "sr_39",
+    "imageName": "sr_39.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_39"
+  },
+  {
+    "itemName": "sr_40",
+    "imageName": "sr_40.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_40"
+  },
+  {
+    "itemName": "sr_41",
+    "imageName": "sr_41.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_41"
+  },
+  {
+    "itemName": "sr_42",
+    "imageName": "sr_42.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_42"
+  },
+  {
+    "itemName": "sr_43",
+    "imageName": "sr_43.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_43"
+  },
+  {
+    "itemName": "sr_44",
+    "imageName": "sr_44.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_44"
+  },
+  {
+    "itemName": "sr_45",
+    "imageName": "sr_45.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_45"
+  },
+  {
+    "itemName": "sr_46",
+    "imageName": "sr_46.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_46"
+  },
+  {
+    "itemName": "sr_47",
+    "imageName": "sr_47.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_47"
+  },
+  {
+    "itemName": "sr_48",
+    "imageName": "sr_48.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_48"
+  },
+  {
+    "itemName": "sr_49",
+    "imageName": "sr_49.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_49"
+  },
+  {
+    "itemName": "sr_50",
+    "imageName": "sr_50.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_50"
+  },
+  {
+    "itemName": "sr_51",
+    "imageName": "sr_51.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_51"
+  },
+  {
+    "itemName": "sr_52",
+    "imageName": "sr_52.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_52"
+  },
+  {
+    "itemName": "sr_53",
+    "imageName": "sr_53.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_53"
+  },
+  {
+    "itemName": "sr_54",
+    "imageName": "sr_54.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_54"
+  },
+  {
+    "itemName": "sr_55",
+    "imageName": "sr_55.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_55"
+  },
+  {
+    "itemName": "sr_56",
+    "imageName": "sr_56.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_56"
+  },
+  {
+    "itemName": "sr_57",
+    "imageName": "sr_57.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_57"
+  },
+  {
+    "itemName": "sr_58",
+    "imageName": "sr_58.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_58"
+  },
+  {
+    "itemName": "sr_59",
+    "imageName": "sr_59.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_59"
+  },
+  {
+    "itemName": "sr_60",
+    "imageName": "sr_60.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_60"
+  },
+  {
+    "itemName": "sr_61",
+    "imageName": "sr_61.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_61"
+  },
+  {
+    "itemName": "sr_62",
+    "imageName": "sr_62.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_62"
+  },
+  {
+    "itemName": "sr_63",
+    "imageName": "sr_63.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_63"
+  },
+  {
+    "itemName": "sr_64",
+    "imageName": "sr_64.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_64"
+  },
+  {
+    "itemName": "sr_65",
+    "imageName": "sr_65.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_65"
+  },
+  {
+    "itemName": "sr_66",
+    "imageName": "sr_66.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_66"
+  },
+  {
+    "itemName": "sr_67",
+    "imageName": "sr_67.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_67"
+  },
+  {
+    "itemName": "sr_68",
+    "imageName": "sr_68.png",
+    "roiFront": "0,0,104,146",
+    "roiBack": "334,163,612,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "SR碎片模板sr_68"
+  },
+  {
+    "itemName": "page_piece",
+    "roiFront": "694,100,43,33",
+    "roiBack": "662,82,114,67",
+    "description": "description",
+    "imageName": "page_piece.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "to_page_piece",
+    "roiFront": "944,597,54,58",
+    "roiBack": "913,569,115,116",
+    "description": "description",
+    "imageName": "to_page_piece.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  }
+]

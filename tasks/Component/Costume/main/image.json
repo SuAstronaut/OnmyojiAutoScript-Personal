@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "check_main_default",
+    "imageName": "main_check_main_default.png",
+    "roiFront": "1043,107,73,44",
+    "roiBack": "49,65,1110,94",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "默认庭院的皮肤探针模板（出厂态的月亮+天空）。独立资产，不参与 main_costume_model 的替换"
+  }
+]

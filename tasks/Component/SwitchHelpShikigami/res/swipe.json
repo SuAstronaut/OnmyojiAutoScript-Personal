@@ -1,0 +1,9 @@
+[
+ {
+  "itemName": "swipe_shikigami",
+  "roiFront": "302,589,39,62",
+  "roiBack": "623,306,42,107",
+  "mode": "default",
+  "description": "把援助式神拖入出战位（roi_front 由 OCR 锚点动态改写）"
+ }
+]

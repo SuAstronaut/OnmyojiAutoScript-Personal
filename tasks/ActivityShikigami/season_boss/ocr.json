@@ -1,0 +1,47 @@
+[
+  {
+    "itemName": "season_boss_check_main",
+    "roiFront": "154,14,134,38",
+    "roiBack": "154,14,134,38",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "修行合训",
+    "description": "修行合训主页确认(标题, 固定元素)"
+  },
+  {
+    "itemName": "season_boss_remain_normal",
+    "roiFront": "950,17,66,31",
+    "roiBack": "965,17,45,28",
+    "mode": "Digit",
+    "method": "Default",
+    "keyword": "",
+    "description": "普通搜寻币剩余"
+  },
+  {
+    "itemName": "season_boss_remain_premium",
+    "roiFront": "1159,18,61,28",
+    "roiBack": "1181,18,30,24",
+    "mode": "Digit",
+    "method": "Default",
+    "keyword": "",
+    "description": "注灵搜寻币剩余"
+  },
+  {
+    "itemName": "season_boss_monster_name",
+    "roiFront": "356,190,46,175",
+    "roiBack": "355,210,45,135",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "中间界面竖排怪物名"
+  },
+  {
+    "itemName": "season_boss_rank",
+    "roiFront": "730,65,95,40",
+    "roiBack": "730,65,95,40",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "收服页品阶徽章"
+  }
+]

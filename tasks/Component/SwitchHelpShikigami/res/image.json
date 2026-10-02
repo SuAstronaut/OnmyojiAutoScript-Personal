@@ -1,0 +1,38 @@
+[
+ {
+  "itemName": "flag_change",
+  "imageName": "flag_change.png",
+  "roiFront": "42,646,57,33",
+  "roiBack": "11,449,174,253",
+  "method": "Template matching",
+  "threshold": 0.7,
+  "description": "助战列表未展开时的「更换」旗标"
+ },
+ {
+  "itemName": "flag_on_field",
+  "imageName": "flag_on_field.png",
+  "roiFront": "650,515,26,23",
+  "roiBack": "628,488,79,154",
+  "method": "Template matching",
+  "threshold": 0.7,
+  "description": "援助式神已上场标记（roi_back 由 OCR 锚点动态改写）"
+ },
+ {
+  "itemName": "friend_help",
+  "imageName": "friend_help.png",
+  "roiFront": "1205,541,38,71",
+  "roiBack": "1187,512,71,118",
+  "method": "Template matching",
+  "threshold": 0.8,
+  "description": "好友页「协战」页签"
+ },
+ {
+  "itemName": "friend_help_flag",
+  "imageName": "friend_help_flag.png",
+  "roiFront": "803,107,167,34",
+  "roiBack": "782,93,210,63",
+  "method": "Template matching",
+  "threshold": 0.8,
+  "description": "好友协战次数页标题（进入该页的判据）"
+ }
+]

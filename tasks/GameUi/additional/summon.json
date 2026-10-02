@@ -1,0 +1,29 @@
+[
+  {
+    "itemName": "summon_back_r",
+    "roiFront": "912,91,34,31",
+    "roiBack": "873,67,110,98",
+    "description": "description",
+    "imageName": "summon_back_r.png",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "summon_back_ticket",
+    "roiFront": "562,327,126,65",
+    "roiBack": "412,170,508,360",
+    "description": "description",
+    "imageName": "summon_back_ticket.png",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "favorability_up",
+    "roiFront": "460,127,356,38",
+    "roiBack": "265,86,688,154",
+    "description": "description",
+    "imageName": "favorability_up.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  }
+]

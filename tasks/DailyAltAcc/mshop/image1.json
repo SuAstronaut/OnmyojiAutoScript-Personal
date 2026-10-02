@@ -1,0 +1,65 @@
+[
+  {
+    "itemName": "ms_refresh",
+    "imageName": "mshop_ms_refresh.png",
+    "roiFront": "1172,589,103,31",
+    "roiBack": "1135,501,144,135",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "ms_ensure",
+    "imageName": "mshop_ms_ensure.png",
+    "roiFront": "718,408,81,43",
+    "roiBack": "684,404,155,56",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "ms_orochi_scale",
+    "imageName": "mshop_ms_orochi_scale.png",
+    "roiFront": "884,143,50,59",
+    "roiBack": "139,107,886,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "大蛇的逆鳞。搜索区为货架总区域，只允许 match_all_any 多点匹配"
+  },
+  {
+    "itemName": "ms_demon_soul",
+    "imageName": "mshop_ms_demon_soul.png",
+    "roiFront": "211,404,45,66",
+    "roiBack": "139,107,886,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "逢魔之魂。搜索区为货架总区域，只允许 match_all_any 多点匹配"
+  },
+  {
+    "itemName": "ms_skill_shard",
+    "imageName": "mshop_ms_skill_shard.png",
+    "roiFront": "874,404,61,83",
+    "roiBack": "139,107,886,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "御行达摩碎片。搜索区为货架总区域，只允许 match_all_any 多点匹配"
+  },
+  {
+    "itemName": "ms_mystery_amulet",
+    "imageName": "mshop_ms_mystery_amulet.png",
+    "roiFront": "661,397,59,66",
+    "roiBack": "139,107,886,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "神秘符咒（蓝票）。搜索区为货架总区域，只允许 match_all_any 多点匹配"
+  },
+  {
+    "itemName": "ms_black_daruma",
+    "imageName": "mshop_ms_black_daruma.png",
+    "roiFront": "898,410,44,64",
+    "roiBack": "139,107,886,454",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "御行达摩（黑蛋）。搜索区为货架总区域，只允许 match_all_any 多点匹配"
+  }
+]

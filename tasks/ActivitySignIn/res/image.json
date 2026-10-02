@@ -1,0 +1,65 @@
+[
+  {
+    "itemName": "change_item",
+    "imageName": "res_change_item.png",
+    "roiFront": "1190,526,40,32",
+    "roiBack": "1153,124,119,466",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "切换列表"
+  },
+  {
+    "itemName": "to_page_shi",
+    "imageName": "res_to_page_shi.png",
+    "roiFront": "1191,465,34,32",
+    "roiBack": "1165,124,91,447",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  },
+  {
+    "itemName": "page_get_shi",
+    "imageName": "res_page_get_shi.png",
+    "roiFront": "1095,57,156,34",
+    "roiBack": "1062,35,207,94",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "领取式神主页面"
+  },
+  {
+    "itemName": "get_shi",
+    "imageName": "res_get_shi.png",
+    "roiFront": "290,443,83,77",
+    "roiBack": "232,327,1017,283",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "领取当天的奖励"
+  },
+  {
+    "itemName": "get_shi_success",
+    "imageName": "res_get_shi_success.png",
+    "roiFront": "1049,175,65,61",
+    "roiBack": "1027,145,110,125",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "成功领取当日奖励"
+  },
+  {
+    "itemName": "get_shi_over",
+    "imageName": "res_get_shi_over.png",
+    "roiFront": "523,538,235,40",
+    "roiBack": "478,510,316,89",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "已经领取的奖励页面"
+  },
+  {
+    "itemName": "animation_jump",
+    "imageName": "res_animation_jump.png",
+    "roiFront": "1139,41,57,28",
+    "roiBack": "1114,33,125,52",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "跳过召唤动画"
+  }
+]

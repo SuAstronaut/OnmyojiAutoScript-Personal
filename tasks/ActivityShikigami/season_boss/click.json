@@ -1,0 +1,8 @@
+[
+  {
+    "itemName": "season_boss_card",
+    "roiFront": "25,90,260,100",
+    "roiBack": "25,90,260,100",
+    "description": "左上角怪物卡片本体点击区(检测用「自己发现」标签, 点击落在卡面内)"
+  }
+]

@@ -1,0 +1,240 @@
+Deploy:
+  # ==========================================================================
+  # 本文件的默认取值面向【普通用户】：一键更新能强制同步到远端最新版本。
+  #
+  # 【如果你要改这个项目的源码】，必须先改四项，否则改动会被静默清除：
+  #   AutoUpdate           true  -> false   启动 Server 时不自动 git pull
+  #   KeepLocalChanges     false -> true    更新器绝不丢弃源码改动
+  #   InstallDependencies  true  -> false   启动 Server 时不自动 pip install
+  #   Repository                 -> 你自己 fork 的地址（见该项注释）
+  # 各项的具体原因见下方对应注释。
+  #
+  # config/deploy.yaml 已被 .gitignore 忽略，是每台机器本地的部署配置，不随
+  # 仓库分发：发布包打包时注入用户版，开发机本地放开发版；缺失时由本模板
+  # 自动重新生成。git 更新/安装（pull / reset --hard / clean -fd）都不碰它。
+  #
+  # 会毁掉源码改动的路径只有两条：
+  #   A. 启动 Server -> `python -m deploy.installer` -> git_install()
+  #      由 AutoUpdate 控制。注意这条路径的 KeepLocalChanges 保护**不完整**
+  #      （git stash 不带 -u，未跟踪文件不受保护），详见 AutoUpdate 注释。
+  #   B. 更新器页点「执行更新」-> Updater.execute_pull()
+  #      由 KeepLocalChanges 控制，true 时每个破坏点都改为拒绝并报原因。
+  #
+  # 没有定时/自动触发的更新：execute_pull 全项目只有 /execute_update 一个调用点。
+  # 下面 Update 段的 AutoRestartTime 与 CheckUpdateInterval 是从
+  # AzurLaneAutoScript 继承的死配置，Updater.delay / schedule_time 无消费者。
+  # ==========================================================================
+  Git:
+    # URL of AzurLaneAutoScript repository
+    # [CN user] Use 'https://gitcode.com/FLAG12321/OnmyojiAutoScript' for faster and more stable download
+    # [Other] Use 'https://github.com/FLAG12321/OnmyojiAutoScript'
+    #
+    # 本项必须与 git remote origin 一致：ensure_origin()（module/server/updater.py）
+    # 每次更新都读本项，与实际 origin 不一致就 `remote set-url` 覆盖 origin。
+    # 所以手工改过的 origin 会在下次更新时被本项复原——要换远端请改这里，
+    # 而不是只改 git remote。开发者应填自己 fork 的地址。
+    #
+    # 国内镜像有两个，内容都是本 fork 的同步副本，可互换（都在 gitcode/gitee 上
+    # 与 GitHub 同名分支同 tag，clone 后 `git remote set-url origin <另一个>` 即可换）：
+    #   - gitcode（本项默认）：https://gitcode.com/FLAG12321/OnmyojiAutoScript.git
+    #   - gitee：              https://gitee.com/flag12321/OnmyojiAutoScript.git
+    Repository: https://gitcode.com/FLAG12321/OnmyojiAutoScript.git
+    # Branch of Alas
+    # [Developer] Use 'dev', 'app', etc, to try new features
+    # [Other] Use 'run_now_2', the stable branch
+    Branch: run_now_2
+    # Filepath of git executable `git.exe`
+    # [Easy installer] Use './toolkit/Git/mingw64/bin/git.exe'
+    # [Other] Use you own git
+    GitExecutable: ./toolkit/Git/mingw64/bin/git.exe
+    # Set git proxy
+    # [CN user] Use your local http proxy (http://127.0.0.1:{port}) or socks5 proxy (socks5://127.0.0.1:{port})
+    # [Other] Use null
+    GitProxy: null
+    # Update Alas at startup
+    # [In most cases] Use true
+    #
+    # 【改源码的人必须设 false，这是最关键的一道防线】
+    # 启动 Server 会跑 `python -m deploy.installer`（OASX 的 ServerLauncher.launch
+    # 第 6 步），它调 git_install() 拉代码——不是更新器那条路径，而是继承自
+    # AzurLaneAutoScript 的 git_repository_init（deploy/git.py:45）。
+    #
+    # 那条路径的 KeepLocalChanges 保护是**不完整**的：
+    #   - keep_changes=True 走 `git stash` -> `pull` -> `stash pop`，而 stash
+    #     默认不带 -u，**新建的未跟踪文件不受保护**；
+    #   - stash pop 冲突时只打一行 log 就继续（git.py:89-93），改动被留在
+    #     stash 栈里，还误报成「看起来没有本地改动」；
+    #   - keep_changes=False 直接 `reset --hard origin/<branch>`。
+    #
+    # false 时 git_install() 在 deploy/git.py:108 直接 return，整条路径不执行，
+    # 所以这一项才是真正的防线，KeepLocalChanges 只是第二层。
+    AutoUpdate: true
+    # Whether to keep local changes during update
+    # User settings, logs and screenshots will be kept, no mather this is true or false
+    # [Developer] Use true, if you modified the code
+    # [Other] Use false
+    #
+    # 【改源码的人设 true】false 时更新器会在快进失败后执行
+    # `git clean -fd` + `git reset --hard origin/<branch>`（module/server/updater.py
+    # 的 _execute_pull_locked 强制同步分支），已跟踪改动、未推送提交和未跟踪
+    # 新文件全部消失。true 的语义是「宁可更新失败也不动源码」：所有破坏点
+    # 改为拒绝并给出原因（与远端分叉、有未推送提交、工作区脏）。
+    #
+    # 普通用户保持 false：不改代码时，强制同步才能保证一键更新总能拿到
+    # 干净的最新版本，不会因为残留文件卡住更新。
+    KeepLocalChanges: false
+
+  Python:
+    # Filepath of python executable `python.exe`
+    # [Easy installer] Use './toolkit/python.exe'
+    # [Other] Use you own python, and its version should be 3.7.6 64bit
+    PythonExecutable: ./toolkit/python.exe
+    # URL of pypi mirror
+    # [CN user] Use 'https://mirrors.cloud.tencent.com/pypi/simple' for faster and more stable download
+    # [Other] Use null
+    PypiMirror: https://mirrors.cloud.tencent.com/pypi/simple
+    # Install dependencies at startup
+    # [In most cases] Use true
+    #
+    # 【改源码的人建议 false】启动 Server 时 deploy.installer 的第 4 步会
+    # `pip install -r requirements.txt`（deploy/pip.py:26）。开发时不需要每次
+    # 启动都重装依赖，且它会把你为调试而降级/升级的包改回 requirements 版本。
+    # false 时 pip_install() 在 deploy/pip.py:29 直接 return。
+    # 手动装依赖：./toolkit/python.exe -m pip install -r requirements.txt
+    InstallDependencies: true
+    # Path to requirements.txt
+    # [In most cases] Use 'requirements.txt'
+    # [In AidLux] Use './deploy/AidLux/{version}/requirements.txt', version is default to 0.92
+    RequirementsFile: requirements.txt
+
+  Adb:
+    # Filepath of ADB executable `adb.exe`
+    # [Easy installer] Use './toolkit/Lib/site-packages/adbutils/binaries/adb.exe'
+    # [Other] Use you own latest ADB, but not the ADB in your emulator
+    AdbExecutable: ./toolkit/Lib/site-packages/adbutils/binaries/adb.exe
+    # Whether to replace ADB
+    # Chinese emulators (NoxPlayer, LDPlayer, MemuPlayer, MuMuPlayer) use their own ADB, instead of the latest.
+    # Different ADB servers will terminate each other at startup, resulting in disconnection.
+    # For compatibility, we have to replace them all.
+    # This will do:
+    #   1. Terminate current ADB server
+    #   2. Rename ADB from all emulators to *.bak and replace them by the AdbExecutable set above
+    #   3. Brute-force connect to all available emulator instances
+    # [In most cases] Use true
+    # [In few cases] Use false, if you have other programs using ADB.
+    ReplaceAdb: true
+    # Brute-force connect to all available emulator instances
+    # [In most cases] Use true
+    AutoConnect: true
+    # Re-install uiautomator2
+    # [In most cases] Use true
+    InstallUiautomator2: true
+
+  Ocr:
+    # Run Ocr as a service, can reduce memory usage by not loading the model in every script process
+
+    # Whether to use ocr server
+    # [Default] true
+    UseOcrServer: true
+    # Whether to start ocr server when start GUI
+    # [Default] true
+    StartOcrServer: true
+    # Port of ocr server runs by GUI
+    # [Default] 22268
+    OcrServerPort: 22268
+    # Address of ocr server for alas instance to connect
+    # [Default] 127.0.0.1:22268
+    OcrClientAddress: 127.0.0.1:22268
+    # PP-OCRv6 inference device
+    # 'auto' probe DirectML(GPU) first, fall back to CPU when unavailable
+    # 'dml' force DirectML(GPU), raise when unavailable
+    # 'cpu' force CPU
+    # [Default] auto
+    OcrDevice: auto
+    # PP-OCRv6 model type
+    # 'small' works on both GPU and CPU
+    # 'medium' higher accuracy, GPU only, auto downgrade to small on CPU
+    # [Default] small
+    OcrModelType: small
+    # Directory of PP-OCRv6 onnx models, must stay inside project folder
+    # [Default] ./toolkit/ocr_models
+    OcrModelDir: ./toolkit/ocr_models
+    # Threads of CPU inference
+    # [Default] 4
+    OcrCpuThreads: 4
+    # Align ocr dependencies and models automatically on install/update
+    # [In most cases] Use true, this makes one-click update configure OCR itself
+    OcrAutoAlignDeps: true
+
+  Update:
+    # Use auto update and builtin updater feature
+    # This may cause problem https://github.com/LmeSzinc/AzurLaneAutoScript/issues/876
+    EnableReload: false
+    # Check update every X minute
+    # [Disable] 0
+    # [Default] 5
+    CheckUpdateInterval: 5
+    # Scheduled restart time
+    # If there are updates, Alas will automatically restart and update at this time every day
+    # and run all alas instances that running before restarted
+    # [Disable] null
+    # [Default] 03:50
+    AutoRestartTime: 03:50
+
+  Misc:
+    # Enable discord rich presence
+    DiscordRichPresence: false
+
+  RemoteAccess:
+    # Enable remote access (using ssh reverse tunnel serve by https://github.com/wang0618/localshare)
+    # ! You need to set Password below to enable remote access since everyone can access to your alas if they have your url.
+    # See here (http://app.azurlane.cloud/en.html) for more infomation.
+    EnableRemoteAccess: false
+    # Username when login into ssh server
+    # [Default] null (will generate a random one when startup)
+    SSHUser: null
+    # Server to connect
+    # [Default] null
+    # [Format] host:port
+    SSHServer: null
+    # Filepath of SSH executable `ssh.exe`
+    # [Default] ssh (find ssh in system PATH)
+    # If you don't have one, install OpenSSH or download it here (https://github.com/PowerShell/Win32-OpenSSH/releases)
+    SSHExecutable: ssh
+
+  Webui:
+    # --host. Host to listen
+    # [Use IPv6] '::'
+    # [In most cases] Default to '0.0.0.0'
+    WebuiHost: 0.0.0.0
+    # --port. Port to listen
+    # You will be able to access webui via `http://{host}:{port}`
+    # [In most cases] Default to 22288
+    WebuiPort: 22288
+    # Language to use on web ui
+    # 'zh-CN' for Chinese simplified
+    # 'en-US' for English
+    # 'ja-JP' for Japanese
+    # 'zh-TW' for Chinese traditional
+    Language: zh-CN
+    # Theme of web ui
+    # 'default' for light theme
+    # 'dark' for dark theme
+    Theme: default
+    # Follow system DPI scaling
+    # [In most cases] true
+    # [In few cases] false to make Alas smaller, if you have a low resolution but high DPI scaling.
+    DpiScaling: true
+    # --key. Password of web ui
+    # Useful when expose Alas to the public network
+    Password: null
+    # --cdn. Use jsdelivr cdn for pywebio static files (css, js).
+    # 'true' for jsdelivr cdn
+    # 'false' for self host cdn (automatically)
+    # 'https://path.to.your/cdn' to use custom cdn
+    CDN: false
+    # --run. Auto-run specified config when startup
+    # 'null' default no specified config
+    # '["alas"]' specified "alas" config
+    # '["alas","alas2"]' specified "alas" "alas2" configs
+    Run: null

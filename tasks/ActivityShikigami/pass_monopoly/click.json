@@ -1,0 +1,26 @@
+[
+  {
+    "itemName": "monopoly_dice_1_click",
+    "roiFront": "356,284,59,85",
+    "roiBack": "354,282,62,87",
+    "description": "大富翁骰子1点击区域"
+  },
+  {
+    "itemName": "monopoly_dice_2_click",
+    "roiFront": "599,268,73,90",
+    "roiBack": "597,267,75,92",
+    "description": "大富翁骰子2点击区域"
+  },
+  {
+    "itemName": "monopoly_dice_3_click",
+    "roiFront": "827,280,58,69",
+    "roiBack": "826,278,61,71",
+    "description": "大富翁骰子3点击区域"
+  },
+  {
+    "itemName": "monopoly_qa_answer_1",
+    "roiFront": "593,294,134,39",
+    "roiBack": "592,293,136,42",
+    "description": "大富翁问答场景答案1点击位置"
+  }
+]

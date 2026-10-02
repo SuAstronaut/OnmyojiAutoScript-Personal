@@ -1,0 +1,101 @@
+[
+  {
+    "itemName": "fire_kirin",
+    "imageName": "fire_kirin.png",
+    "roiFront": "114,128,183,328",
+    "roiBack": "66,68,280,484",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "火麒麟进入"
+  },
+  {
+    "itemName": "form_team",
+    "imageName": "form_team.png",
+    "roiFront": "965,607,89,47",
+    "roiBack": "923,560,169,142",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "组队"
+  },
+  {
+    "itemName": "evozone_lock",
+    "imageName": "evozone_lock.png",
+    "roiFront": "661,653,30,34",
+    "roiBack": "642,627,169,92",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "evozone_unlock",
+    "imageName": "evozone_unlock.png",
+    "roiFront": "661,653,30,34",
+    "roiBack": "642,627,169,92",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "evozone_fire",
+    "imageName": "evozone_fire.png",
+    "roiFront": "1149,602,81,34",
+    "roiBack": "1093,537,178,162",
+    "method": "Template matching",
+    "threshold": 0.6,
+    "description": "点击挑战"
+  },
+  {
+    "itemName": "shi_records",
+    "imageName": "shi_records.png",
+    "roiFront": "844,570,39,40",
+    "roiBack": "811,531,104,109",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "式神录"
+  },
+  {
+    "itemName": "pet_present",
+    "imageName": "o_pet_present.png",
+    "roiFront": "873,184,62,147",
+    "roiBack": "873,184,62,147",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "小小宠物，发现宝藏"
+  },
+  {
+    "itemName": "wind_kirin",
+    "imageName": "wind_kirin.png",
+    "roiFront": "424,97,190,273",
+    "roiBack": "395,58,247,520",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "风麒麟进入"
+  },
+  {
+    "itemName": "water_kirin",
+    "imageName": "water_kirin.png",
+    "roiFront": "734,130,183,299",
+    "roiBack": "689,62,273,511",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "水麒麟进入"
+  },
+  {
+    "itemName": "lightning_kirin",
+    "imageName": "lightning_kirin.png",
+    "roiFront": "1037,120,180,237",
+    "roiBack": "1002,87,245,461",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "雷麒麟进入"
+  },
+  {
+    "itemName": "evozone_buy_ap_close",
+    "imageName": "evozone_buy_ap_close.png",
+    "roiFront": "912,175,46,41",
+    "roiBack": "862,125,146,141",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "购买体力弹窗关闭按钮"
+  }
+]

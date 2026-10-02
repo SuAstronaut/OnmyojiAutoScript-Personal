@@ -1,0 +1,29 @@
+[
+  {
+    "itemName": "toppa_record",
+    "imageName": "dev_toppa_record.png",
+    "roiFront": "66,628,64,39",
+    "roiBack": "66,628,64,39",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "toppa_lock_team",
+    "imageName": "toppa_lock_team.png",
+    "roiFront": "200,595,29,42",
+    "roiBack": "179,586,67,59",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "toppa_unlock_team",
+    "imageName": "dev_toppa_unlock_team.png",
+    "roiFront": "202,603,25,31",
+    "roiBack": "175,590,76,62",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  }
+]

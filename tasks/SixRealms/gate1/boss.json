@@ -1,0 +1,92 @@
+[
+  {
+    "itemName": "boss_fire",
+    "imageName": "gate1_boss_fire.png",
+    "roiFront": "1114,582,100,100",
+    "roiBack": "1084,559,156,147",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "大boss挑战re"
+  },
+  {
+    "itemName": "boss_team_lock",
+    "imageName": "gate1_boss_team_lock.png",
+    "roiFront": "1122,527,33,32",
+    "roiBack": "1116,520,43,43",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "lockre"
+  },
+  {
+    "itemName": "boss_team_unlock",
+    "imageName": "gate1_boss_team_unlock.png",
+    "roiFront": "1128,529,25,26",
+    "roiBack": "1120,520,40,41",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "unlockre"
+  },
+  {
+    "itemName": "boss_skip",
+    "imageName": "gate1_boss_skip.png",
+    "roiFront": "1140,39,48,27",
+    "roiBack": "1110,24,136,58",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "boss_use_double",
+    "imageName": "gate1_boss_use_double.png",
+    "roiFront": "669,417,126,53",
+    "roiBack": "651,407,164,71",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "boss_get_exp",
+    "imageName": "gate1_boss_get_exp.png",
+    "roiFront": "561,109,171,45",
+    "roiBack": "492,86,281,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "御神获得经验"
+  },
+  {
+    "itemName": "boss_share",
+    "imageName": "gate1_boss_share.png",
+    "roiFront": "1158,619,70,74",
+    "roiBack": "1144,606,100,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "boss_sharere"
+  },
+  {
+    "itemName": "boss_shutu",
+    "imageName": "gate1_boss_shutu.png",
+    "roiFront": "539,669,173,37",
+    "roiBack": "526,646,198,73",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "结算的椒图"
+  },
+  {
+    "itemName": "boss_battle_again",
+    "imageName": "gate1_boss_battle_again.png",
+    "roiFront": "435,403,173,64",
+    "roiBack": "409,390,212,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "boss_battle_giveup",
+    "imageName": "gate1_boss_battle_giveup.png",
+    "roiFront": "671,399,175,59",
+    "roiBack": "649,381,219,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  }
+]

@@ -1,0 +1,101 @@
+[
+  {
+    "itemName": "to_ap20",
+    "imageName": "to_ap20.png",
+    "roiFront": "856,261,31,119",
+    "roiBack": "743,95,236,430",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "从活动主页面进入AP20"
+  },
+  {
+    "itemName": "check_ap20",
+    "imageName": "check_ap20.png",
+    "roiFront": "447,99,35,35",
+    "roiBack": "358,63,199,176",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "确认进入AP20入口列表页面"
+  },
+  {
+    "itemName": "check_ap20_boss",
+    "imageName": "check_ap20_boss.png",
+    "roiFront": "1137,585,90,50",
+    "roiBack": "1012,514,267,191",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "确认进入AP20 BOSS战斗页面"
+  },
+  {
+    "itemName": "to_ap20_boss",
+    "imageName": "to_ap20_boss.png",
+    "roiFront": "1157,318,41,47",
+    "roiBack": "0,0,1280,720",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "AP20入口列表中点击进入BOSS"
+  },
+  {
+    "itemName": "ap20_entry_0",
+    "imageName": "ap20_entry_0.png",
+    "roiFront": "828,434,33,47",
+    "roiBack": "212,61,1060,619",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "AP20入口0"
+  },
+  {
+    "itemName": "ap20_entry_1",
+    "imageName": "ap20_entry_1.png",
+    "roiFront": "840,449,41,42",
+    "roiBack": "212,61,1060,619",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "AP20入口1"
+  },
+  {
+    "itemName": "ap20_entry_2",
+    "imageName": "ap20_entry_2.png",
+    "roiFront": "913,519,39,46",
+    "roiBack": "212,61,1060,619",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "AP20入口2"
+  },
+  {
+    "itemName": "ap20_entry_3",
+    "imageName": "ap20_entry_3.png",
+    "roiFront": "850,398,42,47",
+    "roiBack": "212,61,1060,619",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "AP20入口3"
+  },
+  {
+    "itemName": "ap20_entry_4",
+    "imageName": "ap20_entry_4.png",
+    "roiFront": "924,514,46,47",
+    "roiBack": "212,61,1060,619",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "AP20入口4"
+  },
+  {
+    "itemName": "ap20_entry_5",
+    "imageName": "ap20_entry_5.png",
+    "roiFront": "949,450,42,47",
+    "roiBack": "212,61,1060,619",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "AP20入口5"
+  },
+  {
+    "itemName": "ap20_entry_6",
+    "imageName": "ap20_entry_6.png",
+    "roiFront": "971,483,46,49",
+    "roiBack": "212,61,1060,619",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "AP20入口6"
+  }
+]

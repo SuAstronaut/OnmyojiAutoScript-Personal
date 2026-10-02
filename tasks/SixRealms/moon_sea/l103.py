@@ -1,0 +1,49 @@
+
+from module.logger import logger
+from tasks.SixRealms.moon_sea.skills import MoonSeaSkills
+
+
+class MoonSeaL103(MoonSeaSkills):
+    def run_l103(self):
+        # 宝箱还是精英
+        logger.hr('Island 103')
+        is_box: bool = self.appear(self.I_L103_EXIT)
+        if is_box:
+            logger.info('Access to Box')
+            while 1:
+                self.screenshot()
+                if self.in_main():
+                    return
+                if self.appear_then_click(self.I_UI_UNCHECK, interval=0.5):
+                    continue
+                if self.appear_then_click(self.I_UI_CONFIRM, interval=1):
+                    continue
+                if self.appear_then_click(self.I_L103_EXIT, interval=1.5):
+                    continue
+        self.battle_l103()
+        logger.info('Island 103 Finished')
+
+    def battle_l103(self):
+        # 打精英
+        logger.info('Start Island battle')
+        while 1:
+            self.screenshot()
+            if self.appear(self.I_NPC_FIRE):
+                break
+            if self.click(self.C_NPC_FIRE_CENTER, interval=2):
+                continue
+        self.battle_lock_team()
+        self.island_battle()
+        logger.info('Island battle finished')
+
+
+
+
+if __name__ == '__main__':
+    from module.config.config import Config
+
+    c = Config('du')
+    t = MoonSeaL103(c)
+    t.screenshot()
+
+    t.run_103()

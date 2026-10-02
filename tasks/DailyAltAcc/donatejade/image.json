@@ -1,0 +1,47 @@
+[
+  {
+    "itemName": "donate",
+    "imageName": "donatejade_donate.png",
+    "roiFront": "270,494,27,26",
+    "roiBack": "243,465,80,87",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "add",
+    "imageName": "donatejade_add.png",
+    "roiFront": "780,276,60,55",
+    "roiBack": "763,251,100,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "limit",
+    "imageName": "donatejade_limit.png",
+    "roiFront": "826,349,47,77",
+    "roiBack": "817,342,69,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "click_donate",
+    "imageName": "donatejade_click_donate.png",
+    "roiFront": "577,524,133,48",
+    "roiBack": "553,501,178,92",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "award",
+    "imageName": "donatejade_award.png",
+    "roiFront": "476,178,327,100",
+    "roiBack": "438,160,399,133",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  }
+]

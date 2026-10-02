@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "realm_4_page",
+    "imageName": "realm4_realm_4_page.png",
+    "roiFront": "130,271,66,67",
+    "roiBack": "78,234,146,139",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "花海繁生结界页判据（起点抄默认套，按实际截图调）"
+  }
+]

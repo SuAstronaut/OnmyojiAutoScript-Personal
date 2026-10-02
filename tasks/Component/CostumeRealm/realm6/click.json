@@ -1,0 +1,14 @@
+[
+  {
+    "itemName": "realm_6_grown",
+    "roiFront": "610,410,24,53",
+    "roiBack": "610,410,24,53",
+    "description": "歌弈花坊进式神育成的点击区域（起点抄默认套，按实际截图调）"
+  },
+  {
+    "itemName": "realm_6_card",
+    "roiFront": "837,401,24,53",
+    "roiBack": "837,401,24,53",
+    "description": "歌弈花坊进结界卡的点击区域（起点抄默认套，按实际截图调）"
+  }
+]

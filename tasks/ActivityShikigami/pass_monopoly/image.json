@@ -1,0 +1,146 @@
+[
+  {
+    "itemName": "to_monopoly_main",
+    "imageName": "to_monopoly_main.png",
+    "roiFront": "664,360,29,132",
+    "roiBack": "645,325,85,212",
+    "method": "Template matching",
+    "threshold": "0.7",
+    "description": "进入大富翁战斗主页面"
+  },
+  {
+    "itemName": "check_monopoly_main",
+    "imageName": "check_monopoly_main.png",
+    "roiFront": "843,581,31,34",
+    "roiBack": "815,567,69,59",
+    "description": "确认在大富翁主页面",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "monopoly_page_qa",
+    "imageName": "monopoly_page_qa.png",
+    "roiFront": "532,89,236,70",
+    "roiBack": "498,78,305,91",
+    "description": "大富翁问答页面标识",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "monopoly_page_shop",
+    "imageName": "monopoly_page_shop.png",
+    "roiFront": "512,67,257,71",
+    "roiBack": "421,38,414,140",
+    "description": "大富翁商店页面标识",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "monopoly_page_fire",
+    "imageName": "monopoly_page_fire.png",
+    "roiFront": "987,573,78,38",
+    "roiBack": "977,564,95,57",
+    "description": "大富翁战斗触发火图标",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "monopoly_page_fire_dice",
+    "imageName": "monopoly_page_fire_dice.png",
+    "roiFront": "990,564,69,59",
+    "roiBack": "963,530,119,112",
+    "description": "大富翁骰子模式战斗触发火图标",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "monopoly_page_roll",
+    "imageName": "monopoly_page_roll.png",
+    "roiFront": "1061,555,90,35",
+    "roiBack": "990,512,212,126",
+    "description": "大富翁投掷骰子页面标识",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "monopoly_page_select_dice",
+    "imageName": "monopoly_page_select_dice.png",
+    "roiFront": "761,201,38,30",
+    "roiBack": "401,171,492,73",
+    "description": "大富翁选择骰子页面标识",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "monopoly_dice_1_icon",
+    "imageName": "monopoly_dice_1_icon.png",
+    "roiFront": "956,579,30,37",
+    "roiBack": "941,568,126,58",
+    "description": "大富翁骰子1图标",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "monopoly_dice_2_icon",
+    "imageName": "monopoly_dice_2_icon.png",
+    "roiFront": "956,579,30,37",
+    "roiBack": "941,568,126,58",
+    "description": "大富翁骰子2图标",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "monopoly_dice_3_icon",
+    "imageName": "monopoly_dice_3_icon.png",
+    "roiFront": "956,579,30,37",
+    "roiBack": "941,568,126,58",
+    "description": "大富翁骰子3图标",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "monopoly_fire_btn_normal",
+    "imageName": "monopoly_fire_btn_normal.png",
+    "roiFront": "1143,592,61,90",
+    "roiBack": "1135,579,110,118",
+    "description": "大富翁普通模式火按钮",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "monopoly_fire_btn_dice",
+    "imageName": "monopoly_fire_btn_dice.png",
+    "roiFront": "1143,592,61,90",
+    "roiBack": "1135,579,110,118",
+    "description": "大富翁骰子模式火按钮",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "monopoly_fire_switch",
+    "imageName": "monopoly_fire_switch.png",
+    "roiFront": "1238,543,19,29",
+    "roiBack": "1218,528,49,57",
+    "description": "大富翁火按钮切换器",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "monopoly_buy_btn",
+    "imageName": "monopoly_buy_btn.png",
+    "roiFront": "876,471,90,43",
+    "roiBack": "828,441,176,95",
+    "description": "大富翁商店购买按钮",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "monopoly_buy_enable",
+    "imageName": "monopoly_buy_enable.png",
+    "roiFront": "844,564,26,25",
+    "roiBack": "245,536,791,79",
+    "description": "大富翁商店可购买标识",
+    "method": "Template matching",
+    "threshold": "0.7"
+  }
+]

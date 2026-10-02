@@ -1,0 +1,173 @@
+[
+  {
+    "itemName": "to_summon",
+    "roiFront": "1118,168,23,22",
+    "roiBack": "661,127,600,245",
+    "description": "description",
+    "imageName": "to_summon.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "summon_up_back_red",
+    "roiFront": "1139,200,38,43",
+    "roiBack": "653,120,612,293",
+    "description": "description",
+    "imageName": "summon_up_back_red.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "summon_up_to_share",
+    "roiFront": "1137,532,124,47",
+    "roiBack": "746,361,534,332",
+    "description": "description",
+    "imageName": "summon_up_to_share.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "summon_up_to_share_2",
+    "roiFront": "1187,617,45,39",
+    "roiBack": "1041,581,224,123",
+    "description": "description",
+    "imageName": "summon_up_to_share_2.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "summon_up_wechat_share",
+    "roiFront": "328,645,49,47",
+    "roiBack": "217,623,872,91",
+    "description": "description",
+    "imageName": "summon_up_wechat_share.png",
+    "method": "Template matching",
+    "threshold": "0.8"
+  },
+  {
+    "itemName": "summon_up_wechat_share_2",
+    "roiFront": "573,494,102,33",
+    "roiBack": "273,108,742,491",
+    "description": "description",
+    "imageName": "summon_up_wechat_share_2.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "summon_up_back_share",
+    "roiFront": "1198,33,49,47",
+    "roiBack": "1171,15,96,89",
+    "description": "description",
+    "imageName": "summon_up_back_share.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "summon_up_to_gift",
+    "roiFront": "38,290,51,55",
+    "roiBack": "10,77,160,402",
+    "description": "description",
+    "imageName": "summon_up_to_gift.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "summon_up_buy_gift",
+    "roiFront": "373,596,57,33",
+    "roiBack": "290,564,239,104",
+    "description": "description",
+    "imageName": "summon_up_buy_gift.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "summon_up_buy_gift_2",
+    "roiFront": "373,596,57,33",
+    "roiBack": "516,492,247,85",
+    "description": "description",
+    "imageName": "summon_up_buy_gift_2.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "summon_up_award",
+    "roiFront": "480,187,329,43",
+    "roiBack": "389,134,571,223",
+    "description": "description",
+    "imageName": "summon_up_award.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "summon_up_get_award",
+    "roiFront": "421,474,16,19",
+    "roiBack": "290,462,228,37",
+    "description": "description",
+    "imageName": "summon_up_get_award.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "summon_up_award_2",
+    "roiFront": "480,187,329,43",
+    "roiBack": "389,134,571,223",
+    "description": "description",
+    "imageName": "summon_up_award_2.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "summon_up_select_pool",
+    "roiFront": "159,15,128,35",
+    "roiBack": "49,11,288,86",
+    "description": "description",
+    "imageName": "summon_up_select_pool.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "summon_up_ensure_pool",
+    "roiFront": "612,603,59,35",
+    "roiBack": "499,560,313,107",
+    "description": "description",
+    "imageName": "summon_up_ensure_pool.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "summon_up_ensure_pool_2",
+    "roiFront": "713,409,65,35",
+    "roiBack": "460,369,360,99",
+    "description": "description",
+    "imageName": "summon_up_ensure_pool_2.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "summon_up_to_share",
+    "roiFront": "294,433,87,26",
+    "roiBack": "140,387,255,94",
+    "description": "description",
+    "imageName": "summon_up_to_share.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "summon_up_buy_flag",
+    "roiFront": "358,596,85,42",
+    "roiBack": "318,571,160,79",
+    "description": "description",
+    "imageName": "summon_up_buy_flag.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "summon_up_jump",
+    "roiFront": "553,664,178,25",
+    "roiBack": "200,480,925,225",
+    "description": "description",
+    "imageName": "summon_up_jump.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  }
+]

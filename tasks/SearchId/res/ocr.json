@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "level",
+    "roiFront": "163,247,34,31",
+    "roiBack": "191,273,25,31",
+    "description": "description",
+    "mode": "Digit",
+    "method": "Default",
+    "keyword": ""
+  }
+]

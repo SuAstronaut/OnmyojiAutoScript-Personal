@@ -1,0 +1,56 @@
+[
+  {
+    "itemName": "flag_task_guard",
+    "roiFront": "799,183,253,505",
+    "roiBack": "798,182,256,508",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "守护历练",
+    "description": "description"
+  },
+  {
+    "itemName": "find_shikigami_help",
+    "roiFront": "228,605,874,87",
+    "roiBack": "0,0,100,100",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "15",
+    "description": "description"
+  },
+  {
+    "itemName": "accept_name",
+    "roiFront": "115,256,300,47",
+    "roiBack": "0,0,100,100",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "description"
+  },
+  {
+    "itemName": "add_all",
+    "roiFront": "500,640,166,35",
+    "roiBack": "0,0,100,100",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "所有人",
+    "description": "description"
+  },
+  {
+    "itemName": "sushi_num",
+    "roiFront": "881,18,103,31",
+    "roiBack": "0,0,100,100",
+    "mode": "Digit",
+    "method": "Default",
+    "keyword": "",
+    "description": ""
+  },
+  {
+    "itemName": "kill_cnt",
+    "roiFront": "1089,165,127,31",
+    "roiBack": "1089,165,127,31",
+    "mode": "Digit",
+    "method": "Default",
+    "keyword": "",
+    "description": ""
+  }
+]

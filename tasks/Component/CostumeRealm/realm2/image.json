@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "realm_2_page",
+    "imageName": "realm2_realm_2_page.png",
+    "roiFront": "252,191,89,44",
+    "roiBack": "223,140,146,139",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "狐梦之乡结界页判据（起点抄默认套，按实际截图调）"
+  }
+]

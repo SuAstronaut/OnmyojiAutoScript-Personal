@@ -1,0 +1,92 @@
+[
+  {
+    "itemName": "r_send_flag",
+    "roiFront": "173,606,206,51",
+    "roiBack": "153,588,250,87",
+    "description": "description",
+    "imageName": "r_send_flag.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "r_toreceive_flag",
+    "roiFront": "1116,584,19,23",
+    "roiBack": "1018,561,150,125",
+    "description": "description",
+    "imageName": "r_toreceive_flag.png",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "r_send_btn",
+    "roiFront": "862,175,61,35",
+    "roiBack": "794,71,203,507",
+    "description": "description",
+    "imageName": "r_send_btn.png",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "r_toreceive_flag2",
+    "roiFront": "1022,299,19,18",
+    "roiBack": "962,258,105,178",
+    "description": "description",
+    "imageName": "r_toreceive_flag2.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "r_receive_btn",
+    "roiFront": "922,605,50,50",
+    "roiBack": "893,578,118,114",
+    "description": "description",
+    "imageName": "r_receive_btn.png",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "r_receive_ensure",
+    "roiFront": "722,413,70,37",
+    "roiBack": "634,359,235,127",
+    "description": "description",
+    "imageName": "r_receive_ensure.png",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "r_back_red",
+    "roiFront": "936,87,38,39",
+    "roiBack": "893,65,127,89",
+    "description": "description",
+    "imageName": "r_back_red.png",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "r_award",
+    "roiFront": "476,188,326,83",
+    "roiBack": "364,123,558,223",
+    "description": "description",
+    "imageName": "r_award.png",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "r_page_guild",
+    "roiFront": "964,632,59,69",
+    "roiBack": "895,578,246,139",
+    "description": "description",
+    "imageName": "r_page_guild.png",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "r_back_y",
+    "roiFront": "29,10,41,41",
+    "roiBack": "3,3,93,77",
+    "description": "description",
+    "imageName": "r_back_y.png",
+    "method": "Template matching",
+    "threshold": "0.7"
+  }
+]

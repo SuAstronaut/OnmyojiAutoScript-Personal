@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "snake1",
+    "imageName": "res_snake1.png",
+    "roiFront": "933,407,94,65",
+    "roiBack": "196,63,1027,657",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": ""
+  }
+]

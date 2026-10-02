@@ -1,0 +1,335 @@
+[
+  {
+    "itemName": "reward",
+    "imageName": "gb_reward.png",
+    "roiFront": "547,518,172,96",
+    "roiBack": "547,518,172,96",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "奖励，就是那个魂"
+  },
+  {
+    "itemName": "preset",
+    "imageName": "gb_preset.png",
+    "roiFront": "32,650,47,45",
+    "roiBack": "32,650,47,45",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "预设的小图标"
+  },
+  {
+    "itemName": "prepare_highlight",
+    "imageName": "gb_prepare_highlight.png",
+    "roiFront": "1128,536,100,100",
+    "roiBack": "1110,500,169,200",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "准备"
+  },
+  {
+    "itemName": "win",
+    "imageName": "gb_win.png",
+    "roiFront": "385,47,100,100",
+    "roiBack": "296,33,414,224",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "战斗胜利"
+  },
+  {
+    "itemName": "prepare_dark",
+    "imageName": "gb_prepare_dark.png",
+    "roiFront": "1131,538,100,100",
+    "roiBack": "1131,538,100,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "准备但是界面还未加载这个时候是黑色的"
+  },
+  {
+    "itemName": "false",
+    "imageName": "gb_false.png",
+    "roiFront": "413,124,100,100",
+    "roiBack": "413,124,100,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "失败"
+  },
+  {
+    "itemName": "preset_ensure",
+    "imageName": "preset_ensure.png",
+    "roiFront": "388,649,71,35",
+    "roiBack": "305,625,236,83",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "确认预设的队伍"
+  },
+  {
+    "itemName": "buff",
+    "imageName": "gb_buff.png",
+    "roiFront": "115,670,39,36",
+    "roiBack": "107,668,55,49",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "选择buff"
+  },
+  {
+    "itemName": "buff_awaken",
+    "imageName": "gb_buff_awaken.png",
+    "roiFront": "373,126,383,53",
+    "roiBack": "373,126,383,53",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "觉醒加成"
+  },
+  {
+    "itemName": "buff_soul",
+    "imageName": "gb_buff_soul.png",
+    "roiFront": "377,192,371,56",
+    "roiBack": "377,192,371,56",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "御魂加成"
+  },
+  {
+    "itemName": "buff_gold_50",
+    "imageName": "gb_buff_gold_50.png",
+    "roiFront": "375,259,373,56",
+    "roiBack": "375,259,373,56",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "金币加成50"
+  },
+  {
+    "itemName": "buff_gold_100",
+    "imageName": "gb_buff_gold_100.png",
+    "roiFront": "371,329,389,54",
+    "roiBack": "371,329,389,54",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "金币加成100"
+  },
+  {
+    "itemName": "buff_exp_50",
+    "imageName": "gb_buff_exp_50.png",
+    "roiFront": "378,400,370,50",
+    "roiBack": "378,400,370,50",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "经验加成50"
+  },
+  {
+    "itemName": "buff_exp_100",
+    "imageName": "gb_buff_exp_100.png",
+    "roiFront": "372,463,386,50",
+    "roiBack": "372,463,386,50",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "经验加成100"
+  },
+  {
+    "itemName": "local",
+    "imageName": "gb_local.png",
+    "roiFront": "25,563,30,34",
+    "roiBack": "25,563,30,34",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "左下角的位置指针"
+  },
+  {
+    "itemName": "statistics",
+    "imageName": "gb_statistics.png",
+    "roiFront": "70,630,33,28",
+    "roiBack": "35,28,411,661",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "exit",
+    "imageName": "gb_exit.png",
+    "roiFront": "14,12,43,41",
+    "roiBack": "14,12,43,41",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "左上角的退出"
+  },
+  {
+    "itemName": "exit_ensure",
+    "imageName": "exit_ensure.png",
+    "roiFront": "713,410,60,29",
+    "roiBack": "661,371,155,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "退出确认"
+  },
+  {
+    "itemName": "friends",
+    "imageName": "gb_friends.png",
+    "roiFront": "89,14,36,36",
+    "roiBack": "89,14,36,36",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "左上角好友图标"
+  },
+  {
+    "itemName": "reward_statistics",
+    "imageName": "gb_reward_statistics.png",
+    "roiFront": "51,629,54,59",
+    "roiBack": "51,629,54,59",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "结算时左下角统计图标"
+  },
+  {
+    "itemName": "reward_gold",
+    "imageName": "gb_reward_gold.png",
+    "roiFront": "268,178,97,69",
+    "roiBack": "254,163,797,261",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "结算金币"
+  },
+  {
+    "itemName": "reward_purple_snake_skin",
+    "imageName": "gb_reward_purple_snake_skin.png",
+    "roiFront": "604,213,67,37",
+    "roiBack": "108,163,1070,261",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "结算紫蛇皮"
+  },
+  {
+    "itemName": "reward_gold_snake_skin",
+    "imageName": "gb_reward_gold_snake_skin.png",
+    "roiFront": "537,176,97,75",
+    "roiBack": "254,163,797,261",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "结算金蛇皮"
+  },
+  {
+    "itemName": "reward_exp_soul_4",
+    "imageName": "gb_reward_exp_soul_4.png",
+    "roiFront": "806,177,97,69",
+    "roiBack": "254,163,797,261",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "结算四星青吉鬼"
+  },
+  {
+    "itemName": "reward_soul_5",
+    "imageName": "gb_reward_soul_5.png",
+    "roiFront": "266,533,97,20",
+    "roiBack": "254,163,797,396",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "结算五星御魂"
+  },
+  {
+    "itemName": "reward_soul_6",
+    "imageName": "gb_reward_soul_6.png",
+    "roiFront": "942,397,97,20",
+    "roiBack": "254,163,797,396",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "结算六星御魂"
+  },
+  {
+    "itemName": "de_win",
+    "imageName": "gb_de_win.png",
+    "roiFront": "472,49,100,100",
+    "roiBack": "239,36,399,133",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "针对封魔的特殊"
+  },
+  {
+    "itemName": "present_less_than_5",
+    "imageName": "gb_present_less_than_5.png",
+    "roiFront": "222,648,418,43",
+    "roiBack": "222,648,418,43",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "de_gold",
+    "imageName": "gb_de_gold.png",
+    "roiFront": "61,52,30,25",
+    "roiBack": "45,33,65,64",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "封魔的金币"
+  },
+  {
+    "itemName": "green_marker",
+    "imageName": "gb_green_marker.png",
+    "roiFront": "0,0,1280,720",
+    "roiBack": "0,0,1280,720",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "绿标"
+  },
+  {
+    "itemName": "green_marker_left_top",
+    "imageName": "gb_green_marker_left_top.png",
+    "roiFront": "0,0,1280,720",
+    "roiBack": "0,0,1280,720",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "绿标-左上角部分"
+  },
+  {
+    "itemName": "green_marker_bottom",
+    "imageName": "gb_green_marker_bottom.png",
+    "roiFront": "0,0,1280,720",
+    "roiBack": "0,0,1280,720",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "绿标-下半部分"
+  },
+  {
+    "itemName": "preset_wit_number",
+    "imageName": "gb_preset_wit_number.png",
+    "roiFront": "40,655,37,37",
+    "roiBack": "9,636,100,74",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "新版本的预设图案带数字"
+  },
+  {
+    "itemName": "battle_info",
+    "imageName": "gb_battle_info.png",
+    "roiFront": "230,12,37,39",
+    "roiBack": "210,1,147,72",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "战斗信息标识"
+  },
+  {
+    "itemName": "extra_info",
+    "imageName": "extra_info.png",
+    "roiFront": "58,43,47,51",
+    "roiBack": "13,17,136,146",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "description"
+  },
+  {
+    "itemName": "win_2",
+    "imageName": "gb_win_2.png",
+    "roiFront": "464,276,31,20",
+    "roiBack": "226,221,918,169",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "胜利页面标志2"
+  },
+  {
+    "itemName": "paper_tostart",
+    "imageName": "gb_paper_tostart.png",
+    "roiFront": "49,550,40,61",
+    "roiBack": "9,530,174,97",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "点击开始自动战斗(战斗过程界面)"
+  }
+]

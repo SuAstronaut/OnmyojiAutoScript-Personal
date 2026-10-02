@@ -1,0 +1,20 @@
+[
+  {
+    "itemName": "rr_three",
+    "imageName": "res_rr_three.png",
+    "roiFront": "346,584,42,44",
+    "roiBack": "346,584,42,44",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "已经进攻三次了"
+  },
+  {
+    "itemName": "rr_person",
+    "imageName": "res_rr_person.png",
+    "roiFront": "1203,236,56,100",
+    "roiBack": "1203,236,56,155",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "个人"
+  }
+]

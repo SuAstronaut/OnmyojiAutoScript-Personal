@@ -1,0 +1,137 @@
+[
+  {
+    "itemName": "dokan_status",
+    "roiFront": "492,628,222,44",
+    "roiBack": "0,0,100,100",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "",
+    "description": "道馆开启状态"
+  },
+  {
+    "itemName": "dokan_ready_sel1",
+    "roiFront": "1156,105,80,28",
+    "roiBack": "1156,105,80,28",
+    "mode": "Digit",
+    "method": "Default",
+    "keyword": "",
+    "description": "选择寮1"
+  },
+  {
+    "itemName": "dokan_ready_sel2",
+    "roiFront": "1156,255,80,28",
+    "roiBack": "1156,255,80,28",
+    "mode": "Digit",
+    "method": "Default",
+    "keyword": "",
+    "description": "选择寮2"
+  },
+  {
+    "itemName": "dokan_ready_sel3",
+    "roiFront": "1156,400,80,28",
+    "roiBack": "1156,400,80,28",
+    "mode": "Digit",
+    "method": "Default",
+    "keyword": "",
+    "description": "选择寮3"
+  },
+  {
+    "itemName": "dokan_ready_sel4",
+    "roiFront": "1156,545,80,28",
+    "roiBack": "1156,545,80,28",
+    "mode": "Digit",
+    "method": "Default",
+    "keyword": "",
+    "description": "选择寮4"
+  },
+  {
+    "itemName": "dokan_map",
+    "roiFront": "270,130,740,460",
+    "roiBack": "0,0,100,100",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "万",
+    "description": "道馆地图里找文字：万"
+  },
+  {
+    "itemName": "dokan_gathering",
+    "roiFront": "535,75,211,29",
+    "roiBack": "535,75,211,29",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "开战",
+    "description": "道馆里找文字：后开战"
+  },
+  {
+    "itemName": "dokan_attacking",
+    "roiFront": "1122,546,92,51",
+    "roiBack": "1122,546,92,51",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "剩余",
+    "description": "道馆里找文字：剩余突破时间"
+  },
+  {
+    "itemName": "dokan_boss_waiting",
+    "roiFront": "603,148,130,32",
+    "roiBack": "603,148,130,32",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "馆主",
+    "description": "道馆里找文字：后挑战馆主"
+  },
+  {
+    "itemName": "dokan_succeeded",
+    "roiFront": "655,76,49,28",
+    "roiBack": "0,0,100,100",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "关闭",
+    "description": "道馆里找文字：后关闭"
+  },
+  {
+    "itemName": "dokan_rightpad_bounty",
+    "roiFront": "0,0,0,0",
+    "roiBack": "0,0,0,0",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "查找道馆时,右侧边栏中的赏金"
+  },
+  {
+    "itemName": "dokan_rightpad_name",
+    "roiFront": "0,0,0,0",
+    "roiBack": "0,0,0,0",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "查找道馆时,右侧边栏中的寮名称"
+  },
+  {
+    "itemName": "dokan_rightpad_tag",
+    "roiFront": "0,0,0,0",
+    "roiBack": "0,0,0,0",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "查找道馆时,右侧边栏中的寮标签"
+  },
+  {
+    "itemName": "dokan_center_people_number",
+    "roiFront": "0,0,0,0",
+    "roiBack": "0,0,100,100",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "",
+    "description": "查找道馆时,中间卡片上防守人数"
+  },
+  {
+    "itemName": "dokan_map_2",
+    "roiFront": "270,130,740,460",
+    "roiBack": "0,0,100,100",
+    "description": "道馆地图里找文字：鑫",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "鑫"
+  }
+]

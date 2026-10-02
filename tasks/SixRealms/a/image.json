@@ -1,0 +1,56 @@
+[
+  {
+    "itemName": "ningxi",
+    "imageName": "a_ningxi.png",
+    "roiFront": "1011,375,19,29",
+    "roiBack": "153,87,908,513",
+    "method": "Template matching",
+    "threshold": 0.65,
+    "description": "宁息"
+  },
+  {
+    "itemName": "ningxi_insufficient_enter",
+    "imageName": "a_ningxi_insufficient_enter.png",
+    "roiFront": "658,391,199,78",
+    "roiBack": "658,391,199,78",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "宁息之屿 万相铃不足确认框 右侧「进入」按钮（SixRealms 专用，避免被通用 I_UI_CANCEL 误取消）"
+  },
+  {
+    "itemName": "hundun",
+    "imageName": "a_hundun.png",
+    "roiFront": "896,447,23,33",
+    "roiBack": "162,122,908,513",
+    "method": "Template matching",
+    "threshold": 0.65,
+    "description": "混沌re"
+  },
+  {
+    "itemName": "zhan",
+    "imageName": "a_zhan.png",
+    "roiFront": "207,366,22,26",
+    "roiBack": "156,103,908,513",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "鏖战re"
+  },
+  {
+    "itemName": "shenmi",
+    "imageName": "a_shenmi.png",
+    "roiFront": "465,459,20,31",
+    "roiBack": "151,88,908,513",
+    "method": "Template matching",
+    "threshold": 0.65,
+    "description": "神秘re"
+  },
+  {
+    "itemName": "xing",
+    "imageName": "a_xing.png",
+    "roiFront": "652,478,30,27",
+    "roiBack": "151,88,908,513",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "绽放之屿re"
+  }
+]

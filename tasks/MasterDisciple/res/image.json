@@ -1,0 +1,110 @@
+[
+  {
+    "itemName": "to_task",
+    "roiFront": "272,301,26,153",
+    "roiBack": "173,215,268,377",
+    "description": "description",
+    "imageName": "to_task.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "to_battle_guard",
+    "roiFront": "1152,339,54,26",
+    "roiBack": "784,322,439,60",
+    "description": "description",
+    "imageName": "to_battle_guard.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "page_task",
+    "roiFront": "883,26,97,38",
+    "roiBack": "775,18,383,80",
+    "description": "description",
+    "imageName": "page_task.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "page_battle_guard",
+    "roiFront": "166,19,122,39",
+    "roiBack": "117,9,241,92",
+    "description": "description",
+    "imageName": "page_battle_guard.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "to_team",
+    "roiFront": "1005,190,167,58",
+    "roiBack": "870,163,360,190",
+    "description": "description",
+    "imageName": "to_team.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "page_team",
+    "roiFront": "93,27,128,36",
+    "roiBack": "64,10,211,87",
+    "description": "description",
+    "imageName": "page_team.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "click_invite_add",
+    "roiFront": "1143,253,55,54",
+    "roiBack": "0,0,1280,720",
+    "description": "description",
+    "imageName": "click_invite_add.png",
+    "method": "Template matching",
+    "threshold": 0.85
+  },
+  {
+    "itemName": "switch_all",
+    "roiFront": "507,294,39,46",
+    "roiBack": "466,268,344,87",
+    "description": "description",
+    "imageName": "switch_all.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "ensure_switch",
+    "roiFront": "607,495,65,42",
+    "roiBack": "466,475,333,91",
+    "description": "description",
+    "imageName": "ensure_switch.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "switch_all_over",
+    "roiFront": "507,294,39,46",
+    "roiBack": "466,268,344,87",
+    "description": "description",
+    "imageName": "switch_all_over.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "to_switch",
+    "roiFront": "826,641,30,33",
+    "roiBack": "556,616,430,79",
+    "description": "description",
+    "imageName": "to_switch.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "accept",
+    "roiFront": "116,229,53,47",
+    "roiBack": "0,205,290,374",
+    "description": "description",
+    "imageName": "accept.png",
+    "method": "Template matching",
+    "threshold": "0.7"
+  }
+]

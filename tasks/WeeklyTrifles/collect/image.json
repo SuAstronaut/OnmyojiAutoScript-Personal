@@ -1,0 +1,56 @@
+[
+  {
+    "itemName": "wt_shikiagmi",
+    "imageName": "collect_wt_shikiagmi.png",
+    "roiFront": "280,620,920,100",
+    "roiBack": "280,620,920,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "点击“式神”"
+  },
+  {
+    "itemName": "wt_scroll",
+    "imageName": "wt_scroll.png",
+    "roiFront": "336,285,51,42",
+    "roiBack": "272,243,151,124",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "点击分享"
+  },
+  {
+    "itemName": "wt_collect",
+    "imageName": "collect_wt_collect.png",
+    "roiFront": "1170,606,78,83",
+    "roiBack": "1170,606,78,83",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "点击分享"
+  },
+  {
+    "itemName": "wt_scroll_1",
+    "imageName": "collect_wt_scroll_1.png",
+    "roiFront": "1180,27,28,121",
+    "roiBack": "1159,12,65,152",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "百鬼夜行图"
+  },
+  {
+    "itemName": "wt_collect_wechat",
+    "imageName": "wt_collect_wechat.png",
+    "roiFront": "241,644,49,47",
+    "roiBack": "212,628,786,87",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "朋友圈分享"
+  },
+  {
+    "itemName": "wt_qr_code",
+    "imageName": "collect_wt_qr_code.png",
+    "roiFront": "473,161,336,96",
+    "roiBack": "404,112,483,168",
+    "method": "Template matching",
+    "threshold": 0.65,
+    "description": "二维码"
+  }
+]

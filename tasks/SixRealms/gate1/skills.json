@@ -1,0 +1,137 @@
+[
+  {
+    "itemName": "skill101",
+    "imageName": "gate1_skill101.png",
+    "roiFront": "736,171,64,60",
+    "roiBack": "156,154,689,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "轰雷选择off"
+  },
+  {
+    "itemName": "skill102",
+    "imageName": "gate1_skill102.png",
+    "roiFront": "456,186,76,63",
+    "roiBack": "136,151,709,128",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "skill103",
+    "imageName": "gate1_skill103.png",
+    "roiFront": "0,0,100,100",
+    "roiBack": "0,0,100,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "skill104",
+    "imageName": "gate1_skill104.png",
+    "roiFront": "0,0,100,100",
+    "roiBack": "0,0,100,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "skill_refresh",
+    "imageName": "gate1_skill_refresh.png",
+    "roiFront": "1187,625,52,47",
+    "roiBack": "1169,602,92,82",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "skill_refreshre"
+  },
+  {
+    "itemName": "select_0",
+    "imageName": "gate1_select_0.png",
+    "roiFront": "155,551,132,44",
+    "roiBack": "140,528,163,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "select_0re"
+  },
+  {
+    "itemName": "select_1",
+    "imageName": "gate1_select_1.png",
+    "roiFront": "428,551,137,46",
+    "roiBack": "394,528,196,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "select_1re"
+  },
+  {
+    "itemName": "select_2",
+    "imageName": "gate1_select_2.png",
+    "roiFront": "700,552,140,47",
+    "roiBack": "669,527,196,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "select_2re"
+  },
+  {
+    "itemName": "select_3",
+    "imageName": "gate1_select_3.png",
+    "roiFront": "1018,552,145,43",
+    "roiBack": "1003,521,173,106",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "舞技强化re"
+  },
+  {
+    "itemName": "coin",
+    "imageName": "gate1_coin.png",
+    "roiFront": "567,343,66,53",
+    "roiBack": "405,229,561,270",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "六道的金币"
+  },
+  {
+    "itemName": "coin2",
+    "imageName": "gate1_coin2.png",
+    "roiFront": "567,343,66,53",
+    "roiBack": "405,229,561,270",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "六道的金币"
+  },
+  {
+    "itemName": "skill105",
+    "imageName": "gate1_skill105.png",
+    "roiFront": "178,187,80,69",
+    "roiBack": "112,149,779,151",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "洞察之力"
+  },
+  {
+    "itemName": "peacock_skill1",
+    "imageName": "gate1_peacock_skill1.png",
+    "roiFront": "244,501,95,35",
+    "roiBack": "223,478,143,73",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "力量强化"
+  },
+  {
+    "itemName": "peacock_skill2",
+    "imageName": "gate1_peacock_skill2.png",
+    "roiFront": "779,501,93,36",
+    "roiBack": "747,480,163,76",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "技巧强化"
+  },
+  {
+    "itemName": "battle_skill101",
+    "roiFront": "86,90,30,41",
+    "roiBack": "5,83,235,51",
+    "description": "description",
+    "imageName": "battle_skill101.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  }
+]

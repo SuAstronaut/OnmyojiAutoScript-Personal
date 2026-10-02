@@ -1,0 +1,29 @@
+[
+  {
+    "itemName": "gr_fire",
+    "imageName": "gr_fire.png",
+    "roiFront": "1060,601,73,34",
+    "roiBack": "1018,561,174,136",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "点击挑战"
+  },
+  {
+    "itemName": "gr_lock",
+    "imageName": "gr_lock.png",
+    "roiFront": "697,655,34,33",
+    "roiBack": "657,646,245,70",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "gr_unlock",
+    "imageName": "gr_unlock.png",
+    "roiFront": "700,653,26,31",
+    "roiBack": "671,642,207,70",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  }
+]

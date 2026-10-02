@@ -1,0 +1,308 @@
+[
+  {
+    "itemName": "invite",
+    "imageName": "alliedteam_invite.png",
+    "roiFront": "1094,619,89,77",
+    "roiBack": "1088,602,97,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "form",
+    "imageName": "alliedteam_form.png",
+    "roiFront": "530,482,61,42",
+    "roiBack": "469,470,324,72",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "form_over",
+    "imageName": "alliedteam_form_over.png",
+    "roiFront": "736,25,51,54",
+    "roiBack": "716,9,197,83",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "select_level",
+    "imageName": "alliedteam_select_level.png",
+    "roiFront": "965,641,66,54",
+    "roiBack": "953,626,86,84",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "create_team",
+    "imageName": "alliedteam_create_team.png",
+    "roiFront": "1010,603,135,45",
+    "roiBack": "981,593,182,68",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "create_again",
+    "imageName": "alliedteam_create_again.png",
+    "roiFront": "832,564,94,49",
+    "roiBack": "815,556,124,69",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "list_member",
+    "imageName": "alliedteam_list_member.png",
+    "roiFront": "77,199,44,124",
+    "roiBack": "65,188,70,142",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "to_ap",
+    "imageName": "alliedteam_to_ap.png",
+    "roiFront": "926,265,46,45",
+    "roiBack": "924,263,54,52",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "save_all",
+    "imageName": "alliedteam_save_all.png",
+    "roiFront": "1199,497,37,83",
+    "roiBack": "1175,481,83,123",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "ensure_ap",
+    "imageName": "alliedteam_ensure_ap.png",
+    "roiFront": "707,408,100,44",
+    "roiBack": "670,397,174,69",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "back_yellow",
+    "imageName": "alliedteam_back_yellow.png",
+    "roiFront": "28,19,47,44",
+    "roiBack": "16,8,71,71",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "back_black",
+    "imageName": "alliedteam_back_black.png",
+    "roiFront": "24,17,54,49",
+    "roiBack": "7,0,85,82",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "to_team",
+    "imageName": "to_team.png",
+    "roiFront": "44,591,70,36",
+    "roiBack": "21,572,113,112",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "battle",
+    "imageName": "alliedteam_battle.png",
+    "roiFront": "1179,603,78,72",
+    "roiBack": "1162,580,114,126",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "ensure_exit",
+    "imageName": "alliedteam_ensure_exit.png",
+    "roiFront": "708,404,117,54",
+    "roiBack": "651,375,199,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "exit_2",
+    "imageName": "alliedteam_exit_2.png",
+    "roiFront": "353,568,102,44",
+    "roiBack": "332,541,157,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "unlock",
+    "imageName": "alliedteam_unlock.png",
+    "roiFront": "28,647,29,30",
+    "roiBack": "1,627,75,78",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "lock",
+    "imageName": "alliedteam_lock.png",
+    "roiFront": "25,645,33,30",
+    "roiBack": "11,627,63,70",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "exit3",
+    "imageName": "exit3.png",
+    "roiFront": "722,415,75,33",
+    "roiBack": "697,403,131,53",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "friend_help",
+    "imageName": "friend_help.png",
+    "roiFront": "1205,541,38,71",
+    "roiBack": "1187,512,71,118",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "friend_help_flag",
+    "imageName": "friend_help_flag.png",
+    "roiFront": "803,107,167,34",
+    "roiBack": "782,93,210,63",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "click_evozone",
+    "imageName": "click_evozone.png",
+    "roiFront": "168,354,169,42",
+    "roiBack": "121,114,256,556",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "click_level",
+    "imageName": "click_level.png",
+    "roiFront": "459,269,61,32",
+    "roiBack": "392,185,200,386",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "invite_friend",
+    "imageName": "invite_friend.png",
+    "roiFront": "609,257,21,19",
+    "roiBack": "363,246,546,37",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "invite_friend_over",
+    "imageName": "invite_friend_over.png",
+    "roiFront": "605,256,19,20",
+    "roiBack": "363,246,546,37",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "page_invite",
+    "imageName": "page_invite.png",
+    "roiFront": "552,114,183,41",
+    "roiBack": "367,99,543,206",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "tree_award",
+    "imageName": "tree_award.png",
+    "roiFront": "479,216,328,59",
+    "roiBack": "352,136,588,225",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "auto_off",
+    "imageName": "alliedteam_auto_off.png",
+    "roiFront": "130,642,33,35",
+    "roiBack": "101,601,97,100",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "自动战斗off"
+  },
+  {
+    "itemName": "paper_2",
+    "imageName": "alliedteam_paper_2.png",
+    "roiFront": "294,635,32,42",
+    "roiBack": "265,606,97,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "灰色纸人"
+  },
+  {
+    "itemName": "auto_feed_off",
+    "imageName": "alliedteam_auto_feed_off.png",
+    "roiFront": "382,204,45,78",
+    "roiBack": "366,155,77,156",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "自动喂食"
+  },
+  {
+    "itemName": "auto_conut_on",
+    "imageName": "alliedteam_auto_conut_on.png",
+    "roiFront": "257,450,159,31",
+    "roiBack": "207,413,276,144",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "挑战次数打开"
+  },
+  {
+    "itemName": "auto_conut_off",
+    "imageName": "alliedteam_auto_conut_off.png",
+    "roiFront": "257,450,159,31",
+    "roiBack": "207,413,276,144",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "挑战次数关闭"
+  },
+  {
+    "itemName": "auto_feed_on",
+    "imageName": "alliedteam_auto_feed_on.png",
+    "roiFront": "382,204,45,78",
+    "roiBack": "366,155,77,156",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "自动喂养打开"
+  },
+  {
+    "itemName": "paper",
+    "imageName": "alliedteam_paper.png",
+    "roiFront": "294,635,32,42",
+    "roiBack": "265,606,97,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "打开纸人标志"
+  }
+]

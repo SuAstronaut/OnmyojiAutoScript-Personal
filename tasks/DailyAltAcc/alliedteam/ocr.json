@@ -1,0 +1,29 @@
+[
+  {
+    "itemName": "select_level",
+    "roiFront": "413,130,221,46",
+    "roiBack": "0,0,100,100",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "觉醒业火轮壹层",
+    "description": "description"
+  },
+  {
+    "itemName": "flag_level",
+    "roiFront": "393,186,200,383",
+    "roiBack": "0,0,100,100",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "层",
+    "description": "description"
+  },
+  {
+    "itemName": "item_3",
+    "roiFront": "531,9,223,37",
+    "roiBack": "0,0,100,100",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "00分0",
+    "description": "开启自动挑战"
+  }
+]

@@ -1,0 +1,14 @@
+[
+ {
+  "itemName": "click_change",
+  "roiFront": "308,452,75,75",
+  "roiBack": "306,451,78,78",
+  "description": "准备界面「更换」按钮，点开助战列表"
+ },
+ {
+  "itemName": "friend_help_click",
+  "roiFront": "1204,540,38,70",
+  "roiBack": "1203,539,41,73",
+  "description": "好友页「协战」页签点击位"
+ }
+]

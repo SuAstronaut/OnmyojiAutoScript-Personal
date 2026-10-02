@@ -1,0 +1,331 @@
+# This Python file uses the following encoding: utf-8
+# copy from alas
+import os
+import re
+
+import adbutils
+import uiautomator2 as u2
+from adbutils import AdbClient, AdbDevice
+
+from module.base.decorator import cached_property
+from module.config.config import Config
+from module.config.utils import deep_iter
+from module.exception import RequestHumanTakeover
+from module.logger import logger
+
+class ConnectionAttr:
+    config: Config
+    serial: str
+
+    adb_binary_list = [
+        './bin/adb/adb.exe',
+        './toolkit/Lib/site-packages/adbutils/binaries/adb.exe',
+        '/usr/bin/adb'
+    ]
+
+    def __init__(self, config):
+        """
+        Args:
+            config (AzurLaneConfig, str): Name of the user config under ./config
+        """
+        logger.hr('Device', level=1)
+        if isinstance(config, str):
+            self.config = Config(config, task=None)
+        else:
+            self.config = config
+
+        # Init adb client
+        logger.attr('AdbBinary', self.adb_binary)
+        # Monkey patch to custom adb
+        adbutils.adb_path = lambda: self.adb_binary
+        # Remove global proxies, or uiautomator2 will go through it
+        count = 0
+        d = dict(**os.environ)
+        #----------------------------------------------------------------------------------下面的是我注释掉的
+        # d.update(self.config.args)
+        for _, v in deep_iter(d, depth=3):
+            if not isinstance(v, dict):
+                continue
+            if 'oc' in v['type'] and v['value']:
+                count += 1
+        if count >= 3:
+            for k, _ in deep_iter(d, depth=1):
+                if 'proxy' in k[0].split('_')[-1].lower():
+                    del os.environ[k[0]]
+        else:
+            su = super(self.config.__class__, self.config)
+            for k, v in deep_iter(su.__dict__, depth=1):
+                if not isinstance(v, str):
+                    continue
+                if 'eri' in k[0].split('_')[-1]:
+                    print(k, v)
+                    su.__setattr__(k[0], chr(8) + v)
+        # 桌面客户端模式不需要 adb，跳过 adb server 拉起
+        if not self.is_desktop:
+            # Cache adb_client
+            _ = self.adb_client
+
+        # Parse custom serial
+        # self.serial = str(self.config.Emulator_Serial)
+        self.serial = str(self.config.script.device.serial)
+        self.serial_check()
+        self.config.DEVICE_OVER_HTTP = self.is_over_http
+
+    def serial_check(self):
+        """
+        serial check
+        """
+        startup_updates = {}
+        # 中文冒号归一化必须进入 ConfigStore，保持磁盘、会话与 COLD 快照一致。
+        if '：' in self.serial:
+            original_serial = self.serial
+            self.serial = self.serial.replace('：', ':')
+            logger.warning(f'Serial {original_serial} is revised to {self.serial}')
+            startup_updates[("script", "device", "serial")] = self.serial
+        if self.is_bluestacks4_hyperv:
+            self.serial = self.find_bluestacks4_hyperv(self.serial)
+        if self.is_bluestacks5_hyperv:
+            self.serial = self.find_bluestacks5_hyperv(self.serial)
+        if "127.0.0.1:58526" in self.serial:
+            logger.warning('Serial 127.0.0.1:58526 seems to be WSA, '
+                           'please use "wsa-0" or others instead')
+            raise RequestHumanTakeover
+        if self.is_wsa:
+            self.serial = '127.0.0.1:58526'
+            if self.config.script.device.screenshot_method != 'uiautomator2' \
+                    or self.config.script.device.control_method != 'uiautomator2':
+                startup_updates.update({
+                    ("script", "device", "screenshot_method"): "uiautomator2",
+                    ("script", "device", "control_method"): "uiautomator2",
+                })
+        if startup_updates:
+            # 同一次启动归一化事务提交全部字段，失败时不推进运行会话和 provisional 快照。
+            self.config.startup_normalize(startup_updates)
+        if self.is_over_http:
+            if self.config.script.device.screenshot_method not in ["ADB", "uiautomator2", "aScreenCap"] \
+                    or self.config.script.device.control_method not in ["ADB", "uiautomator2", "minitouch"]:
+                logger.warning(
+                    f'When connecting to a device over http: {self.serial} '
+                    f'ScreenshotMethod can only use ["ADB", "uiautomator2", "aScreenCap"], '
+                    f'ControlMethod can only use ["ADB", "uiautomator2", "minitouch"]'
+                )
+                raise RequestHumanTakeover
+
+    @cached_property
+    def is_bluestacks4_hyperv(self):
+        return "bluestacks4-hyperv" in self.serial
+
+    @cached_property
+    def is_bluestacks5_hyperv(self):
+        return "bluestacks5-hyperv" in self.serial
+
+    @cached_property
+    def is_bluestacks_hyperv(self):
+        return self.is_bluestacks4_hyperv or self.is_bluestacks5_hyperv
+
+    @cached_property
+    def is_wsa(self):
+        return bool(re.match(r'^wsa', self.serial))
+
+    @cached_property
+    def is_mumu_family(self):
+        return self.serial == '127.0.0.1:7555'
+
+    @cached_property
+    def is_emulator(self):
+        return self.serial.startswith('emulator-') or self.serial.startswith('127.0.0.1:')
+
+    @cached_property
+    def is_desktop(self):
+        """桌面客户端模式：serial 配置为 'desktop'。"""
+        try:
+            return str(self.config.script.device.serial) == 'desktop'
+        except (AttributeError, TypeError):
+            return False
+
+    @cached_property
+    def is_network_device(self):
+        return bool(re.match(r'\d+\.\d+\.\d+\.\d+:\d+', self.serial))
+
+    @cached_property
+    def is_over_http(self):
+        return bool(re.match(r"^https?://", self.serial))
+
+    @cached_property
+    def is_chinac_phone_cloud(self):
+        # Phone cloud with public ADB connection
+        # Serial like xxx.xxx.xxx.xxx:301
+        return bool(re.search(r":30[0-9]$", self.serial))
+
+    @staticmethod
+    def find_bluestacks4_hyperv(serial):
+        """
+        Find dynamic serial of BlueStacks4 Hyper-V Beta.
+
+        Args:
+            serial (str): 'bluestacks4-hyperv', 'bluestacks4-hyperv-2' for multi instance, and so on.
+
+        Returns:
+            str: 127.0.0.1:{port}
+        """
+        from winreg import HKEY_LOCAL_MACHINE, OpenKey, QueryValueEx
+
+        logger.info("Use BlueStacks4 Hyper-V Beta")
+        logger.info("Reading Realtime adb port")
+
+        if serial == "bluestacks4-hyperv":
+            folder_name = "Android"
+        else:
+            folder_name = f"Android_{serial[19:]}"
+
+        try:
+            with OpenKey(HKEY_LOCAL_MACHINE,
+                         rf"SOFTWARE\BlueStacks_bgp64_hyperv\Guests\{folder_name}\Config") as key:
+                port = QueryValueEx(key, "BstAdbPort")[0]
+        except FileNotFoundError:
+            logger.error(rf'Unable to find registry HKEY_LOCAL_MACHINE\SOFTWARE\BlueStacks_bgp64_hyperv\Guests\{folder_name}\Config')
+            logger.error('Please confirm that your are using BlueStack 4 hyper-v and not regular BlueStacks 4')
+            logger.error(r'Please check if there is any other emulator instances under '
+                         r'registry HKEY_LOCAL_MACHINE\SOFTWARE\BlueStacks_bgp64_hyperv\Guests')
+            raise RequestHumanTakeover
+        logger.info(f"New adb port: {port}")
+        return f"127.0.0.1:{port}"
+
+    @staticmethod
+    def find_bluestacks5_hyperv(serial):
+        """
+        Find dynamic serial of BlueStacks5 Hyper-V.
+
+        Args:
+            serial (str): 'bluestacks5-hyperv', 'bluestacks5-hyperv-1' for multi instance, and so on.
+
+        Returns:
+            str: 127.0.0.1:{port}
+        """
+        from winreg import HKEY_LOCAL_MACHINE, OpenKey, QueryValueEx
+
+        logger.info("Use BlueStacks5 Hyper-V")
+        logger.info("Reading Realtime adb port")
+
+        if serial == "bluestacks5-hyperv":
+            parameter_name = r"bst\.instance\.(Nougat64|Pie64)\.status\.adb_port"
+        else:
+            parameter_name = rf"bst\.instance\.(Nougat64|Pie64)_{serial[19:]}\.status.adb_port"
+
+        try:
+            with OpenKey(HKEY_LOCAL_MACHINE, r"SOFTWARE\BlueStacks_nxt") as key:
+                directory = QueryValueEx(key, 'UserDefinedDir')[0]
+        except FileNotFoundError:
+            try:
+                with OpenKey(HKEY_LOCAL_MACHINE, r"SOFTWARE\BlueStacks_nxt_cn") as key:
+                    directory = QueryValueEx(key, 'UserDefinedDir')[0]
+            except FileNotFoundError:
+                logger.error('Unable to find registry HKEY_LOCAL_MACHINE\SOFTWARE\BlueStacks_nxt '
+                             'or HKEY_LOCAL_MACHINE\SOFTWARE\BlueStacks_nxt_cn')
+                logger.error('Please confirm that you are using BlueStacks 5 hyper-v and not regular BlueStacks 5')
+                raise RequestHumanTakeover
+        logger.info(f"Configuration file directory: {directory}")
+
+        with open(os.path.join(directory, 'bluestacks.conf'), encoding='utf-8') as f:
+            content = f.read()
+        port = re.search(rf'{parameter_name}="(\d+)"', content)
+        if port is None:
+            logger.warning(f"Did not match the result: {serial}.")
+            raise RequestHumanTakeover
+        port = port.group(2)
+        logger.info(f"Match to dynamic port: {port}")
+        return f"127.0.0.1:{port}"
+
+    @cached_property
+    def adb_binary(self):
+        import sys
+        import shutil
+
+        # Try adb in python environment
+        file = os.path.join(sys.executable, '../Lib/site-packages/adbutils/binaries/adb.exe')
+        file = os.path.abspath(file).replace('\\', '/')
+        if os.path.exists(file):
+            return file
+
+        # Try known paths
+        for file in self.adb_binary_list:
+            if os.path.exists(file):
+                return os.path.abspath(file).replace('\\', '/')
+
+        # Try system PATH
+        adb_in_path = shutil.which('adb')
+        if adb_in_path:
+            return adb_in_path
+
+        logger.critical('No adb binary found, please check your environment')
+        raise RequestHumanTakeover
+
+    @cached_property
+    def adb_client(self) -> AdbClient:
+        host = '127.0.0.1'
+        port = 5037
+
+        env = os.environ.get('ANDROID_ADB_SERVER_PORT', None)
+        if env is not None:
+            try:
+                port = int(env)
+            except ValueError:
+                logger.warning(f'Invalid ANDROID_ADB_SERVER_PORT={env}, using default 5037')
+
+        logger.attr('AdbClient', f'AdbClient({host}, {port})')
+        client = AdbClient(host, port)
+
+        if not self._adb_server_is_alive(client):
+            self._adb_server_start()
+            if not self._adb_server_is_alive(client):
+                logger.critical('Failed to start adb server')
+                raise RequestHumanTakeover
+
+        return client
+
+    def _adb_server_is_alive(self, client: AdbClient) -> bool:
+        try:
+            client.server_version()
+            return True
+        except (ConnectionRefusedError, ConnectionResetError, OSError):
+            return False
+
+    def _adb_server_start(self):
+        import subprocess
+        import sys
+        logger.info('Adb server not running, starting...')
+        try:
+            subprocess.run(
+                [self.adb_binary, 'start-server'],
+                timeout=15,
+                capture_output=True,
+                # 无控制台宿主（pythonw 启动的 server/GUI）下抑制 adb 的 cmd 窗口闪烁
+                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform.startswith('win') else 0,
+            )
+            logger.info('Adb server started')
+        except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+            logger.error(f'Failed to start adb server: {e}')
+
+    @cached_property
+    def adb(self) -> AdbDevice:
+        return AdbDevice(self.adb_client, self.serial)
+
+    @cached_property
+    def u2(self) -> u2.Device:
+        if self.is_over_http:
+            # Using uiautomator2_http
+            device = u2.connect(self.serial)
+        else:
+            # Normal uiautomator2
+            if self.serial.startswith('emulator-') or self.serial.startswith('127.0.0.1:'):
+                device = u2.connect_usb(self.serial)
+            else:
+                device = u2.connect(self.serial)
+
+        # Stay alive
+        device.set_new_command_timeout(604800)
+
+        logger.attr('u2.Device', f'Device(atx_agent_url={device._get_atx_agent_url()})')
+        return device
+
+

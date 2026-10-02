@@ -1,0 +1,44 @@
+[
+  {
+    "itemName": "click_pets_1",
+    "roiFront": "761,383,17,13",
+    "roiBack": "759,382,19,15",
+    "description": "description"
+  },
+  {
+    "itemName": "click_pets_2",
+    "roiFront": "846,398,13,18",
+    "roiBack": "844,397,15,21",
+    "description": "description"
+  },
+  {
+    "itemName": "click_pets_3",
+    "roiFront": "899,403,15,9",
+    "roiBack": "898,402,18,11",
+    "description": "description"
+  },
+  {
+    "itemName": "click_pets_4",
+    "roiFront": "252,577,15,25",
+    "roiBack": "251,576,18,27",
+    "description": "description"
+  },
+  {
+    "itemName": "click_pets_5",
+    "roiFront": "401,597,18,18",
+    "roiBack": "399,596,21,21",
+    "description": "description"
+  },
+  {
+    "itemName": "click_pets_6",
+    "roiFront": "458,551,11,22",
+    "roiBack": "456,549,14,25",
+    "description": "description"
+  },
+  {
+    "itemName": "click_award",
+    "roiFront": "692,520,150,62",
+    "roiBack": "690,519,152,65",
+    "description": "description"
+  }
+]

@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "exp_dailog",
+    "roiFront": "443,247,399,112",
+    "roiBack": "698,399,93,52",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "提取",
+    "description": "经验提取弹窗"
+  }
+]

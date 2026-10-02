@@ -1,0 +1,92 @@
+[
+  {
+    "itemName": "shi",
+    "imageName": "shi.png",
+    "roiFront": "1189,297,40,45",
+    "roiBack": "1163,135,83,393",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "进入活动"
+  },
+  {
+    "itemName": "back_green",
+    "imageName": "as_back_green.png",
+    "roiFront": "27,19,34,38",
+    "roiBack": "2,1,170,75",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "左上角返回"
+  },
+  {
+    "itemName": "skip_button",
+    "imageName": "as_skip_button.png",
+    "roiFront": "1159,37,51,22",
+    "roiBack": "1141,27,86,43",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "右上跳过按钮"
+  },
+  {
+    "itemName": "red_exit",
+    "imageName": "as_red_exit.png",
+    "roiFront": "1162,96,39,38",
+    "roiBack": "1029,53,216,159",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "红色退出"
+  },
+  {
+    "itemName": "to_battle_main",
+    "imageName": "to_battle_main.png",
+    "roiFront": "325,178,70,96",
+    "roiBack": "270,106,159,246",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "进入主要的战斗界面"
+  },
+  {
+    "itemName": "to_battle_boss",
+    "imageName": "to_battle_boss.png",
+    "roiFront": "125,439,53,72",
+    "roiBack": "63,306,161,284",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "点击进入boss战斗页面"
+  },
+  {
+    "itemName": "check_battle_main",
+    "imageName": "check_battle_main.png",
+    "roiFront": "148,17,135,39",
+    "roiBack": "78,5,260,107",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "check_battle_boss",
+    "imageName": "check_battle_boss.png",
+    "roiFront": "158,12,126,42",
+    "roiBack": "118,5,184,80",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "battle_main_to_records",
+    "imageName": "battle_main_to_records.png",
+    "roiFront": "1016,557,37,45",
+    "roiBack": "976,539,146,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "从main进入到式神录"
+  },
+  {
+    "itemName": "to_battle_main_2",
+    "imageName": "as_to_battle_main_2.png",
+    "roiFront": "62,93,119,39",
+    "roiBack": "6,84,253,89",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "前往主页"
+  }
+]

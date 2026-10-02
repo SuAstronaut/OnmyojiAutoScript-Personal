@@ -1,0 +1,38 @@
+[
+  {
+    "itemName": "store_refresh",
+    "imageName": "l101_store_refresh.png",
+    "roiFront": "594,599,46,47",
+    "roiBack": "566,571,100,93",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "宁息刷新re"
+  },
+  {
+    "itemName": "store_skill_101",
+    "imageName": "l101_store_skill_101.png",
+    "roiFront": "1074,592,47,45",
+    "roiBack": "700,94,476,622",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "购买轰雷re"
+  },
+  {
+    "itemName": "store_exit",
+    "imageName": "l101_store_exit.png",
+    "roiFront": "1194,610,59,56",
+    "roiBack": "1166,593,100,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "商店退出re"
+  },
+  {
+    "itemName": "store_stable_flag",
+    "imageName": "l101_store_stable_flag.png",
+    "roiFront": "1096,15,60,42",
+    "roiBack": "1094,12,63,47",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "稳定标志"
+  }
+]

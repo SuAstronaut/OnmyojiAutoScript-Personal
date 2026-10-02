@@ -1,0 +1,92 @@
+[
+  {
+    "itemName": "lock",
+    "imageName": "as_lock.png",
+    "roiFront": "825,657,28,25",
+    "roiBack": "739,613,276,85",
+    "method": "Template matching",
+    "threshold": 0.6,
+    "description": "上锁图标"
+  },
+  {
+    "itemName": "unlock",
+    "imageName": "as_unlock.png",
+    "roiFront": "872,640,28,25",
+    "roiBack": "733,607,266,94",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "还未上锁图片"
+  },
+  {
+    "itemName": "climb_mode_pass",
+    "imageName": "climb_mode_pass.png",
+    "roiFront": "1140,542,25,27",
+    "roiBack": "1122,529,70,52",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "活动爬塔标志"
+  },
+  {
+    "itemName": "climb_mode_ap",
+    "imageName": "climb_mode_ap.png",
+    "roiFront": "1090,541,29,27",
+    "roiBack": "1062,516,200,193",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "体力爬塔标志"
+  },
+  {
+    "itemName": "climb_mode_switch",
+    "imageName": "climb_mode_switch.png",
+    "roiFront": "1237,548,25,21",
+    "roiBack": "1222,531,50,63",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "切换按键"
+  },
+  {
+    "itemName": "off_x5",
+    "imageName": "as_off_x5.png",
+    "roiFront": "870,656,25,21",
+    "roiBack": "839,637,94,64",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "未开启五倍"
+  },
+  {
+    "itemName": "on_x5",
+    "imageName": "as_on_x5.png",
+    "roiFront": "870,656,25,21",
+    "roiBack": "839,637,94,64",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "开启五倍"
+  },
+  {
+    "itemName": "purple_snake_skin",
+    "imageName": "as_purple_snake_skin.png",
+    "roiFront": "619,296,53,50",
+    "roiBack": "122,59,1004,436",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "紫蛇皮识别"
+  },
+  {
+    "itemName": "as_reward_gold",
+    "imageName": "as_as_reward_gold.png",
+    "roiFront": "422,283,64,53",
+    "roiBack": "122,59,1004,436",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "金币识别"
+  },
+  {
+    "itemName": "a_reward",
+    "imageName": "as_a_reward.png",
+    "roiFront": "484,138,143,47",
+    "roiBack": "394,109,306,136",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "999奖励标识"
+  }
+]

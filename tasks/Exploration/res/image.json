@@ -1,0 +1,290 @@
+[
+  {
+    "itemName": "e_exploration_open",
+    "imageName": "res_e_exploration_open.png",
+    "roiFront": "1077,248,37,80",
+    "roiBack": "1072,242,47,92",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "进入难度选择界面"
+  },
+  {
+    "itemName": "e_exploration_click",
+    "imageName": "e_exploration_click.png",
+    "roiFront": "1089,603,81,43",
+    "roiBack": "845,520,414,194",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "探索按钮"
+  },
+  {
+    "itemName": "e_auto_rotate_on",
+    "imageName": "res_e_auto_rotate_on.png",
+    "roiFront": "104,649,153,44",
+    "roiBack": "104,649,153,44",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "自动轮换开着"
+  },
+  {
+    "itemName": "e_auto_rotate_off",
+    "imageName": "res_e_auto_rotate_off.png",
+    "roiFront": "108,650,150,46",
+    "roiBack": "108,650,150,46",
+    "method": "Template matching",
+    "threshold": 0.85,
+    "description": "自动轮换关闭"
+  },
+  {
+    "itemName": "e_open_settings",
+    "imageName": "res_e_open_settings.png",
+    "roiFront": "466,110,170,50",
+    "roiBack": "466,110,170,50",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "成功打开设置"
+  },
+  {
+    "itemName": "e_enter_choose_rarity",
+    "imageName": "res_e_enter_choose_rarity.png",
+    "roiFront": "34,288,62,47",
+    "roiBack": "34,288,62,47",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "选择式神稀有度"
+  },
+  {
+    "itemName": "e_n_rarity",
+    "imageName": "res_e_n_rarity.png",
+    "roiFront": "42,625,46,49",
+    "roiBack": "42,625,46,49",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "候补N卡"
+  },
+  {
+    "itemName": "e_s_rarity",
+    "imageName": "res_e_s_rarity.png",
+    "roiFront": "33,620,63,59",
+    "roiBack": "33,620,63,59",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "候补素材"
+  },
+  {
+    "itemName": "e_ratate_exsit",
+    "imageName": "res_e_ratate_exsit.png",
+    "roiFront": "108,580,995,32",
+    "roiBack": "108,580,995,32",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "已候补出战的狗粮"
+  },
+  {
+    "itemName": "e_sure_button",
+    "imageName": "res_e_sure_button.png",
+    "roiFront": "1131,425,43,37",
+    "roiBack": "1077,367,165,152",
+    "method": "Template matching",
+    "threshold": 0.65,
+    "description": "确定按钮"
+  },
+  {
+    "itemName": "e_settings_button",
+    "imageName": "res_e_settings_button.png",
+    "roiFront": "37,692,53,26",
+    "roiBack": "37,692,53,26",
+    "method": "Template matching",
+    "threshold": 0.65,
+    "description": "设置按钮"
+  },
+  {
+    "itemName": "normal_battle_button",
+    "imageName": "res_normal_battle_button.png",
+    "roiFront": "636,263,42,39",
+    "roiBack": "0,0,1279,719",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "普通怪"
+  },
+  {
+    "itemName": "boss_battle_button",
+    "imageName": "res_boss_battle_button.png",
+    "roiFront": "683,256,38,34",
+    "roiBack": "0,0,1276,719",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "boss"
+  },
+  {
+    "itemName": "battle_reward",
+    "imageName": "res_battle_reward.png",
+    "roiFront": "647,395,31,21",
+    "roiBack": "1,1,1278,718",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "战后奖励"
+  },
+  {
+    "itemName": "exploration_title",
+    "imageName": "res_exploration_title.png",
+    "roiFront": "1146,114,29,29",
+    "roiBack": "1116,96,92,71",
+    "method": "Template matching",
+    "threshold": 0.7,
+    "description": "妖"
+  },
+  {
+    "itemName": "battle_start",
+    "imageName": "res_battle_start.png",
+    "roiFront": "555,688,39,27",
+    "roiBack": "221,677,561,41",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "get_reward",
+    "imageName": "res_get_reward.png",
+    "roiFront": "464,231,339,44",
+    "roiBack": "464,231,339,44",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "red_close",
+    "imageName": "res_red_close.png",
+    "roiFront": "1027,129,41,42",
+    "roiBack": "1021,121,54,55",
+    "method": "Template matching",
+    "threshold": 0.6,
+    "description": "description"
+  },
+  {
+    "itemName": "e_exit_confirm",
+    "imageName": "res_e_exit_confirm.png",
+    "roiFront": "694,380,163,49",
+    "roiBack": "694,380,163,49",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "treasure_box_click",
+    "imageName": "res_treasure_box_click.png",
+    "roiFront": "34,386,47,37",
+    "roiBack": "2,130,135,406",
+    "method": "Template matching",
+    "threshold": 0.65,
+    "description": "宝箱"
+  },
+  {
+    "itemName": "swipe_end",
+    "imageName": "res_swipe_end.png",
+    "roiFront": "994,234,119,100",
+    "roiBack": "968,196,311,165",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "困28滚动到最后"
+  },
+  {
+    "itemName": "team_emoji",
+    "imageName": "res_team_emoji.png",
+    "roiFront": "36,437,44,46",
+    "roiBack": "4,407,100,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "队伍的表情标志"
+  },
+  {
+    "itemName": "exp_create_team",
+    "imageName": "exp_create_team.png",
+    "roiFront": "907,601,72,46",
+    "roiBack": "864,577,154,117",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "组队按钮"
+  },
+  {
+    "itemName": "exp_create_ensure",
+    "imageName": "exp_create_ensure.png",
+    "roiFront": "589,499,104,33",
+    "roiBack": "516,475,244,85",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "创建确认"
+  },
+  {
+    "itemName": "e_unlock",
+    "imageName": "res_e_unlock.png",
+    "roiFront": "891,650,33,33",
+    "roiBack": "818,628,431,85",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "e_lock",
+    "imageName": "res_e_lock.png",
+    "roiFront": "891,652,34,31",
+    "roiBack": "842,634,402,75",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "e_click_any",
+    "roiFront": "540,508,213,27",
+    "roiBack": "0,0,1280,720",
+    "description": "description",
+    "imageName": "e_click_any.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "e_main_flag",
+    "roiFront": "992,599,181,23",
+    "roiBack": "747,545,527,95",
+    "description": "description",
+    "imageName": "e_main_flag.png",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "e_main_sushi",
+    "roiFront": "567,204,150,34",
+    "roiBack": "256,94,797,494",
+    "description": "description",
+    "imageName": "e_main_sushi.png",
+    "method": "Template matching",
+    "threshold": "0.7"
+  },
+  {
+    "itemName": "e_entrance",
+    "roiFront": "217,11,35,40",
+    "roiBack": "14,9,342,58",
+    "description": "description",
+    "imageName": "e_entrance.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "exp_arrow_right",
+    "imageName": "res_exp_arrow_right.png",
+    "roiFront": "1240,117,24,21",
+    "roiBack": "1178,74,100,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "箭头，收纳"
+  },
+  {
+    "itemName": "exp_arrow_left",
+    "imageName": "res_exp_arrow_left.png",
+    "roiFront": "1244,115,18,26",
+    "roiBack": "1178,78,100,100",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "箭头，打开"
+  }
+]

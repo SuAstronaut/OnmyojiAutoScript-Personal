@@ -1,0 +1,44 @@
+[
+  {
+    "itemName": "swipe_summon",
+    "roiFront": "494,158,326,71",
+    "roiBack": "484,422,333,89",
+    "mode": "default",
+    "description": "description"
+  },
+  {
+    "itemName": "swipe_shikigami",
+    "roiFront": "302,589,39,62",
+    "roiBack": "623,306,42,107",
+    "mode": "default",
+    "description": "description"
+  },
+  {
+    "itemName": "swipe_battle",
+    "roiFront": "547,6,38,7",
+    "roiBack": "638,7,42,7",
+    "mode": "default",
+    "description": "description"
+  },
+  {
+    "itemName": "swipe_battle2",
+    "roiFront": "1065,532,38,9",
+    "roiBack": "1137,531,45,9",
+    "mode": "default",
+    "description": "description"
+  },
+  {
+    "itemName": "swipe_find_flag",
+    "roiFront": "1067,618,141,47",
+    "roiBack": "104,616,178,52",
+    "mode": "default",
+    "description": "description"
+  },
+  {
+    "itemName": "swipe_main_change",
+    "roiFront": "1173,271,37,42",
+    "roiBack": "1173,623,40,39",
+    "mode": "default",
+    "description": ""
+  }
+]

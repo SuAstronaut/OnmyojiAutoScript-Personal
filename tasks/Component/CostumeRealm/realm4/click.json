@@ -1,0 +1,14 @@
+[
+  {
+    "itemName": "realm_4_grown",
+    "roiFront": "610,321,24,53",
+    "roiBack": "610,321,24,53",
+    "description": "花海繁生进式神育成的点击区域（起点抄默认套，按实际截图调）"
+  },
+  {
+    "itemName": "realm_4_card",
+    "roiFront": "937,320,24,53",
+    "roiBack": "937,320,24,53",
+    "description": "花海繁生进结界卡的点击区域（起点抄默认套，按实际截图调）"
+  }
+]

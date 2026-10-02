@@ -1,0 +1,83 @@
+[
+  {
+    "itemName": "guild_info",
+    "imageName": "ku_guild_info.png",
+    "roiFront": "1157,599,97,91",
+    "roiBack": "1157,599,97,91",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "寮信息"
+  },
+  {
+    "itemName": "guild_realm",
+    "imageName": "ku_guild_realm.png",
+    "roiFront": "1065,620,67,61",
+    "roiBack": "1065,620,67,61",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "寮结界"
+  },
+  {
+    "itemName": "guild_wish",
+    "imageName": "ku_guild_wish.png",
+    "roiFront": "965,622,60,63",
+    "roiBack": "965,622,60,63",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "祈愿"
+  },
+  {
+    "itemName": "guild_shirne",
+    "imageName": "ku_guild_shirne.png",
+    "roiFront": "872,624,60,62",
+    "roiBack": "872,624,60,62",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "神灶"
+  },
+  {
+    "itemName": "guild_ap",
+    "imageName": "ku_guild_ap.png",
+    "roiFront": "483,314,22,22",
+    "roiBack": "290,224,894,345",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "寮体力"
+  },
+  {
+    "itemName": "guild_assets",
+    "imageName": "ku_guild_assets.png",
+    "roiFront": "315,311,23,28",
+    "roiBack": "290,224,894,345",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "寮资金"
+  },
+  {
+    "itemName": "guild_assets_receive",
+    "imageName": "ku_guild_assets_receive.png",
+    "roiFront": "565,426,144,63",
+    "roiBack": "565,426,144,63",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "领取寮资金"
+  },
+  {
+    "itemName": "guild_collapse",
+    "imageName": "ku_guild_collapse.png",
+    "roiFront": "28,159,19,22",
+    "roiBack": "12,125,88,101",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "收起的寮活动横幅"
+  },
+  {
+    "itemName": "guild_expand",
+    "imageName": "ku_guild_expand.png",
+    "roiFront": "264,162,16,18",
+    "roiBack": "212,102,110,124",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "展开的寮活动横幅"
+  }
+]

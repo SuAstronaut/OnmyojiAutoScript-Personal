@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "dlc_tick",
+    "roiFront": "527,378,43,39",
+    "roiBack": "383,333,286,138",
+    "description": "description",
+    "imageName": "dlc_tick.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  }
+]

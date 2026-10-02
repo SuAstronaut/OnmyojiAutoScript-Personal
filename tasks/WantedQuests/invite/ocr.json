@@ -1,0 +1,92 @@
+[
+  {
+    "itemName": "wq_invite_column_1",
+    "roiFront": "240,185,190,340",
+    "roiBack": "0,0,100,100",
+    "mode": "FULL",
+    "method": "Default",
+    "keyword": "",
+    "description": "邀请好友界面 好友列表第一列"
+  },
+  {
+    "itemName": "wq_invite_column_2",
+    "roiFront": "520,185,190,340",
+    "roiBack": "0,0,100,100",
+    "mode": "FULL",
+    "method": "Default",
+    "keyword": "",
+    "description": "邀请好友界面 好友列表第二列"
+  },
+  {
+    "itemName": "wq_cooperation_discoverer_1",
+    "roiFront": "180,403,200,30",
+    "roiBack": "180,403,200,30",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "第一个协作卡 发现者击败目标"
+  },
+  {
+    "itemName": "wq_cooperation_friend_1",
+    "roiFront": "180,448,200,30",
+    "roiBack": "180,448,200,30",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "第一个协作卡 好友击败目标"
+  },
+  {
+    "itemName": "wq_cooperation_discoverer_2",
+    "roiFront": "480,403,200,30",
+    "roiBack": "480,403,200,30",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "第二个协作卡 发现者击败目标"
+  },
+  {
+    "itemName": "wq_cooperation_friend_2",
+    "roiFront": "480,448,200,30",
+    "roiBack": "480,448,200,30",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "第二个协作卡 好友击败目标"
+  },
+  {
+    "itemName": "wq_cooperation_discoverer_3",
+    "roiFront": "780,403,200,30",
+    "roiBack": "780,403,200,30",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "第三个协作卡 发现者击败目标"
+  },
+  {
+    "itemName": "wq_cooperation_friend_3",
+    "roiFront": "780,448,200,30",
+    "roiBack": "780,448,200,30",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "第三个协作卡 好友击败目标"
+  },
+  {
+    "itemName": "wq_real_cooperation_monster_1",
+    "roiFront": "180,425,200,32",
+    "roiBack": "180,425,200,32",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "第一个现世协作卡 击败目标"
+  },
+  {
+    "itemName": "wq_real_cooperation_monster_2",
+    "roiFront": "480,425,200,32",
+    "roiBack": "480,425,200,32",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "第二个现世协作卡 击败目标"
+  }
+]

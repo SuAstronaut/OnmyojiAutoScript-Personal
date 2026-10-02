@@ -1,0 +1,121 @@
+{
+  "name": "level_list",
+  "direction": "vertical",
+  "type": "ocr",
+  "roiBack": "1065,203,164,348",
+  "description": "探索章节列表",
+  "list": [
+    {
+      "itemName": "第一章",
+      "roiFront": "1069,204,100,80"
+    },
+    {
+      "itemName": "第二章",
+      "roiFront": "1069,233,100,80"
+    },
+    {
+      "itemName": "第三章",
+      "roiFront": "1069,269,100,80"
+    },
+    {
+      "itemName": "第四章",
+      "roiFront": "1069,305,100,80"
+    },
+    {
+      "itemName": "第五章",
+      "roiFront": "1069,341,100,80"
+    },
+    {
+      "itemName": "第六章",
+      "roiFront": "1069,377,100,80"
+    },
+    {
+      "itemName": "第七章",
+      "roiFront": "1069,413,100,80"
+    },
+    {
+      "itemName": "第八章",
+      "roiFront": "1069,449,100,80"
+    },
+    {
+      "itemName": "第九章",
+      "roiFront": "1069,485,100,80"
+    },
+    {
+      "itemName": "第十章",
+      "roiFront": "1069,521,100,80"
+    },
+    {
+      "itemName": "第十一章",
+      "roiFront": "1069,204,100,80"
+    },
+    {
+      "itemName": "第十二章",
+      "roiFront": "1069,233,100,80"
+    },
+    {
+      "itemName": "第十三章",
+      "roiFront": "1069,269,100,80"
+    },
+    {
+      "itemName": "第十四章",
+      "roiFront": "1069,305,100,80"
+    },
+    {
+      "itemName": "第十五章",
+      "roiFront": "1069,341,100,80"
+    },
+    {
+      "itemName": "第十六章",
+      "roiFront": "1069,377,100,80"
+    },
+    {
+      "itemName": "第十七章",
+      "roiFront": "1069,413,100,80"
+    },
+    {
+      "itemName": "第十八章",
+      "roiFront": "1069,449,100,80"
+    },
+    {
+      "itemName": "第十九章",
+      "roiFront": "1069,485,100,80"
+    },
+    {
+      "itemName": "第二十章",
+      "roiFront": "1069,521,100,80"
+    },
+    {
+      "itemName": "第二十一章",
+      "roiFront": "1069,197,100,80"
+    },
+    {
+      "itemName": "第二十二章",
+      "roiFront": "1069,233,100,80"
+    },
+    {
+      "itemName": "第二十三章",
+      "roiFront": "1069,269,100,80"
+    },
+    {
+      "itemName": "第二十四章",
+      "roiFront": "1069,305,100,80"
+    },
+    {
+      "itemName": "第二十五章",
+      "roiFront": "1069,341,100,80"
+    },
+    {
+      "itemName": "第二十六章",
+      "roiFront": "1069,377,100,80"
+    },
+    {
+      "itemName": "第二十七章",
+      "roiFront": "1069,413,100,80"
+    },
+    {
+      "itemName": "第二十八章",
+      "roiFront": "1069,449,100,80"
+    }
+  ]
+}

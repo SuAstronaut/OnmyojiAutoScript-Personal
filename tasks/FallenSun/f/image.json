@@ -1,0 +1,56 @@
+[
+  {
+    "itemName": "fallen_sun",
+    "imageName": "fallen_sun.png",
+    "roiFront": "879,110,60,237",
+    "roiBack": "779,87,179,319",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "选择日轮"
+  },
+  {
+    "itemName": "form_team",
+    "imageName": "form_team.png",
+    "roiFront": "964,605,88,50",
+    "roiBack": "927,548,161,153",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "组队"
+  },
+  {
+    "itemName": "fallen_sun_fire",
+    "imageName": "fallen_sun_fire.png",
+    "roiFront": "1146,605,85,33",
+    "roiBack": "1112,550,138,146",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "fallen_sun_unlock",
+    "imageName": "fallen_sun_unlock.png",
+    "roiFront": "701,652,26,34",
+    "roiBack": "659,644,236,64",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "fallen_sun_lock",
+    "imageName": "fallen_sun_lock.png",
+    "roiFront": "698,655,29,31",
+    "roiBack": "671,651,220,51",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "description"
+  },
+  {
+    "itemName": "pet_present",
+    "imageName": "f_pet_present.png",
+    "roiFront": "873,184,62,147",
+    "roiBack": "873,184,62,147",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "小小宠物，发现宝藏"
+  }
+]
