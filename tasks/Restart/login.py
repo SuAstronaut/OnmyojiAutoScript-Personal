@@ -147,6 +147,34 @@ class LoginHandler(BaseTask, RestartAssets, GameUiAssets):
         return False
     
 
+    def _wait_login_transition(self, wait_time: float = 5) -> None:
+        """进入游戏后只等可交还登录循环的状态，不点击或认定登录成功。"""
+        wait_timer = Timer(wait_time).start()
+        # 只观察原登录循环已有的弹窗；不传 interval，避免点击节流隐藏仍在的状态。
+        popup_rules = (
+            self.I_CANCEL_BATTLE, self.I_OFF_TICKET, self.I_LOGIN_GET_COUPON,
+            self.I_LOGIN_LOAD_DOWN, self.I_WATCH_VIDEO_CANCEL,
+            self.I_LOGIN_RED_CLOSE, self.I_LOGIN_YELLOW_CLOSE,
+            self.I_CLICK_REFUSE, self.I_LOGIN_LOGIN_GOTO_BIND_PHONE,
+        )
+        while True:
+            # ENTER_GAME 已改变画面，第一帧也必须重新取；退出后外层仍会重新截图。
+            self.screenshot()
+            if wait_timer.reached():
+                logger.info('[LOGIN_WAIT] timeout')
+                return
+            if self.appear(self.I_LOGIN_SPECIFIC_SERVE):
+                state = 'specific_serve'
+            elif any(self.appear(rule) for rule in popup_rules):
+                state = 'known_popup'
+            elif self.appear(self.I_CHECK_MAIN) or self.appear(self.I_MAIN_BUFF):
+                # 固定主页锚点只用于结束等待，仍须通过原弹窗门禁和庭院2.5秒复核。
+                state = 'courtyard'
+            else:
+                continue
+            logger.info(f'[LOGIN_WAIT] early_exit state={state}')
+            return
+
     def _get_login_handoff_task(self) -> str:
         """普通登录和切号后的登录必须进庭院，只有 Restart 可以指定接手任务。"""
         return ''
@@ -351,7 +379,7 @@ class LoginHandler(BaseTask, RestartAssets, GameUiAssets):
                     logger.info('Cancel switch from early server to normal server')
                     continue
             if self.ocr_appear_click(self.O_LOGIN_ENTER_GAME, interval=3):
-                self.wait_until_appear(self.I_LOGIN_SPECIFIC_SERVE, True, wait_time=5)
+                self._wait_login_transition(wait_time=5)
                 continue
 
         return login_success
