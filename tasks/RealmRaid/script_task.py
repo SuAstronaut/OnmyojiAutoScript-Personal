@@ -9,6 +9,7 @@ from cached_property import cached_property
 from tasks.base_task import BaseTask
 from tasks.Component.GeneralBattle.general_battle import GeneralBattle
 from tasks.Component.GeneralBattle.reward_frame import FORBIDDEN_KEKKAI
+from tasks.RealmRaid.settlement_safe import BASE_SAFE_AREA, get_settlement_safe_point
 from tasks.GameUi.game_ui import GameUi
 from tasks.GameUi.page import page_realm_raid, page_main, page_shikigami_records
 from tasks.RealmRaid.assets import RealmRaidAssets
@@ -92,6 +93,101 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
     def reward_forbidden(self) -> tuple:
         """结界突破结算界面的常驻禁点区域（顶左条 + 顶右条 + 左下角）。"""
         return FORBIDDEN_KEKKAI
+
+    def battle_wait(self, random_click_swipt_enable: bool) -> bool:
+        """Keep the parent state machine; scope direct continue-click routing."""
+        previous = getattr(self, '_realm_settlement_active', False)
+        self._realm_settlement_active = True
+        try:
+            return super().battle_wait(random_click_swipt_enable)
+        finally:
+            self._realm_settlement_active = previous
+
+    def run_general_battle_back(self, config=None, exit_four=False) -> bool:
+        # Retreat / confirm / prepare remain precise. Only the resulting FALSE
+        # screen's continue click uses the settlement mask, once per fresh frame.
+        previous = getattr(self, '_realm_settlement_active', False)
+        self._realm_settlement_active = True
+        try:
+            return super().run_general_battle_back(config, exit_four=exit_four)
+        finally:
+            self._realm_settlement_active = previous
+
+    def _get_settlement_safe_point(self):
+        # User-confirmed shared breakthrough reward layout, full 1280 x 720.
+        if self.device.image.shape[:2] != (720, 1280):
+            logger.error('[RealmRaid] settlement_safe_click unsupported frame size')
+            raise RuntimeError('RealmRaid settlement safe click requires 1280 x 720')
+        try:
+            return get_settlement_safe_point()
+        except RuntimeError:
+            logger.error('[RealmRaid] settlement_safe_click sampling exhausted')
+            raise
+
+    def _log_settlement_safe_point(self, state, x, y):
+        logger.info(f'[RealmRaid] settlement_safe_click state={state} '
+                    f'x={x} y={y} strategy=uniform_mask')
+
+    def _click_settlement_safe_area(self, state, control_name, pace=True):
+        x, y = self._get_settlement_safe_point()
+        self._log_settlement_safe_point(state, x, y)
+        self.device.click(x, y, control_name=control_name, pace=pace)
+
+    def appear_then_click(self, target, action=None, interval=None, threshold=None,
+                          duration=None, repeat_exempt=False):
+        active = getattr(self, '_realm_settlement_active', False)
+        if active and target is self.I_CONFIRM_CLOSE_DIFF_SOUL:
+            # The parent's unknown-reward branch may have just clicked blank
+            # space. Re-read the screen before its separate precise confirmation.
+            self.screenshot()
+        if (active and action is None and duration is None
+                and (target is self.I_FALSE or target is self.I_DE_WIN)):
+            if not self._settlement_cd_ready():
+                return False
+            if not self.appear(target, interval=interval, threshold=threshold):
+                return False
+            state = 'false' if target is self.I_FALSE else 'win'
+            self._click_settlement_safe_area(state, target.name)
+            self._settlement_cd_touch()
+            return True
+        return super().appear_then_click(
+            target, action=action, interval=interval, threshold=threshold,
+            duration=duration, repeat_exempt=repeat_exempt)
+
+    def click(self, click=None, interval=None) -> bool:
+        if (getattr(self, '_realm_settlement_active', False)
+                and click is self.C_RANDOM_CLICK and interval is None):
+            # Route only the parent's identified unknown-reward continuation.
+            # Battle-process random gestures keep their existing behavior.
+            if (self.appear(self.I_STATISTICS) and not self.win_appear()
+                    and not self.appear(self.I_REWARD)
+                    and not self.reward_grid_appear()):
+                return self.settlement_click(self.I_STATISTICS, None, interval=interval)
+        return super().click(click, interval=interval)
+
+    def settlement_gesture(self, action, control_name='Reward') -> None:
+        previous = getattr(self, '_realm_settlement_state', 'reward')
+        self._realm_settlement_state = (
+            'win' if control_name in self.win_template_names() else 'reward')
+        try:
+            super().settlement_gesture(action, control_name=control_name)
+        finally:
+            self._realm_settlement_state = previous
+
+    def _settlement_point(self, action):
+        x, y = self._get_settlement_safe_point()
+        self._log_settlement_safe_point(self._realm_settlement_state, x, y)
+        left, top, right, bottom = BASE_SAFE_AREA
+        roi = (left, top, right - left + 1, bottom - top + 1)
+        return x, y, RuleClick(roi, roi, name='realm_settlement_safe')
+
+    def settlement_click_count(self, page_clicks: int) -> int:
+        return 1
+
+    def _settlement_extra_clicks(self, action, x, y, control_name,
+                                 first_ts=None, page_clicks=0):
+        # Parent records first_ts as the last click when this returns None.
+        return None
 
     def run(self):
         self.run_2()
@@ -609,7 +705,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
                 list_confirmations = 0
                 continue
             if not on_list and self.appear(self.I_REWARD):
-                self.device.click(x=640, y=50)
+                self.settlement_click(self.I_REWARD, None)
                 list_confirmations = 0
                 time.sleep(1.5)
                 continue

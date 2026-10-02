@@ -7,6 +7,7 @@ import random
 
 from tasks.Component.SwitchSoul.switch_soul import SwitchSoul
 from tasks.RyouToppa.assets import RyouToppaAssets
+from tasks.RyouToppa.settlement_safe import BASE_SAFE_AREA, get_settlement_safe_point
 from tasks.Component.GeneralBattle.general_battle import GeneralBattle
 from tasks.Component.GeneralBattle.reward_frame import FORBIDDEN_KEKKAI
 from tasks.Component.config_base import ConfigBase, Time
@@ -53,6 +54,82 @@ class ScriptTask(RealmRaidScriptTask, GeneralBattle, GameUi, SwitchSoul, RyouTop
     def reward_forbidden(self) -> tuple:
         """寮突破结算界面的常驻禁点区域（顶左条 + 顶右条 + 左下角）。"""
         return FORBIDDEN_KEKKAI
+
+    def battle_wait(self, random_click_swipt_enable: bool) -> bool:
+        """Delegate the existing state machine; scope failure-click routing to it."""
+        previous = getattr(self, '_ryou_settlement_active', False)
+        self._ryou_settlement_active = True
+        try:
+            return super().battle_wait(random_click_swipt_enable)
+        finally:
+            self._ryou_settlement_active = previous
+
+    def _get_settlement_safe_point(self):
+        # These coordinates are valid only for the full 1280 x 720 game frame.
+        if self.device.image.shape[:2] != (720, 1280):
+            logger.error('[RyouToppa] settlement_safe_click unsupported frame size')
+            raise RuntimeError('RyouToppa settlement safe click requires 1280 x 720')
+        try:
+            return get_settlement_safe_point()
+        except RuntimeError:
+            logger.error('[RyouToppa] settlement_safe_click sampling exhausted')
+            raise
+
+    def _log_settlement_safe_point(self, state, x, y):
+        logger.info(f'[RyouToppa] settlement_safe_click state={state} '
+                    f'x={x} y={y} strategy=uniform_mask')
+
+    def _click_settlement_safe_area(self, state, control_name, pace=True):
+        x, y = self._get_settlement_safe_point()
+        self._log_settlement_safe_point(state, x, y)
+        self.device.click(x, y, control_name=control_name, pace=pace)
+
+    def appear_then_click(self, target, action=None, interval=None, threshold=None,
+                          duration=None, repeat_exempt=False):
+        # Only the inherited battle_wait's direct failure / DE win confirmations.
+        # Prepare, attack, return and explicit actions keep their existing path.
+        if (getattr(self, '_ryou_settlement_active', False)
+                and action is None and duration is None
+                and (target is self.I_FALSE or target is self.I_DE_WIN)):
+            if not self._settlement_cd_ready():
+                return False
+            if not self.appear(target, interval=interval, threshold=threshold):
+                return False
+            state = 'false' if target is self.I_FALSE else 'win'
+            self._click_settlement_safe_area(state, target.name)
+            self._settlement_cd_touch()
+            return True
+        return super().appear_then_click(
+            target, action=action, interval=interval, threshold=threshold,
+            duration=duration, repeat_exempt=repeat_exempt)
+
+    def settlement_gesture(self, action, control_name='Reward') -> None:
+        # Keep the inherited CD, counters and timestamp handling; no extra clicks.
+        previous = getattr(self, '_ryou_settlement_state', 'reward')
+        self._ryou_settlement_state = (
+            'win' if control_name in self.win_template_names() else 'reward')
+        try:
+            super().settlement_gesture(action, control_name=control_name)
+        finally:
+            self._ryou_settlement_state = previous
+
+    def _settlement_point(self, action):
+        # Do not reuse the shared density field or a previous settlement position.
+        x, y = self._get_settlement_safe_point()
+        self._log_settlement_safe_point(self._ryou_settlement_state, x, y)
+        left, top, right, bottom = BASE_SAFE_AREA
+        roi = (left, top, right - left + 1, bottom - top + 1)
+        return x, y, RuleClick(roi, roi, name='ryou_settlement_safe')
+
+    def _settlement_extra_clicks(self, action, x, y, control_name,
+                                 first_ts=None, page_clicks=0):
+        # None keeps the parent's TTL based on first_ts. Never send a second
+        # click, even if a caller changes the count policy to a multi-click value.
+        return None
+
+    def settlement_click_count(self, page_clicks: int) -> int:
+        """One confirmed settlement frame permits only one device click."""
+        return 1
 
     def detect_ryou_cells(self, screenshot: bool=True) -> list:
         """寮突破 4×2 网格的四态识别，复用个人突破的勋章反推识别链。
