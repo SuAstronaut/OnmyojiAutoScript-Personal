@@ -26,7 +26,7 @@ from module.atom.ocr import RuleOcr
 # 结界突破九宫格：勋章槽位刚性网格的实测参数（1280×720 授权空间）
 # 实测三张截图确认：行锚点 y=211/346/481、列锚点 x=242/574/906、槽距 39.4px、每格恒 5 槽。
 # 攻破印章（I_FINISH_SIGN，x=406/738/1070 宽 48）恰好压在第 5 槽（外推 x=401/733/1065）上，
-# 因此「有印章 ⟺ 槽数 4、无印章 ⟺ 槽数 5」，槽数可作为攻破态的第二证据。
+# 模板漏匹配也会减少命中数；槽数只辅助判断可信度，不能反推完成/失败状态。
 # ----------------------------------------------------------------------------------------------------------------------
 GRID_COLS = 3                 # 个人突破：3 列
 GRID_ROWS = 3                 # 个人突破：3 行
@@ -235,7 +235,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
             # ----------------------------------------开始进攻
             # 一次识别喂给策略判定与目标选择，避免同一帧重复跑模板匹配；
             # 没开 auto_exit_all 时连逐格等级 OCR 一起跳过
-            cells = self.detect_cells(False, read_level=auto_exit_all)
+            cells = self._detect_attack_cells(read_level=auto_exit_all)
             # 按九格等级与总勋章数决定是否全退降级 / 是否禁用退四提升等级（仅 auto_exit_all 开启时）
             if auto_exit_all:
                 new_exit_all, allow_exit_four = self.decide_exit_strategy(cells)
@@ -275,7 +275,8 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
                 logger.info(f'Last undefeated realm at position {index}')
                 if exit_four_enable:
                     logger.info('Exit four enable')
-                    self.fire(index)
+                    if self.fire(index, revalidate=True) is False:
+                        continue
                     self.run_general_battle_back(con.general_battle_config, exit_four=True)
                     self.fire(index)
                     self.run_general_battle_back(con.general_battle_config, exit_four=True)
@@ -283,7 +284,10 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
                     self.run_general_battle_back(con.general_battle_config, exit_four=True)
                     self.fire(index)
                     self.run_general_battle_back(con.general_battle_config, exit_four=True)
-            self.fire(index)
+            # 退四后仍允许重进 FAILED；普通攻击则在清理弹窗后复核目标。
+            after_exit_four = is_last_target and not exit_all and exit_four_enable
+            if self.fire(index, revalidate=not after_exit_four) is False:
+                continue
             # 全退模式（auto_exit_all 判定等级过高）：进战斗立即退出，逐格清场降级
             if exit_all:
                 logger.info('Exit all')
@@ -465,14 +469,14 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
                      read_level: bool=True, slot_hits: list=None) -> list:
         """逐格判定网格状态、统计勋章数并读取结界等级。
 
-        状态优先级：已攻破 > 攻打失败 > 可正常攻打。已攻破的格子勋章数没有意义，
-        不做统计（印章还会遮掉第 5 槽，统计出来也是残缺的）。
+        状态优先级：已攻破 > 攻打失败 > 可正常攻打。已攻破格保留槽位命中数供诊断，
+        但勋章数不参与普通候选选择（印章和模板漏匹配都可能使统计残缺）。
         网格形状由参数决定：个人突破 3×3、寮突破 4×2（捕获截图实测同一套勋章模板可用）；
         滚动截断时行数可能少于期望，识别到几行就返回几行。
         read_level=False 时跳过逐格等级 OCR（level 置 None）：等级只服务于
         auto_exit_all 的全退/禁退四策略，不消费等级的调用方不该付这笔 OCR 成本。
         slot_hits 传入已跑过的勋章槽命中点可跳过全图匹配（调用方做过画面预检时复用）。
-        :return: 格子 dict 列表，含 index/slot/region/state/medal_count/no_medal_count/level/click_roi
+        :return: 格子 dict 列表，含 index/slot/region/state/slot_count/medal_count/no_medal_count/level/click_roi
         """
         if screenshot:
             self.screenshot()
@@ -512,12 +516,49 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
                 'slot': (slot_x, slot_y),
                 'region': region,
                 'state': state,
+                'slot_count': len(band),
                 'medal_count': medal_count,
                 'no_medal_count': no_medal_count,
                 'level': self._read_level(image, slot_x, slot_y) if read_level else None,
                 'click_roi': click_roi,
             })
         return cells
+
+    @staticmethod
+    def _is_attack_candidate(cell: dict) -> bool:
+        """印章决定状态；槽位仅排除完全无命中的强异常，不要求五槽齐全。"""
+        return (cell['state'] == CELL_ATTACKABLE
+                and cell['slot_count'] > 0)
+
+    def _detect_attack_cells(self, read_level: bool=False) -> list:
+        """有可信目标就继续；只剩零槽或网格不明确时有限重检。"""
+        for attempt in range(3):
+            cells = self.detect_cells(attempt > 0, read_level=read_level)
+            zero_slots = [cell['index'] for cell in cells
+                          if cell['state'] == CELL_ATTACKABLE and cell['slot_count'] == 0]
+            if len(cells) == GRID_ROWS * GRID_COLS:
+                if any(self._is_attack_candidate(cell) for cell in cells) or not zero_slots:
+                    return cells
+            logger.warning(f'RealmRaid no trusted target or incomplete grid '
+                           f'(cells={len(cells)}, zero_slots={zero_slots}), '
+                           f'detection attempt {attempt + 1}/3')
+            if attempt < 2:
+                time.sleep(0.5)
+        raise GameStuckError('RealmRaid unresolved zero-slot targets or grid after detection retries')
+
+    def _validated_target_click(self, order: int, screenshot: bool=True,
+                                allow_failed: bool=False):
+        """仅在详情未出现、准备点击格子时复核；退四允许已选 FAILED 重入。"""
+        cells = self.detect_cells(screenshot, read_level=False)
+        target = next((cell for cell in cells if cell['index'] == order), None)
+        allowed = target is not None and (
+            self._is_attack_candidate(target)
+            or (allow_failed and target['state'] == CELL_FAILED))
+        if len(cells) != GRID_ROWS * GRID_COLS or not allowed:
+            logger.info(f'RealmRaid target {order} changed or incomplete, cancel and reselect')
+            return None
+        return RuleClick(roi_front=target['click_roi'], roi_back=target['click_roi'],
+                         name=f'partition_{order}')
 
     @staticmethod
     def _read_level(image, slot_x: int, slot_y: int) -> int:
@@ -600,7 +641,9 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
         for cell in cells:
             if cell['state'] != CELL_ATTACKABLE:
                 logger.info(f'Position {cell["index"]} is {cell["state"].lower()}, skip')
-        candidates = [c for c in cells if c['state'] == CELL_ATTACKABLE]
+            elif not self._is_attack_candidate(cell):
+                logger.warning(f'Position {cell["index"]} has {cell["slot_count"]} slots, skip')
+        candidates = [c for c in cells if self._is_attack_candidate(c)]
         if not candidates:
             return None
         if self.attack_by_position:
@@ -682,10 +725,11 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
             if self.appear_then_click(self.I_FRESH_ENSURE, interval=1):
                 continue
 
-    def fire(self, order: int):
+    def fire(self, order: int, revalidate: bool=False):
         """
         挑战；列表标签失配时复核页面，超时交给现有卡死恢复流程。
         :param order: 第几个
+        :param revalidate: 普通攻击复核；退四已选目标重入保留原 FAILED 路径
         """
         deadline = time.monotonic() + 30
         list_confirmations = 0
@@ -723,11 +767,20 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
         else:
             raise GameStuckError(f'RealmRaid target {order}: list confirmation timed out')
 
-        # 弹窗清理后重新反推目标点击区，保持原目标选择与点击间隔。
-        click = self.partition[order - 1]
+        # 普通目标在真正点格子前复核；退四首次重入保留原点击路径。
+        click = None if revalidate else self.partition[order - 1]
+        partition_attempts = 0
+        detail_wait_until = 0
+        detail_seen = False
+        fire_inputs_sent = 0
+        list_return_frames = 0
+        list_recoveries = 0
+        recovery_target_evidence = ()
         while time.monotonic() < deadline:
             self.screenshot()
             if self.appear(self.I_FRESH_ENSURE):
+                list_return_frames = 0
+                recovery_target_evidence = ()
                 self.device.click(x=530, y=460)
                 time.sleep(1.0)
                 continue
@@ -738,10 +791,63 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
                 return
 
             if self.appear(self.I_FIRE):
-                self.appear_then_click(self.I_FIRE, interval=1)
+                # 详情是正向证据；不再检测被详情面板遮挡的背景槽位。
+                if not detail_seen:
+                    detail_wait_until = max(detail_wait_until, time.monotonic() + 2.5)
+                detail_seen = True
+                list_return_frames = 0
+                recovery_target_evidence = ()
+                # 返回 True 只代表输入已发送，准备/战斗仍由上面的页面判据确认。
+                if fire_inputs_sent < 2 and self.appear_then_click(self.I_FIRE, interval=1):
+                    fire_inputs_sent += 1
+                    detail_wait_until = time.monotonic() + 2.5
+                else:
+                    time.sleep(0.3)
                 continue
-            if self.appear(self.I_RR_PERSON) or self.ui_page_appear(page_realm_raid):
+
+            on_list = self.appear(self.I_RR_PERSON) or self.ui_page_appear(page_realm_raid)
+            if detail_seen:
+                # 单帧按钮消失/背景列表不触发恢复；等待后连续新帧确认返回列表。
+                list_return_frames = list_return_frames + 1 if on_list else 0
+                if not on_list:
+                    recovery_target_evidence = ()
+                if list_return_frames < 2 or time.monotonic() < detail_wait_until:
+                    time.sleep(0.3)
+                    continue
+            elif time.monotonic() < detail_wait_until or partition_attempts >= 2:
+                # 点击预算耗尽只禁止继续点格子，不缩短总响应等待期限。
+                time.sleep(0.3)
+                continue
+            if on_list:
+                if revalidate or partition_attempts or detail_seen:
+                    # 无 RES_FIRE 才复核列表；第二次尝试绝不沿用旧点击区。
+                    click = self._validated_target_click(
+                        order, screenshot=False, allow_failed=not revalidate)
+                    if detail_seen:
+                        # 恢复还需连续帧给出相同落点/取消证据，单次漏识别不改阶段。
+                        evidence = (click.roi_front if click is not None else None,)
+                        if evidence != recovery_target_evidence:
+                            recovery_target_evidence = evidence
+                            time.sleep(0.3)
+                            continue
+                    if click is None:
+                        if not revalidate:
+                            raise GameStuckError(f'RealmRaid retreat target {order}: '
+                                                 'state changed before reentry')
+                        return False
+                if detail_seen and (list_recoveries >= 1 or partition_attempts >= 2
+                                    or fire_inputs_sent >= 2):
+                    raise GameStuckError(f'RealmRaid target {order}: list recovery budget exhausted')
                 if self.click(click, interval=1.8):
+                    if detail_seen:
+                        list_recoveries += 1
+                    partition_attempts += 1
+                    detail_seen = False
+                    list_return_frames = 0
+                    recovery_target_evidence = ()
+                    detail_wait_until = time.monotonic() + 2.5
+                    logger.info(f'RealmRaid target {order}: partition attempt '
+                                f'{partition_attempts}/2, wait for RES_FIRE')
                     continue
             time.sleep(0.3)
 
