@@ -19,6 +19,7 @@ _LOG_FILE_RE = re.compile(r"^(?P<day>\d{4}-\d{2}-\d{2})_(?P<script>.+)\.txt$")
 
 _TIMESTAMP_RE = re.compile(r"^(?P<ts>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})\s+\|")
 _TASK_LINE_RE = re.compile(r"\[Task\]\s+(?P<task>[A-Za-z0-9_]+)\s+\(")
+_SCHEDULER_TASK_RE = re.compile(r"^Scheduler: (?P<event>Start|End) task `(?P<task>[A-Za-z0-9_]+)`$")
 _EQ_LINE_RE = re.compile(r"^═{15,}\s*$")
 _TITLE_LINE_RE = re.compile(r"^─{10,}\s*(?P<title>.*?)\s*─{10,}\s*$")
 _BATTLE_TITLE = "GENERAL BATTLE START"
@@ -125,15 +126,6 @@ class TaskRunState:
 
 
 @dataclass
-class RuntimeState:
-    saw_start_boundary: bool = False
-    pre_start_first: datetime | None = None
-    region_last: datetime | None = None
-    session_start: datetime | None = None
-    total_duration: float = 0.0
-
-
-@dataclass
 class HistoricalStatsCacheEntry:
     expires_at: datetime
     payload: dict[str, Any]
@@ -142,9 +134,6 @@ class HistoricalStatsCacheEntry:
 class LogStatsParser:
     def __init__(self) -> None:
         self.summary: dict[str, dict[str, Any]] = {}
-        self.runtime = RuntimeState()
-        self._pending_task_name: str | None = None
-        self._pending_task_start_name: str | None = None
         self._pending_battle_start = False
         self._active_task: TaskRunState | None = None
         self._active_battle: BattleState | None = None
@@ -172,7 +161,9 @@ class LogStatsParser:
     def snapshot(self, script_name: str = "", tail_lines: list[str] | None = None) -> dict[str, Any]:
         parser = copy.deepcopy(self)
         if tail_lines:
-            parser.consume_lines(tail_lines)
+            # The incremental reader may retain an unfinished timestamped line.
+            # Do not advance execution time until that log record is complete.
+            parser.consume_lines([line for line in tail_lines if line.endswith("\n")])
         parser._close_active_battle()
         parser._close_active_task()
 
@@ -224,32 +215,12 @@ class LogStatsParser:
         return matched.group("title").strip().upper() == _BATTLE_TITLE
 
     def _handle_task_boundary(self, title: str) -> None:
-        self._close_active_battle()
-        self._close_active_task()
-        if title.upper() == _START_TITLE:
-            self._handle_start_boundary()
-            self._pending_task_start_name = None
-            return
-        self._pending_task_start_name = self._pending_task_name or title
-        self._pending_task_name = None
-
-    def _handle_start_boundary(self) -> None:
-        runtime = self.runtime
-        if not runtime.saw_start_boundary:
-            runtime.saw_start_boundary = True
-            runtime.total_duration = self._append_duration(
-                runtime.total_duration,
-                runtime.pre_start_first,
-                runtime.region_last,
-            )
-        else:
-            runtime.total_duration = self._append_duration(
-                runtime.total_duration,
-                runtime.session_start,
-                runtime.region_last,
-            )
-        runtime.session_start = None
-        runtime.region_last = None
+        # The scheduler start line precedes its decorative title. Preserve that
+        # execution, but never create a run from a selected/queued task or title.
+        if (title.upper() == _START_TITLE or self._active_task is None
+                or title.casefold() != self._active_task.name.casefold()):
+            self._close_active_battle()
+            self._close_active_task()
 
     def _handle_battle_boundary(self) -> None:
         self._close_active_battle()
@@ -257,20 +228,39 @@ class LogStatsParser:
             self._pending_battle_start = True
 
     def _consume_regular_line(self, line: str) -> None:
-        matched = _TASK_LINE_RE.search(line)
-        if matched:
-            self._pending_task_name = matched.group("task").strip()
-
         ts = self._extract_timestamp(line)
         if ts is None:
             return
 
-        self._consume_runtime_timestamp(ts)
+        message = line.split("|", 3)[-1].strip()
+        # These belong to a NEW process, before its START title is printed.
+        # Close at the old run's last evidence, not at this restart timestamp.
+        if message.startswith("[START_DIAG] "):
+            self._close_active_battle()
+            self._close_active_task()
+            return
 
-        if self._pending_task_start_name:
-            self._active_task = TaskRunState(name=self._pending_task_start_name, start_time=ts, last_time=ts)
-            self._pending_task_start_name = None
-        elif self._active_task is not None:
+        event = _SCHEDULER_TASK_RE.fullmatch(message)
+        if event:
+            if event.group("event") == "Start":
+                self._close_active_battle()
+                self._close_active_task()
+                self._active_task = TaskRunState(name=event.group("task"), start_time=ts, last_time=ts)
+            elif self._active_task is not None and self._active_task.name == event.group("task"):
+                self._active_task.last_time = ts
+                self._close_active_battle()
+                self._close_active_task()
+            return
+
+        # Selection/waiting is outside execution. Also bounds interrupted legacy
+        # runs with a missing End marker, without charging the next queue wait.
+        if (_TASK_LINE_RE.search(message) or message.startswith((
+                "Wait until ", "Start scheduler loop:", "Pending tasks:", "No task pending"))):
+            self._close_active_battle()
+            self._close_active_task()
+            return
+
+        if self._active_task is not None:
             self._active_task.last_time = ts
 
         if self._pending_battle_start and self._active_task is not None:
@@ -283,15 +273,10 @@ class LogStatsParser:
         if self._active_battle is not None and any(marker in line for marker in _BATTLE_END_MARKERS):
             self._close_active_battle()
 
-    def _consume_runtime_timestamp(self, ts: datetime) -> None:
-        runtime = self.runtime
-        runtime.region_last = ts
-        if not runtime.saw_start_boundary:
-            if runtime.pre_start_first is None:
-                runtime.pre_start_first = ts
-            return
-        if runtime.session_start is None:
-            runtime.session_start = ts
+        if message.startswith("Script ") and (
+                message.endswith(" process exit") or message.endswith("exiting gracefully")):
+            self._close_active_battle()
+            self._close_active_task()
 
     def _close_active_battle(self) -> None:
         if self._active_task is None or self._active_battle is None:
@@ -314,14 +299,12 @@ class LogStatsParser:
 
     def _close_active_task(self) -> None:
         if self._active_task is None:
-            self._pending_task_start_name = None
             return
 
         start_time = self._active_task.start_time
         end_time = self._active_task.last_time
         if start_time is None or end_time is None or end_time < start_time:
             self._active_task = None
-            self._pending_task_start_name = None
             return
 
         duration = round((end_time - start_time).total_seconds(), 3)
@@ -355,7 +338,6 @@ class LogStatsParser:
         )
 
         self._active_task = None
-        self._pending_task_start_name = None
 
     def _build_tasks_payload(self) -> dict[str, dict[str, Any]]:
         cleaned_tasks: dict[str, dict[str, Any]] = {}
@@ -372,12 +354,8 @@ class LogStatsParser:
         return cleaned_tasks
 
     def _current_total_runtime(self) -> float:
-        runtime = self.runtime
-        if runtime.saw_start_boundary:
-            total_duration = self._append_duration(runtime.total_duration, runtime.session_start, runtime.region_last)
-        else:
-            total_duration = self._append_duration(0.0, runtime.pre_start_first, runtime.region_last)
-        return round(total_duration, 3)
+        # The day header must use the same execution intervals as task details.
+        return round(sum(task["total_duration_seconds"] for task in self.summary.values()), 3)
 
     @staticmethod
     def _build_battle_payload(count: int, total_duration_seconds: float) -> dict[str, Any] | None:
@@ -387,12 +365,6 @@ class LogStatsParser:
             "count": int(count),
             "avg_duration_seconds": round(total_duration_seconds / count, 3),
         }
-
-    @staticmethod
-    def _append_duration(total_duration: float, start_time: datetime | None, end_time: datetime | None) -> float:
-        if start_time is None or end_time is None or end_time < start_time:
-            return total_duration
-        return round(total_duration + (end_time - start_time).total_seconds(), 3)
 
 
 class MultiStatAggregator:
