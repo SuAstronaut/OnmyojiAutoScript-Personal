@@ -163,7 +163,7 @@ class Config(ConfigState, ConfigManual, ConfigWatcher, ConfigMenu):
     """
 
     def __init__(self, config_name: str, task=None, store: ConfigStore = None,
-                 reload_policy: ReloadPolicy = None) -> None:
+                 reload_policy: ReloadPolicy = None, loaded=None) -> None:
         # 先初始化 session 状态字段，避免 __getattr__ 在父类 __init__ 期间递归访问 model
         self._model: ConfigModel | None = None
         self._base: dict | None = None
@@ -174,6 +174,8 @@ class Config(ConfigState, ConfigManual, ConfigWatcher, ConfigMenu):
         self._startup_device_snapshot = None
         self._provisional_device_snapshot = None
         self.scheduler_update_dt = None
+        # Actual lifecycle only; never persisted or inferred from the due list.
+        self.actual_running_task = ''
         # HOT 两阶段提交状态（Task 5）：
         # - _refresh_revision：会话 model/base 每提交一次即推进，锁外 prepare 候选据此失效
         # - _refresh_in_progress：HOT 刷新进行中标记，作为 reentrancy guard
@@ -195,7 +197,7 @@ class Config(ConfigState, ConfigManual, ConfigWatcher, ConfigMenu):
         # schema 派生（全部 scalar/Enum/单值时间叶子）、其余 WARM。
         self.reload_policy = reload_policy or default_reload_policy()
         self.store = store or ConfigStore(config_root=Path.cwd() / 'config')
-        loaded = self.store.load(self.config_name)
+        loaded = loaded or self.store.load(self.config_name)
         self._commit_loaded_state(loaded.model, copy.deepcopy(loaded.canonical), loaded)
 
     # ------------------------------------------------------------------ 会话状态
@@ -1021,24 +1023,30 @@ class Config(ConfigState, ConfigManual, ConfigWatcher, ConfigMenu):
         # random 模块已被 Config 用于服务器更新抖动，此处复用同一随机源
         return timedelta(minutes=random.randint(delay_min, delay_max))
 
-    def get_schedule_data(self) -> dict[str, dict]:
+    def get_schedule_data(self, running_task: str = None) -> dict[str, dict]:
         """
         获取调度器的数据， 但是你必须使用update_scheduler来更新信息
         :return:
         """
-        # 根据调度器更新时间来判断是否有可运行的任务,保证逻辑一致性
-        scheduler_update_dt = getattr(self, 'scheduler_update_dt', datetime.now())
+        actual = self.actual_running_task if running_task is None else running_task
+        actual_key = convert_to_underscore(actual) if actual else ''
         running = {}
-        if self.task is not None and self.task.next_run < scheduler_update_dt:
-            running = {"name": self.task.command, "next_run": str(self.task.next_run)}
+        if actual_key:
+            scheduler = getattr(getattr(self.model, actual_key, None), 'scheduler', None)
+            if scheduler is not None:
+                running = {"name": ConfigModel.type(actual_key), "next_run": str(scheduler.next_run)}
 
         pending = []
-        for p in self.pending_task[1:]:
+        for p in self.pending_task:
+            if convert_to_underscore(p.command) == actual_key:
+                continue
             item = {"name": p.command, "next_run": str(p.next_run)}
             pending.append(item)
 
         waiting = []
         for w in self.waiting_task:
+            if convert_to_underscore(w.command) == actual_key:
+                continue
             item = {"name": w.command, "next_run": str(w.next_run)}
             waiting.append(item)
 

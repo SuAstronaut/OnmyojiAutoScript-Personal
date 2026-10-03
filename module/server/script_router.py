@@ -4,6 +4,7 @@
 import asyncio
 import copy
 import json
+from dataclasses import asdict
 from urllib.parse import quote
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
@@ -23,6 +24,7 @@ from module.config.config_store import (
     ConfigGenerationMismatchError,
     ConfigJsonError as StoreConfigJsonError,
     ConfigNotFoundError,
+    SchedulerActionError,
 )
 from module.config.config_validation import ConfigValidationError
 from module.config.utils import convert_to_underscore
@@ -477,6 +479,42 @@ async def script_task(script_name: str, task: str, group: str, argument: str, ty
     return result.success
 
 
+async def _scheduler_action(script_name: str, task: str, action: str, generation=None):
+    try:
+        result, process = await mm.scheduler_action(script_name, task, action, generation)
+    except SchedulerActionError as error:
+        raise HTTPException(404 if error.status == 'task_not_found' else 409,
+                            detail={'status': error.status})
+    except (ConfigIdentityNotFoundError, ConfigNotFoundError):
+        raise HTTPException(404, detail={'status': 'configuration_changed'})
+    except (ConfigGenerationMismatchError, ConfigGenerationError,
+            ConfigValidationError, StoreConfigJsonError, RuntimeError):
+        raise HTTPException(409, detail={'status': 'configuration_changed'})
+    except (Timeout, TimeoutError):
+        raise HTTPException(503, detail={'status': 'write_failed'})
+    except OSError:
+        raise HTTPException(500, detail={'status': 'write_failed'})
+    response = {**asdict(result), 'config': script_name}
+    try:
+        response['schedule'] = await asyncio.to_thread(process.schedule_snapshot)
+        await process.broadcast_state({'schedule': response['schedule']})
+    except Exception as error:
+        # The write has committed. A refresh failure must not report a failed
+        # +1 day operation and tempt the client to retry an already saved change.
+        logger.warning(f'[{script_name}] scheduler refresh failed: {error}')
+    return response
+
+
+@script_app.post('/{script_name}/{task}/scheduler/run_now')
+async def scheduler_run_now(script_name: str, task: str, generation: str = None):
+    return await _scheduler_action(script_name, task, 'run_now', generation)
+
+
+@script_app.post('/{script_name}/{task}/scheduler/postpone_day')
+async def scheduler_postpone_day(script_name: str, task: str, generation: str = None):
+    return await _scheduler_action(script_name, task, 'postpone_day', generation)
+
+
 @script_app.put('/{script_name}/{task}/sync_next_run')
 async def sync_next_run(script_name: str, task: str, target_dt: str):
     if script_name not in mm.script_process:
@@ -542,9 +580,7 @@ async def websocket_endpoint(websocket: WebSocket, script_name: str):
     await script_process.connect(websocket)
     # 新连接定向首帧：顺序发送 state、schedule、缓存 config_state（不广播模拟首帧）
     await script_process.send_state(websocket, {"state": script_process.state})
-    config = mm.config_cache(script_name)
-    config.get_next()
-    await script_process.send_state(websocket, {"schedule": config.get_schedule_data()})
+    await script_process.send_state(websocket, {"schedule": {}})
     await script_process.send_state(websocket, {"config_state": script_process.cached_config_state()})
 
     try:
@@ -553,9 +589,7 @@ async def websocket_endpoint(websocket: WebSocket, script_name: str):
             if data == 'get_state':
                 await script_process.send_state(websocket, {"state": script_process.state})
             elif data == 'get_schedule':
-                config = mm.config_cache(script_name)
-                config.get_next()
-                await script_process.send_state(websocket, {"schedule": config.get_schedule_data()})
+                await script_process.send_state(websocket, {"schedule": {}})
             elif data == 'get_config_state':
                 await script_process.send_state(websocket, {"config_state": script_process.cached_config_state()})
             elif data == 'start':

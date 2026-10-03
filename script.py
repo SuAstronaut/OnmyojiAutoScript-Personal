@@ -31,6 +31,7 @@ from multiprocessing.queues import Queue
 
 
 from module.config.config import Config
+from module.config.scheduler_runtime import SchedulerRuntime
 from module.device.device import Device, EmulatorState
 from module.base.utils import load_module
 from module.logger import logger
@@ -73,6 +74,7 @@ class Script:
         self.state_queue: Queue = None
         # 主进程→子进程配置变更提示队列（由 ScriptProcess.func 注入；独立运行脚本时为 None）
         self.config_event_queue: Queue = None
+        self.scheduler_runtime = None  # fresh shared marker injected per spawn
         self.gui_update_task: Callable = None  # 回调函数, gui进程注册当每次config更新任务的时候更新gui的信息
         self.config_name = config_name
         # 仅跳过启动时立即到期的首次 Restart；进入等待后应按正常计划执行。
@@ -649,6 +651,60 @@ class Script:
         self._request_server_restart_from_instance()
         os._exit(1)
 
+    def _publish_schedule(self):
+        if self.state_queue is not None:
+            try:
+                self.config.update_scheduler()
+                self.state_queue.put({'schedule': self.config.get_schedule_data()})
+            except Exception as error:
+                # UI delivery must not replace the task's outcome or prevent
+                # cleanup when a stop handler has already closed the queue.
+                logger.warning(f'[{self.config_name}] schedule publish failed: {error}')
+
+    def _execute_scheduled_task(self, task: str) -> bool | None:
+        """Final claim precedes the original device/task lifecycle; None reselects.
+
+        Selection/waiting does not mean running. The claim and both shortcuts
+        use the Store's lifecycle FileLock, closing the selection/postpone race.
+        """
+        self._config_checkpoint('before_claim')
+        if self.config.get_forbidden_time_end(task) is not None:
+            return None
+        if self.scheduler_runtime is None:
+            self.scheduler_runtime = SchedulerRuntime(self.config.generation)
+        runtime = self.scheduler_runtime
+        if not self.config.store.claim_scheduler_task(
+                self.config_name, task, self.config.generation, runtime):
+            return None
+        self.config.actual_running_task = task
+        try:
+            if self.is_first_task and task == 'Restart':
+                logger.info('Skip task `Restart` at scheduler start')
+                self.is_first_task = False
+                self.config.task_delay(task='Restart', success=True, server=True)
+                self._config_checkpoint('skip_first_restart')
+                return None
+            self._publish_schedule()
+            _ = self.device
+            if self._needs_recovery:
+                logger.warning('Emulator recovery requested, running full_recovery before task')
+                if not self.device.full_recovery():
+                    logger.critical('full_recovery failed, request server-side restart from instance')
+                    self._exit_for_server_restart()
+                self._needs_recovery = False
+            logger.info(f'Scheduler: Start task `{task}`')
+            self.device.stuck_record_clear()
+            self.device.click_record_clear()
+            logger.hr(task, level=0)
+            success = self.run(inflection.camelize(task))
+            logger.info(f'Scheduler: End task `{task}`')
+            self.is_first_task = False
+            return success
+        finally:
+            self.config.actual_running_task = ''
+            self.config.store.release_scheduler_task(self.config_name, task, runtime)
+            self._publish_schedule()
+
     def loop(self):
         """
         Main loop of scheduler.
@@ -681,34 +737,9 @@ class Script:
 
             # Get task
             task = self.get_next_task()
-            # 更新 gui的任务
-            # Init device and change server
-            # _ = self.device
-            # Skip first restart
-            if self.is_first_task and task == 'Restart':
-                logger.info('Skip task `Restart` at scheduler start')
-                # 跳过动作本身也消耗首次标记，防止仅启用 Restart 时被永久跳过。
-                self.is_first_task = False
-                self.config.task_delay(task='Restart', success=True, server=True)
-                self._config_checkpoint("skip_first_restart")
+            success = self._execute_scheduled_task(task)
+            if success is None:
                 continue
-            _ = self.device  # trigger cached_property if first access
-            if self._needs_recovery:
-                logger.warning('Emulator recovery requested, running full_recovery before task')
-                if not self.device.full_recovery():
-                    # full_recovery 失败后不再兜底，由当前实例主动请求 server 级 stop/start 并退出。
-                    logger.critical('full_recovery failed, request server-side restart from instance')
-                    self._exit_for_server_restart()
-                self._needs_recovery = False
-
-            # Run
-            logger.info(f'Scheduler: Start task `{task}`')
-            self.device.stuck_record_clear()
-            self.device.click_record_clear()
-            logger.hr(task, level=0)
-            success = self.run(inflection.camelize(task))
-            logger.info(f'Scheduler: End task `{task}`')
-            self.is_first_task = False
 
             if success:
                 # 任务结束边界：WARM/COLD 刷新并上报 config_state

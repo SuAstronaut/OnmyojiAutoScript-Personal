@@ -114,6 +114,15 @@ class MainManager(ConfigManager):
                 process = current
             return await self._start_process_locked(process)
 
+    async def scheduler_action(self, name: str, task: str, action: str, expected_generation=None):
+        # Reuse identity/lifecycle coordination with rename, delete, start/stop.
+        # ensure creates only a wrapper; this operation never starts a script.
+        async with self._ensure_script_lock:
+            process = await self._ensure_script_process_locked(name)
+            result = await process.scheduler_action(task, action, expected_generation)
+            self.notify_config_changed(name, result)
+            return result, process
+
     def _registry_snapshot(self) -> list[tuple[str, ScriptProcess]]:
         """在线程锁内复制 registry，禁止推送线程直接迭代可变字典。"""
         with self._registry_lock:

@@ -16,6 +16,7 @@ from enum import Enum
 
 from module.logger import logger
 from module.config.config_store import ConfigGenerationMismatchError
+from module.config.scheduler_runtime import SchedulerRuntime
 from module.server.script_websocket import ScriptWSManager
 from module.exception import RequestHumanTakeover
 
@@ -98,6 +99,10 @@ class ScriptProcess(ScriptWSManager):
         # 过线），放宽到 10s 消除边缘失败
         self._spawn_handshake_timeout = 10.0
         self._spawn_attempt_nonce = None
+        self.scheduler_runtime = None
+        self._schedule_projection_lock = threading.Lock()
+        self._schedule_revision = 0
+        self._schedule_projection_id = uuid.uuid4().hex
         # 独立线程锁只串行化进程句柄及其耦合状态的短提交，不覆盖任何阻塞操作。
         self._process_state_lock = threading.Lock()
         with self._process_state_lock:
@@ -156,6 +161,62 @@ class ScriptProcess(ScriptWSManager):
             except Exception:
                 # 仍失败则丢弃（mtime 兜底仍可检出变化），不阻塞主进程
                 logger.warning(f'[{self.config_name}] config event queue full, event dropped')
+
+    def _live_scheduler_runtime(self):
+        process = self._process_snapshot()
+        if process is None:
+            return None
+        alive, error = self._process_alive_status(process, 'scheduler')
+        if alive is None:
+            raise RuntimeError('Cannot verify scheduler process state') from error
+        if alive and self.scheduler_runtime is None:
+            raise RuntimeError('Live scheduler has no execution marker')
+        return self.scheduler_runtime if alive else None
+
+    async def scheduler_action(self, task: str, action: str, expected_generation=None):
+        # Start/stop cannot swap the spawn buffer while a worker is committing.
+        async with self._lifecycle_lock:
+            runtime = self._live_scheduler_runtime()
+            operation = asyncio.create_task(asyncio.to_thread(
+                self.store.scheduler_action, self.config_name, task, action,
+                expected_generation or self.generation, runtime))
+            try:
+                return await asyncio.shield(operation)
+            except asyncio.CancelledError:
+                await operation
+                raise
+
+    def schedule_snapshot(self) -> dict:
+        """Reproject every HTTP/WS schedule from disk + actual spawn state.
+
+        Child queue entries are refresh hints, never forwarded as stale data.
+        Monotonic per-wrapper revisions let clients drop delayed older frames.
+        """
+        from module.config.config import Config
+        with self._schedule_projection_lock:
+            runtime = self._live_scheduler_runtime()
+            with self.store.generation.identity_lifecycle_lock(self.config_name):
+                loaded = self.store._load_unlocked(self.config_name)
+                if loaded.generation != self.generation:
+                    raise ConfigGenerationMismatchError('Scheduler configuration changed')
+                actual = runtime.read_locked() if runtime is not None else ''
+                config = Config(self.config_name, store=self.store, loaded=loaded)
+                config.update_scheduler()
+                schedule = config.get_schedule_data(running_task=actual)
+                self._schedule_revision += 1
+                schedule.update(generation=loaded.generation, revision=self._schedule_revision,
+                                projection_id=self._schedule_projection_id)
+                return schedule
+
+    async def broadcast_state(self, data: dict):
+        if 'schedule' in data:
+            data = {**data, 'schedule': await asyncio.to_thread(self.schedule_snapshot)}
+        await super().broadcast_state(data)
+
+    async def send_state(self, websocket, data: dict):
+        if 'schedule' in data:
+            data = {**data, 'schedule': await asyncio.to_thread(self.schedule_snapshot)}
+        await super().send_state(websocket, data)
 
     def _drain_config_event_queue(self) -> None:
         """清空 config_event_queue 中尚未消费的事件（stop/异常退出时调用）。"""
@@ -301,6 +362,8 @@ class ScriptProcess(ScriptWSManager):
     def _clear_config_state(self) -> None:
         """在进程状态锁内清空 config_state cache 与两条非阻塞队列。"""
         self._config_state_cache = None
+        # Detach, rather than reuse, a stopped/failed child's shared buffer.
+        self.scheduler_runtime = None
         self._drain_config_event_queue()
         self._drain_state_queue()
 
@@ -339,6 +402,7 @@ class ScriptProcess(ScriptWSManager):
             with self._process_state_lock:
                 state = self.state
             await self.broadcast_state({"state": state})
+            await self.broadcast_state({'schedule': {}})
         except asyncio.CancelledError as cancel_error:
             return cancel_error
         except Exception as broadcast_error:
@@ -455,6 +519,7 @@ class ScriptProcess(ScriptWSManager):
                     raise ConfigGenerationMismatchError(
                         f'{self.config_name} generation changed before spawn'
                     )
+                self.scheduler_runtime = SchedulerRuntime(self.generation)
                 new_process = multiprocessing.Process(
                     target=func,
                     args=(
@@ -465,6 +530,7 @@ class ScriptProcess(ScriptWSManager):
                         self.config_event_queue,
                         self.ready_queue,
                         spawn_attempt_nonce,
+                        self.scheduler_runtime,
                     ),
                     name=self.config_name,
                     daemon=True,
@@ -642,6 +708,10 @@ class ScriptProcess(ScriptWSManager):
                     logger.warning(f'[{self.config_name}] script process exited, clear config state')
                     # 锁外仅广播本次 CAS 已确定的 INACTIVE，避免读取后续 replacement 状态。
                     await self.broadcast_state({"state": ScriptState.INACTIVE})
+                    try:
+                        await self.broadcast_state({'schedule': {}})
+                    except Exception as error:
+                        logger.warning(f'[{self.config_name}] exit schedule refresh failed: {error}')
                     continue
                 try:
                     with self._process_state_lock:
@@ -711,6 +781,7 @@ def func(
     config_event_queue=None,
     ready_queue=None,
     attempt_nonce=None,
+    scheduler_runtime=None,
 ) -> None:
     child_started_at = time.monotonic()
     startup_stage = "child_enter"
@@ -791,6 +862,7 @@ def func(
                        phase_elapsed=f"{time.monotonic() - phase_started_at:.3f}s")
         script.state_queue = state_queue
         script.config_event_queue = config_event_queue
+        script.scheduler_runtime = scheduler_runtime
         startup_stage = "handshake_send_begin"
         report_handshake("ready", generation=actual_generation)
         handshake_ready = True

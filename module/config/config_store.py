@@ -12,7 +12,7 @@ import os
 import re
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Optional
 
@@ -65,6 +65,12 @@ class ConfigWriteConflictError(RuntimeError):
     """锁外读取后配置已被其他写入方修改，需重新读取并合并。"""
 
 
+class SchedulerActionError(ValueError):
+    def __init__(self, status: str):
+        super().__init__(status)
+        self.status = status
+
+
 @dataclass
 class LoadedConfig:
     """严格校验后的运行模型、唯一 canonical、配置身份 generation 与 mtime_ns。"""
@@ -83,6 +89,13 @@ class PatchResult:
     mtime_ns: int = 0
     generation: str = ""
     operation: str = "SET"
+
+
+@dataclass
+class SchedulerActionResult(PatchResult):
+    status: str = ''
+    task: str = ''
+    next_run: str = ''
 
 
 @dataclass
@@ -299,6 +312,97 @@ class ConfigStore:
         result = PatchResult(True, [path], mtime_ns, loaded.generation, "SET")
         self.last_operation = result
         return result
+
+    # ------------------------------------------------------------------ Scheduler shortcuts
+
+    def scheduler_action(self, config_name: str, task: str, action: str,
+                         expected_generation: str, runtime=None,
+                         now: datetime = None) -> SchedulerActionResult:
+        """Single-task read/modify/write, serialized with the child's final claim.
+
+        Never calls task_delay: intervals, server update and jitter are irrelevant
+        to these two explicit user operations. All runtime access uses this same
+        lifecycle lock, not a second scheduler/queue.
+        """
+        if action not in ('run_now', 'postpone_day'):
+            raise SchedulerActionError('invalid_action')
+        self.initialize()
+        task_key = convert_to_underscore(task)
+        with self.generation.identity_lifecycle_lock(config_name):
+            loaded = self._load_unlocked(config_name)
+            self._check_scheduler_generation(loaded, expected_generation, runtime)
+            scheduler = self._task_scheduler(loaded, task_key)
+            if runtime is not None and runtime.read_locked() == task_key:
+                raise SchedulerActionError('task_running')
+            if action == 'run_now' and not scheduler['enable']:
+                raise SchedulerActionError('task_disabled')
+            old = datetime.fromisoformat(str(scheduler['next_run']))
+            moment = (now or datetime.now()).replace(microsecond=0)
+            if old.tzinfo is not None:
+                raise ConfigValidationError('Scheduler next_run must use local time')
+            if action == 'run_now':
+                target = old if old <= moment else moment
+                status = 'already_due' if old <= moment else 'scheduled'
+            else:
+                try:
+                    target = old + timedelta(days=1)
+                except OverflowError as error:
+                    raise ConfigValidationError('Scheduler next_run exceeds datetime range') from error
+                status = 'postponed'
+            path = (task_key, 'scheduler', 'next_run')
+            value = target.strftime('%Y-%m-%d %H:%M:%S')
+            canonical = loaded.canonical
+            if target != old:
+                _model, canonical = validate_persisted_config(
+                    set_path(canonical, path, value), config_name, self.profile)
+                self._write_config(config_name, canonical)
+            # Include the path for already_due too: the caller still notifies.
+            result = SchedulerActionResult(
+                success=True, changed_paths=[path],
+                mtime_ns=os.stat(self.generation._config_path(config_name)).st_mtime_ns,
+                generation=loaded.generation, operation=action,
+                status=status, task=task, next_run=str(get_path(canonical, path)))
+            self.last_operation = result
+            return result
+
+    @staticmethod
+    def _check_scheduler_generation(loaded, expected_generation, runtime):
+        if loaded.generation != expected_generation or (
+                runtime is not None and runtime.generation != loaded.generation):
+            raise ConfigGenerationMismatchError('Scheduler configuration changed')
+
+    @staticmethod
+    def _task_scheduler(loaded, task_key):
+        scheduler = get_path(loaded.canonical, (task_key, 'scheduler'))
+        if not isinstance(scheduler, dict) or 'next_run' not in scheduler:
+            raise SchedulerActionError('task_not_found')
+        return scheduler
+
+    def claim_scheduler_task(self, config_name: str, task: str,
+                             expected_generation: str, runtime,
+                             now: datetime = None) -> bool:
+        """Final enabled/due validation + real lifecycle claim in one lock.
+
+        A postpone that wins this lock invalidates the old selection. A claim
+        that wins it makes both shortcuts reject until finally releases it.
+        """
+        self.initialize()
+        task_key = convert_to_underscore(task)
+        with self.generation.identity_lifecycle_lock(config_name):
+            loaded = self._load_unlocked(config_name)
+            self._check_scheduler_generation(loaded, expected_generation, runtime)
+            scheduler = self._task_scheduler(loaded, task_key)
+            if not scheduler['enable']:
+                return False
+            if datetime.fromisoformat(str(scheduler['next_run'])) > (now or datetime.now()):
+                return False
+            return runtime.claim_locked(task_key)
+
+    def release_scheduler_task(self, config_name: str, task: str, runtime) -> None:
+        # The buffer belongs only to this spawn; even after rename/delete it
+        # must be cleared. No configuration load/write is needed for cleanup.
+        with self.generation.identity_lifecycle_lock(config_name):
+            runtime.clear_locked(convert_to_underscore(task))
 
     # ------------------------------------------------------------------ 动态 group_N / count
 
