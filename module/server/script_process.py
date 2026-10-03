@@ -9,6 +9,7 @@ import asyncio
 import multiprocessing
 import queue as queue_module
 import uuid
+import time
 from multiprocessing.process import BaseProcess
 from asyncio import QueueEmpty, CancelledError, sleep
 from enum import Enum
@@ -19,12 +20,51 @@ from module.server.script_websocket import ScriptWSManager
 from module.exception import RequestHumanTakeover
 
 
-class ScriptStartupTimeoutError(RuntimeError):
+class ScriptStartupError(RuntimeError):
+    """子进程启动握手失败；HTTP 层记录原始异常后返回安全的 500。"""
+
+
+class ScriptStartupProcessExitedError(ScriptStartupError):
+    """子进程退出且未收到本次启动握手。"""
+
+    def __init__(self, message, *, exitcode=None):
+        super().__init__(message)
+        self.exitcode = exitcode
+
+
+class ScriptStartupTimeoutError(ScriptStartupError):
     """子进程 generation 握手超时，属于启动失败而非 filelock 锁超时。
 
     与 filelock.Timeout（继承 builtin TimeoutError）严格区分：路由据此映射
     HTTP 500（startup/consistency 失败），而不是把子进程启动失败误标为 503 配置锁超时。
     """
+
+
+def _start_diag(stage, config, generation, nonce, pid, *, level="info", **fields):
+    """固定阶段日志；不记录配置内容，也不在每次 poll 时输出。"""
+    context = dict(config=config, generation=generation,
+                   nonce=str(nonce or "")[:12], pid=pid, **fields)
+    getattr(logger, level)(
+        f"[START_DIAG] {stage} " + " ".join(f"{key}={value!r}" for key, value in context.items())
+    )
+
+
+def _startup_process_status(process):
+    """诊断探针失败只返回 unknown，不能覆盖原始启动/清理异常。"""
+    status = dict(pid=None, is_alive=None, exitcode=None)
+    errors = []
+    if process is not None:
+        for key in status:
+            try:
+                value = process.is_alive() if key == "is_alive" else getattr(process, key)
+                if key == "is_alive" and value is not True and value is not False:
+                    raise TypeError("non-boolean process alive result")
+                status[key] = value
+            except Exception as error:
+                errors.append(f"{key}:{type(error).__name__}")
+    if errors:
+        status["status_errors"] = ",".join(errors)
+    return status
 
 
 class ScriptState(int, Enum):
@@ -152,39 +192,90 @@ class ScriptProcess(ScriptWSManager):
         if not isinstance(process, BaseProcess):
             return
         expected_nonce = attempt_nonce or self._spawn_attempt_nonce
-        deadline = asyncio.get_running_loop().time() + self._spawn_handshake_timeout
-        while True:
+        started_at = time.monotonic()
+        deadline = started_at + self._spawn_handshake_timeout
+        ignored_nonce = ignored_generation = 0
+
+        def diagnose(stage, *, level="info", status=None, **fields):
+            details = status if status is not None else _startup_process_status(process)
+            _start_diag(stage, self.config_name, self.generation, expected_nonce,
+                        details["pid"], level=level,
+                        elapsed=f"{time.monotonic() - started_at:.3f}s",
+                        timeout=self._spawn_handshake_timeout,
+                        ignored=ignored_nonce + ignored_generation,
+                        ignored_nonce=ignored_nonce, ignored_generation=ignored_generation,
+                        **{key: value for key, value in details.items() if key != "pid"}, **fields)
+
+        def read_message():
             try:
-                message = self.ready_queue.get_nowait()
+                return self.ready_queue.get_nowait()
             except queue_module.Empty:
-                if asyncio.get_running_loop().time() >= deadline:
-                    raise ScriptStartupTimeoutError(
-                        f"[{self.config_name}] child generation handshake timed out"
-                    )
-                await sleep(0.01)
-                continue
+                raise
             except Exception as error:
-                raise OSError(
+                diagnose("handshake_queue_error", level="error", error_type=type(error).__name__)
+                raise ScriptStartupError(
                     f"[{self.config_name}] child generation handshake queue failed"
                 ) from error
 
+        diagnose("handshake_wait_begin")
+        while True:
+            try:
+                message = read_message()
+            except queue_module.Empty:
+                status = _startup_process_status(process)
+                exited = status["is_alive"] is False or status["exitcode"] is not None
+                expired = time.monotonic() >= deadline
+                if not exited and not expired:
+                    await sleep(0.01)
+                    continue
+                # 查询进程状态期间 feeder 可能刚把 ready 送到；先再读一次再宣告失败。
+                try:
+                    message = read_message()
+                except queue_module.Empty:
+                    if exited:
+                        diagnose("handshake_child_exited", level="error", status=status)
+                        raise ScriptStartupProcessExitedError(
+                            f"Script process exited before startup handshake: "
+                            f"config={self.config_name} pid={status['pid']} "
+                            f"exitcode={status['exitcode']} generation={self.generation} "
+                            f"elapsed={time.monotonic() - started_at:.3f}s",
+                            exitcode=status["exitcode"],
+                        )
+                    diagnose("handshake_timeout", level="error", status=status)
+                    raise ScriptStartupTimeoutError(
+                        f"[{self.config_name}] child generation handshake timed out "
+                        f"after {self._spawn_handshake_timeout:.1f}s"
+                    )
+
             if not isinstance(message, dict):
-                raise RuntimeError(
+                diagnose("handshake_invalid", level="error", message_type=type(message).__name__)
+                raise ScriptStartupError(
                     f"[{self.config_name}] invalid child generation handshake"
                 )
             status = message.get("status")
             generation = message.get("generation")
             if message.get("nonce") != expected_nonce:
                 # 队列 feeder 延迟投递的旧消息不能污染本次 spawn。
+                ignored_nonce += 1
+                if ignored_nonce == 1:
+                    diagnose("handshake_ignored_nonce", level="debug")
                 continue
             if status == "ready" and generation == self.generation:
+                diagnose("handshake_ready")
                 return
+            if status == "ready" and generation != self.generation:
+                ignored_generation += 1
+                if ignored_generation == 1:
+                    diagnose("handshake_ignored_generation", level="debug")
+                continue
             if status == "failed" and message.get("reason") == "generation_mismatch":
+                diagnose("handshake_generation_mismatch", level="warning")
                 raise ConfigGenerationMismatchError(
                     f"{self.config_name} child generation mismatch: {generation}"
                 )
             reason = message.get("reason") or "unknown child startup failure"
-            raise RuntimeError(f"[{self.config_name}] child startup failed: {reason}")
+            diagnose("handshake_failed", level="error")
+            raise ScriptStartupError(f"[{self.config_name}] child startup failed: {reason}")
 
     def cached_config_state(self) -> dict:
         """返回缓存的 config_state；inactive 或尚无上报时固定返回空 pending/current。"""
@@ -378,13 +469,25 @@ class ScriptProcess(ScriptWSManager):
                     name=self.config_name,
                     daemon=True,
                 )
+                _start_diag("spawn_begin", self.config_name, self.generation,
+                            spawn_attempt_nonce, None)
+                spawn_started_at = time.monotonic()
                 new_process.start()
+                spawn_elapsed = time.monotonic() - spawn_started_at
+                _start_diag("spawn_return", self.config_name, self.generation,
+                            spawn_attempt_nonce, _startup_process_status(new_process)["pid"],
+                            elapsed=f"{spawn_elapsed:.3f}s")
         except ConfigGenerationMismatchError:
             await self._stop_locked(broadcast=False)
             return False
-        except BaseException:
+        except BaseException as spawn_error:
             # 先同步建立可达句柄并清理，再重抛原始 spawn/取消异常。
+            _start_diag("spawn_failed", self.config_name, self.generation,
+                        spawn_attempt_nonce, _startup_process_status(new_process)["pid"],
+                        level="exception" if isinstance(spawn_error, Exception) else "error",
+                        error_type=type(spawn_error).__name__)
             self._cleanup_spawn_failure(new_process)
+            self._diagnose_startup_cleanup(new_process, spawn_attempt_nonce)
             raise
 
         if not self._commit_process_if_current(
@@ -392,6 +495,7 @@ class ScriptProcess(ScriptWSManager):
         ):
             # lifecycle 锁外仍可能有独立线程提交句柄；拒绝覆盖并回收本次局部进程。
             self._cleanup_spawn_failure(new_process)
+            self._diagnose_startup_cleanup(new_process, spawn_attempt_nonce)
             raise RuntimeError(
                 f'[{self.config_name}] process handle changed before spawn commit'
             )
@@ -406,6 +510,7 @@ class ScriptProcess(ScriptWSManager):
                     f'[{self.config_name}] generation handshake cleanup failed: '
                     f'{cleanup_error}'
                 )
+            self._diagnose_startup_cleanup(new_process, spawn_attempt_nonce)
             return False
         except BaseException:
             try:
@@ -415,8 +520,19 @@ class ScriptProcess(ScriptWSManager):
                     f'[{self.config_name}] child handshake cleanup failed: '
                     f'{cleanup_error}'
                 )
+            self._diagnose_startup_cleanup(new_process, spawn_attempt_nonce)
             raise
         return True
+
+    def _diagnose_startup_cleanup(self, process, attempt_nonce):
+        status = _startup_process_status(process)
+        retained = process is not None and self._process_snapshot() is process
+        confirmed_exited = process is None or status["is_alive"] is False or status["exitcode"] is not None
+        _start_diag("startup_cleanup", self.config_name, self.generation,
+                    attempt_nonce, status["pid"],
+                    level="info" if confirmed_exited and not retained else "error",
+                    confirmed_exited=confirmed_exited, handle_retained=retained,
+                    **{key: value for key, value in status.items() if key != "pid"})
 
     async def stop(self):
         """提交停止状态后在锁外广播，广播卡死也不阻塞后续 stop/retry。"""
@@ -596,6 +712,17 @@ def func(
     ready_queue=None,
     attempt_nonce=None,
 ) -> None:
+    child_started_at = time.monotonic()
+    startup_stage = "child_enter"
+    handshake_ready = False
+
+    def diagnose_child(stage, *, level="info", **fields):
+        _start_diag(stage, config, expected_generation, attempt_nonce, os.getpid(),
+                    level=level, elapsed=f"{time.monotonic() - child_started_at:.3f}s", **fields)
+
+    # func 入口表示 spawn bootstrap 已到达 target；入口前崩溃由父端 exitcode 诊断。
+    diagnose_child("child_enter", next_stage="log_setup")
+
     def signal_handler(signum, frame):
         logger.info(f'Script {config} received signal {signum}, exiting gracefully')
         log_pipe_in.close()
@@ -606,38 +733,49 @@ def func(
             ready_queue.close()
         sys.exit(0)
 
-    signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGINT, signal_handler)
-
     def start_log() -> None:
-        try:
-            from module.logger import set_file_logger, set_func_logger
-            set_file_logger(name=config)
-            set_func_logger(log_pipe_in.send)
-        except Exception as e:
-            logger.exception(f'Start log error')
-            logger.error(f'Error: {e}')
-            raise
-    start_log()
-    import time
+        # 外层统一记录/上报启动异常，避免 log setup 失败时重复两份 traceback。
+        from module.logger import set_file_logger, set_func_logger
+        set_file_logger(name=config)
+        set_func_logger(log_pipe_in.send)
 
     def report_handshake(status: str, generation=None, reason: str = "") -> None:
         """把 child generation 校验结果送回父进程；队列失败只记录并继续退出。"""
         if ready_queue is None:
             return
         try:
+            diagnose_child("handshake_send_begin", level="debug", status=status)
             ready_queue.put({
                 "status": status,
                 "generation": generation,
                 "nonce": attempt_nonce,
                 "reason": reason,
             })
+            # Queue.put 仅表示进入 feeder 缓冲；父端 handshake_ready 才证明消息被读到。
+            diagnose_child("handshake_sent", level="info" if status == "ready" else "warning",
+                           status=status, actual_generation=generation, delivery="queued")
         except Exception as error:
-            logger.error(f'[{config}] child handshake report failed: {error}')
+            diagnose_child("handshake_send_failed", level="exception",
+                           status=status, error_type=type(error).__name__)
 
     try:
+        startup_stage = "log_setup"
+        signal.signal(signal.SIGTERM, signal_handler)
+        signal.signal(signal.SIGINT, signal_handler)
+        start_log()
+        startup_stage = "script_import_begin"
+        phase_started_at = time.monotonic()
+        diagnose_child("script_import_begin")
         from script import Script
+        diagnose_child("script_import_done", next_stage="script_construct_begin",
+                       phase_elapsed=f"{time.monotonic() - phase_started_at:.3f}s")
+        startup_stage = "script_construct_begin"
+        phase_started_at = time.monotonic()
         script = Script(config_name=config)
+        diagnose_child("script_construct_done", next_stage="config_load_begin",
+                       phase_elapsed=f"{time.monotonic() - phase_started_at:.3f}s")
+        startup_stage = "config_load_begin"
+        phase_started_at = time.monotonic()
         actual_generation = script.config.generation
         if expected_generation and actual_generation != expected_generation:
             # 子进程再次核对身份，防止 spawn 后同名配置已发生 ABA 时以新身份运行。
@@ -648,17 +786,32 @@ def func(
                 reason="generation_mismatch",
             )
             return
+        diagnose_child("config_identity_ready", next_stage="handshake_send_begin",
+                       actual_generation=actual_generation,
+                       phase_elapsed=f"{time.monotonic() - phase_started_at:.3f}s")
         script.state_queue = state_queue
         script.config_event_queue = config_event_queue
+        startup_stage = "handshake_send_begin"
         report_handshake("ready", generation=actual_generation)
+        handshake_ready = True
         script.loop()
     except RequestHumanTakeover as e:
+        if not handshake_ready:
+            diagnose_child("child_startup_failed", level="exception", child_stage=startup_stage)
         report_handshake("failed", reason=f"human takeover: {e}")
         logger.critical(f'Script {config} requires human takeover: {e}')
         state_queue.put({"state": ScriptState.WARNING})
         time.sleep(0.1)
         exit(-1)
     except SystemExit as e:
+        if not handshake_ready:
+            # Script.config 的普通异常已 logger.exception 后 exit；不要重复其 traceback。
+            # RequestHumanTakeover 分支只有 critical，仍需在这里补异常链。
+            config_logged = (startup_stage == "config_load_begin" and e.__context__ is not None
+                             and not isinstance(e.__context__, RequestHumanTakeover))
+            diagnose_child("child_startup_failed", level="error" if config_logged else "exception",
+                           child_stage=startup_stage, exitcode=e.code,
+                           traceback_already_logged=config_logged)
         report_handshake("failed", reason=f"system exit: {e}")
         logger.info(f'Script {config} process exit')
         logger.error(f'Error: {e}')
@@ -667,7 +820,10 @@ def func(
         exit(-1)
     except Exception as e:
         report_handshake("failed", reason=f"{type(e).__name__}: {e}")
-        logger.exception(f'Run script {config} error')
+        if not handshake_ready:
+            diagnose_child("child_startup_failed", level="exception", child_stage=startup_stage)
+        else:
+            logger.exception(f'Run script {config} error')
         logger.error(f'Error: {e}')
         raise
 
@@ -678,4 +834,3 @@ if __name__ == '__main__':
     from time import sleep
     sleep(10)
     logger.info(p._process.exitcode)
-

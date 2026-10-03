@@ -39,6 +39,8 @@ from module.logger import logger
 from module.server.main_manager import mm
 from module.server.script_process import (
     ScriptProcess,
+    ScriptStartupError,
+    ScriptStartupProcessExitedError,
     ScriptStartupTimeoutError,
     ScriptState,
 )
@@ -354,9 +356,19 @@ async def script_start(script_name: str):
         raise HTTPException(status_code=404, detail=f'Config not found: {script_name}') from e
     except Timeout as e:
         raise HTTPException(status_code=503, detail=f'Config lock timeout: {e}') from e
-    except ScriptStartupTimeoutError as e:
+    except ScriptStartupError as e:
         # 子进程 generation 握手超时属于启动失败，必须返回 500 而不是 503 锁超时。
-        raise HTTPException(status_code=500, detail=f'Script startup failed: {e}') from e
+        logger.exception(f'[START_DIAG] route_startup_failed config={script_name} '
+                         f'error_type={type(e).__name__}')
+        # 原始异常/路径只写服务端日志；HTTP detail 不转发 child 异常文本。
+        if isinstance(e, ScriptStartupTimeoutError):
+            detail = f'{script_name} startup handshake timed out'
+        elif isinstance(e, ScriptStartupProcessExitedError):
+            code = e.exitcode if isinstance(e.exitcode, int) else 'unknown'
+            detail = f'{script_name} worker exited before startup handshake (exitcode={code})'
+        else:
+            detail = f'{script_name} startup handshake failed'
+        raise HTTPException(status_code=500, detail=f'Script startup failed: {detail}') from e
     except ConfigGenerationMismatchError as e:
         raise HTTPException(status_code=409, detail=str(e)) from e
     except (ConfigGenerationError, ConfigJsonError, StoreConfigJsonError, ConfigValidationError, OSError) as e:
