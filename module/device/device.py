@@ -77,7 +77,7 @@ class Device(Platform, Screenshot, Control, AppControl):
             emulator_down = True
             logger.warning('super().__init__ saw EmulatorNotRunningError — will run full_recovery')
 
-        # 桌面客户端模式：无模拟器生命周期；窗口缺失或 PID 未绑定时自动启动客户端并绑定
+        # 桌面客户端模式：旧绑定失效时先接管唯一已有窗口，无窗口才自动启动
         if self.is_desktop:
             if not self._desktop_ensure_launched():
                 logger.critical('Desktop client window not found and auto-launch failed, '
@@ -139,14 +139,37 @@ class Device(Platform, Screenshot, Control, AppControl):
         set_current_humanizer(self.humanizer)
 
     def _desktop_ensure_launched(self) -> bool:
-        """桌面模式确保客户端已启动并绑定 PID：窗口缺失/PID 未绑定时自动启动。
-
-        返回 True 表示客户端窗口可用（可能刚自动启动完成）；False 表示启动失败需人工接管。
-        仅桌面模式调用，不影响模拟器流程。
-        """
-        if not self.config.script.device.handle or not self.desktop_window_exists():
-            return self.launch_desktop_client()
-        return True
+        """保留有效绑定；单实例接管、多实例人工选择、无实例按原流程启动。"""
+        if self.config.script.device.handle and self.desktop_window_exists():
+            return True
+        logger.info(f'Saved desktop PID unavailable: {self.desktop_pid()}')
+        # 候选在绑定前消失时只重新枚举一次，不无限等待，也不把枚举失败当成无窗口。
+        for attempt in range(2):
+            try:
+                candidates = self.desktop_existing_candidates()
+            except Exception as e:
+                logger.error(f'Existing desktop window discovery failed: {e}')
+                raise RequestHumanTakeover(
+                    '无法检查已有桌面客户端，请检查权限并从 WebUI Desktop 的 handle 下拉选择目标实例'
+                ) from e
+            if len(candidates) > 1:
+                details = '; '.join(
+                    f'PID={w["pid"]}, title={w["title"]}, position=({w["x"]},{w["y"]})'
+                    for w in candidates
+                )
+                logger.error(f'Multiple desktop clients found: {details}. '
+                             '请从 WebUI Desktop 的 handle 下拉选择目标实例')
+                raise RequestHumanTakeover(
+                    '多个阴阳师桌面窗口，请从 WebUI Desktop 的 handle 下拉选择目标实例'
+                )
+            if not candidates:
+                logger.info('No existing desktop client found, proceeding to auto launch')
+                return self.launch_desktop_client()
+            if self.desktop_attach_existing(candidates[0]):
+                return True
+            logger.warning(f'Existing desktop candidate disappeared before attach '
+                           f'(attempt {attempt + 1}/2)')
+        raise RequestHumanTakeover('桌面窗口在绑定时持续变化，请稍后重试或从 WebUI handle 下拉选择')
 
     def desktop_mark_logged_in(self) -> None:
         """标记桌面客户端已完成登录（仅桌面模式由 Restart 登录流程成功后调用）。"""

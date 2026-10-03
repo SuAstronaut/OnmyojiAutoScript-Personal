@@ -6,6 +6,7 @@ import re
 import subprocess
 import time
 import ctypes
+import psutil
 from ctypes import c_long, byref, POINTER, Structure, wintypes
 
 from contextlib import contextmanager
@@ -23,13 +24,13 @@ from win32gui import (GetWindowText, EnumWindows, FindWindow, FindWindowEx,
                       GetWindowDC, DeleteObject, SetForegroundWindow,
                       IsWindowVisible, GetDC, GetParent, EnumChildWindows,
                       GetClientRect, ClientToScreen, GetWindowLong, SetWindowPos,
-                      GetClassName)
+                      GetClassName, GetWindow)
 from win32con import (SRCCOPY, DESKTOPHORZRES, DESKTOPVERTRES, WM_LBUTTONUP,
                       WM_LBUTTONDOWN, WM_ACTIVATE, WA_ACTIVE, MK_LBUTTON,
                       WM_NCHITTEST, WM_SETCURSOR, HTCLIENT, WM_MOUSEMOVE,
                       WM_CLOSE, WM_KEYDOWN, WM_KEYUP, VK_RETURN,
                       GWL_STYLE, GWL_EXSTYLE, HWND_TOP, SWP_NOMOVE,
-                      SWP_SHOWWINDOW, SW_RESTORE, MONITOR_DEFAULTTONEAREST)
+                      SWP_SHOWWINDOW, SW_RESTORE, MONITOR_DEFAULTTONEAREST, GW_OWNER)
 from module.config.config import Config
 from module.base.decorator import del_cached_property
 from module.logger import logger
@@ -185,16 +186,18 @@ def list_desktop_windows() -> list:
     EnumWindows(enum_cb, handles)
     result = []
     for hwnd in handles:
-        if GetWindowText(hwnd) not in DESKTOP_WINDOW_TITLES:
-            continue
         try:
+            title = GetWindowText(hwnd)
+            if title not in DESKTOP_WINDOW_TITLES:
+                continue
             rect = GetWindowRect(hwnd)
+            pid = GetWindowThreadProcessId(hwnd)[1]
         except Exception:
-            # 窗口在枚举与取矩形之间被关闭，跳过即可
+            # 窗口在枚举与取属性之间被关闭，跳过即可
             continue
         result.append({
-            'pid': GetWindowThreadProcessId(hwnd)[1],
-            'title': GetWindowText(hwnd),
+            'pid': pid,
+            'title': title,
             'hwnd': hwnd,
             'x': rect[0],
             'y': rect[1],
@@ -491,6 +494,75 @@ class Handle:
         except (TypeError, ValueError):
             return None
 
+    def _desktop_existing_window_valid(self, window: dict) -> bool:
+        """只读验证已有主窗口；exe 无法读取时退回窗口/PID 规则。"""
+        try:
+            hwnd, pid = window['hwnd'], window['pid']
+            if not pid or pid == os.getpid() or not IsWindow(hwnd) or not IsWindowVisible(hwnd):
+                return False
+            if GetParent(hwnd) or GetWindow(hwnd, GW_OWNER):
+                return False
+            if GetWindowText(hwnd) not in DESKTOP_WINDOW_TITLES:
+                return False
+            if GetClassName(hwnd) in ('Button', 'IME', 'MSCTFIME UI',
+                                      'GDI+ Hook Window Class', DESKTOP_LOGIN_POPUP_CLASS):
+                return False
+            if GetWindowThreadProcessId(hwnd)[1] != pid:
+                return False
+            if not psutil.pid_exists(pid):
+                return False
+            try:
+                process = psutil.Process(pid)
+                if not process.is_running():
+                    return False
+                exe = process.exe()
+            except psutil.NoSuchProcess:
+                return False
+            except (psutil.AccessDenied, OSError) as e:
+                logger.warning(f'Desktop process exe unavailable, PID={pid}: {e}; '
+                               'using window/PID checks')
+                exe = ''
+            if exe:
+                if Path(exe).name.lower() != 'onmyoji.exe':
+                    return False
+                configured = getattr(self.config.script.device, 'desktop_game_path', '') or ''
+                try:
+                    root = self._desktop_root_from_path(configured) if configured else None
+                except (OSError, ValueError) as e:
+                    logger.warning(f'Desktop install path unavailable for exe check: {e}')
+                    root = None
+                if root is not None:
+                    expected = root / 'bin' / 'onmyoji.exe'
+                    if os.path.normcase(str(Path(exe).resolve())) != os.path.normcase(str(expected.resolve())):
+                        return False
+            return True
+        except psutil.NoSuchProcess:
+            return False
+        except Exception as e:
+            logger.warning(f'Desktop candidate unavailable: {window}, {e}')
+            return False
+
+    def desktop_existing_candidates(self) -> list:
+        """复用 WebUI 枚举，仅供桌面自动接管筛选，不改变手动选择或启动流程。"""
+        if self.config.script.device.serial != 'desktop':
+            return []
+        return [w for w in list_desktop_windows() if self._desktop_existing_window_valid(w)]
+
+    def desktop_attach_existing(self, window: dict) -> bool:
+        """绑定前重验候选，接管已有客户端时保留登录状态。"""
+        if not self._desktop_existing_window_valid(window):
+            return False
+        self.desktop_bind_pid(window['pid'], window['hwnd'], newly_launched=False)
+        self.root_handle_title = window['title']
+        # 帧与鼠标位置属于旧窗口，不能带入新目标；客户区/矩形读取本来就是实时的。
+        self.__dict__.pop('image', None)
+        self.__dict__.pop('_desktop_cursor', None)
+        self._screen_size_checked = False
+        self._screen_black_checked = False
+        logger.info(f'Attach existing desktop client: PID={window["pid"]}, '
+                    f'HWND={window["hwnd"]}, title={window["title"]}')
+        return True
+
     def find_desktop_login_popup(self) -> int:
         """按 PID + 类名查找 MPay 账号登录弹窗，返回句柄；没有则返回 0。
 
@@ -612,7 +684,7 @@ class Handle:
         cached_property：客户端重开后 root_handle_num 已换成新 hwnd，缓存仍指向
         旧句柄，截图时 GetClientRect 会拿废句柄抛 (1400)。
         """
-        for prop in ('screenshot_handle_num', 'screenshot_size'):
+        for prop in ('screenshot_handle_num', 'screenshot_size', 'control_handle_list'):
             if prop in self.__dict__:
                 del_cached_property(self, prop)
 
@@ -741,6 +813,9 @@ class Handle:
     @staticmethod
     def _desktop_root_from_path(value: str):
         """把用户填的路径归一化成安装目录；无效返回 None。"""
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
+            value = value[1:-1]
         path = Path(value).expanduser()
         if path.is_file():
             # 允许直接填 bin\\onmyoji.exe 或 Launch.exe 的完整路径
@@ -928,8 +1003,8 @@ class Handle:
                 return False
             time.sleep(DESKTOP_KILL_POLL_INTERVAL)
 
-    def desktop_bind_pid(self, pid, hwnd=0) -> None:
-        """把新 PID/HWND 绑定到实例，并尽量持久化到配置。"""
+    def desktop_bind_pid(self, pid, hwnd=0, *, newly_launched: bool = True) -> None:
+        """绑定 PID/HWND 并持久化；只有新启动客户端才重置登录状态。"""
         self.root_handle = str(pid)
         if hwnd:
             self.root_handle_num = hwnd
@@ -937,8 +1012,9 @@ class Handle:
         self.is_desktop_window = True
         # 换了新 hwnd，截图句柄缓存必须同步失效，否则截图仍走上一个客户端的废句柄
         self._desktop_clear_handle_cache()
-        # 新绑定的客户端刚启动，必然未登录，需先走 restart 登录流程
-        self._desktop_login_done = False
+        if newly_launched:
+            # 保留原自动启动语义；接管已有客户端不改登录状态。
+            self._desktop_login_done = False
         logger.info(f'Desktop client bound: PID={pid}, hwnd={hwnd}')
         try:
             config = self.config
