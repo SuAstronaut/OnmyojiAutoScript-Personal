@@ -118,6 +118,42 @@ class SchedulerTests(unittest.TestCase):
         self.assertEqual((result.status, result.next_run), ('scheduled', '2026-10-03 13:00:12'))
         self.assertEqual(ConfigStore(Path(self.temp.name)).load('test').canonical['orochi']['scheduler']['next_run'], result.next_run)
 
+    def test_run_now_changes_only_next_run_and_original_rescheduling_still_applies(self):
+        before = self.store.load('test').canonical
+        original_scheduler = before['orochi']['scheduler'].copy()
+        result = self.action('run_now')
+        after = self.store.load('test').canonical
+        before['orochi']['scheduler']['next_run'] = result.next_run
+        self.assertEqual(before, after)  # All task/config fields, not just intervals.
+        for success in (True, False):
+            with self.subTest(success=success):
+                config = Config('test', store=self.store)
+                scheduler = config.model.orochi.scheduler
+                interval = scheduler.success_interval if success else scheduler.failure_interval
+                start = self.NOW.replace(microsecond=0)
+                config.task_delay('Orochi', start_time=start, success=success, server=False)
+                expected = (start + interval).strftime('%Y-%m-%d %H:%M:%S')
+                self.assertEqual(self.next_run(), expected)
+                persisted = self.store.load('test').canonical['orochi']['scheduler'].copy()
+                persisted.pop('next_run')
+                original = original_scheduler.copy()
+                original.pop('next_run')
+                self.assertEqual(persisted, original)
+
+    def test_run_now_moves_waiting_to_pending_without_starting_an_execution(self):
+        future = (datetime.now() + timedelta(days=1)).replace(microsecond=0)
+        self.set_value(str(future))
+        process = self.process()
+        before = process.schedule_snapshot()
+        self.assertIn('Orochi', [task['name'] for task in before['waiting']])
+        result = self.store.scheduler_action('test', 'Orochi', 'run_now', self.generation)
+        after = process.schedule_snapshot()
+        self.assertEqual(result.status, 'scheduled')
+        self.assertNotIn('Orochi', [task['name'] for task in after['waiting']])
+        self.assertIn('Orochi', [task['name'] for task in after['pending']])
+        self.assertEqual(after['running'], {})
+        self.assertIsNone(process._process)
+
     def test_overdue_preserves_order_and_notifies_path_without_write(self):
         self.set_value('2026-10-01 08:01:23')
         with patch.object(self.store, '_write_config', wraps=self.store._write_config) as writer:
