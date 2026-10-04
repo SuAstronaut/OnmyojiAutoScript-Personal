@@ -17,13 +17,15 @@ class ScriptTask(SwitchSoul, MoonSea, GameUi):
         return self.config.model.six_realms
 
     def run(self):
-        if self._config.switch_soul_config.enable:
+        self.screenshot()
+        if not self.sixrealms_in_run_scene():
+            if self._config.switch_soul_config.enable:
+                self.ui_get_current_page()
+                self.ui_goto(page_shikigami_records)
+                # 六道之门使用通用单个御魂预设配置。
+                self.run_switch_soul(self._config.switch_soul_config.switch_group_team)
             self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
-            # 六道之门使用通用单个御魂预设配置。
-            self.run_switch_soul(self._config.switch_soul_config.switch_group_team)
-        self.ui_get_current_page()
-        self.ui_goto_page(page_six_gates)
+            self.ui_goto_page(page_six_gates)
         self.run_moon_sea()
 
         # 退出六道

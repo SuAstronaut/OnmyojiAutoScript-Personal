@@ -10,7 +10,8 @@ class MoonSeaL101(MoonSeaSkills):
     def buy_skill_101(self) -> bool:
         logger.info('Buy skill 101')
         self.wait_animate_stable(self.C_STORE_ANIMATE_KEEP, timeout=2)
-        self.wait_until_appear(self.I_STORE_STABLE_FLAG)
+        if not self.wait_until_appear(self.I_STORE_STABLE_FLAG):
+            return False
         buy_try: int = 0
         while 1:
             self.screenshot()
@@ -27,9 +28,9 @@ class MoonSeaL101(MoonSeaSkills):
                 self.device.click(x=x, y=y, )
                 buy_try += 1
         self.ui_click_until_disappear(self.I_UI_CONFIRM)
-        self.wait_until_appear(self.I_STORE_EXIT)
-        self.cnt_skill101 += 1
-        logger.info(f'Skill 101 level: {self.cnt_skill101}')
+        if not self.wait_until_appear(self.I_STORE_EXIT):
+            return False
+        self.confirm_honglei_owned('store_confirm_and_exit')
         logger.info('Buy skill 101 done')
         return True
 
@@ -75,14 +76,15 @@ class MoonSeaL101(MoonSeaSkills):
             if coin < 200:
                 logger.info('Not enough coin')
                 break
-            if self.cnt_skill101 >= 1:
-                logger.info('Skill 101 level is max')
+            if self.has_honglei:
+                logger.info('SixRealms Honglei already owned')
                 break
 
             if self.appear(self.I_UI_CONFIRM):
                 self.ui_click_until_disappear(self.I_UI_CONFIRM, interval=1)
             if self.appear(self.I_STORE_SKILL_101):
-                self.buy_skill_101()
+                if not self.buy_skill_101():
+                    break
             elif coin < 300:
                 break
             elif not self.refresh_store():

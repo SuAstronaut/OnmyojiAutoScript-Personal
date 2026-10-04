@@ -130,6 +130,10 @@ class SixRealmsAssets:
 	O_SIXREALMS_NUMBER = RuleOcr(roi=(1151,23,59,33), area=(1151,23,59,33), mode="Digit", method="Default", keyword="", name="sixrealms_number")
 	# Ocr-description 
 	O_SKILL_REFRESH = RuleOcr(roi=(1172,684,100,31), area=(1172,684,100,31), mode="Single", method="Default", keyword="", name="skill_refresh")
+	# Native map countdown: yellow digits only; white sentence is filtered out.
+	O_BOSS_ROUNDS_REMAINING = RuleOcr(roi=(1072,235,36,24), area=(1072,235,36,24), mode="Single", method="CF_HSV(0F5A64,23FFFF)", keyword="", name="boss_rounds_remaining")
+	# TWO技巧卡左上角仅数字；真实Lv1/Lv2验证，不含菱形边框或卡片正文
+	O_TWO_TECHNIQUE_LEVEL = RuleOcr(roi=(431,236,19,24), area=(431,236,19,24), mode="Single", method="Default", keyword="", name="two_technique_level")
 
 
 	# Image Rule Assets
@@ -222,3 +226,47 @@ class SixRealmsAssets:
 	I_ZHAOFU = RuleImage(roi_front=(1157,628,57,59), roi_back=(1135,603,97,111), threshold=0.8, method="Template matching", file="./tasks/SixRealms/l105/l105_zhaofu.png")
 
 
+	# Image Rule Assets
+	# 三选左：力量选择
+	I_ATTRIBUTE_THREE_STRENGTH = RuleImage(roi_front=(246,505,92,28), roi_back=(242,501,100,36), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/attribute_three_strength.png")
+	# 三选中：技巧选择
+	I_ATTRIBUTE_THREE_TECHNIQUE = RuleImage(roi_front=(601,505,92,28), roi_back=(597,501,100,36), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/attribute_three_technique.png")
+	# 三选右：魅力选择
+	I_ATTRIBUTE_THREE_CHARM = RuleImage(roi_front=(957,505,92,28), roi_back=(953,501,100,36), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/attribute_three_charm.png")
+	# 双选左：技巧选择
+	I_ATTRIBUTE_TWO_TECHNIQUE = RuleImage(roi_front=(424,505,92,28), roi_back=(420,501,100,36), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/attribute_two_technique.png")
+	# 双选右：魅力选择
+	I_ATTRIBUTE_TWO_CHARM = RuleImage(roi_front=(779,505,92,28), roi_back=(775,501,100,36), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/attribute_two_charm.png")
+	# 三选力量标题：面板确认
+	I_ATTRIBUTE_THREE_STRENGTH_TITLE = RuleImage(roi_front=(236,334,114,35), roi_back=(232,330,122,43), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/attribute_three_strength_title.png")
+	# 三选技巧标题：面板确认
+	I_ATTRIBUTE_THREE_TECHNIQUE_TITLE = RuleImage(roi_front=(592,334,114,35), roi_back=(588,330,122,43), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/attribute_three_technique_title.png")
+	# 三选魅力标题：面板确认
+	I_ATTRIBUTE_THREE_CHARM_TITLE = RuleImage(roi_front=(947,334,114,35), roi_back=(943,330,122,43), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/attribute_three_charm_title.png")
+	# 双选技巧标题：面板确认
+	I_ATTRIBUTE_TWO_TECHNIQUE_TITLE = RuleImage(roi_front=(415,334,114,35), roi_back=(411,330,122,43), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/attribute_two_technique_title.png")
+	# 双选魅力标题：面板确认
+	I_ATTRIBUTE_TWO_CHARM_TITLE = RuleImage(roi_front=(769,334,114,35), roi_back=(765,330,122,43), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/attribute_two_charm_title.png")
+	# 实战迦摩天名称；不包括变化血量
+	I_SIX_BOSS_NAME = RuleImage(roi_front=(328,80,68,21), roi_back=(324,76,76,29), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/six_boss_name.png")
+	# 可操作战斗自动按钮
+	I_SIX_BOSS_AUTO = RuleImage(roi_front=(32,648,44,43), roi_back=(26,642,56,55), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/six_boss_auto.png")
+	# 用户人工命中区域对应中央模型：姿态A，仅检测不作点击ROI
+	I_JUE_TARGET_A = RuleImage(roi_front=(604,501,70,66), roi_back=(588,485,102,98), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/jue_target_a.png")
+	# 用户人工命中区域对应中央模型：姿态B，仅检测不作点击ROI
+	I_JUE_TARGET_B = RuleImage(roi_front=(604,501,70,66), roi_back=(588,485,102,98), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/jue_target_b.png")
+	# 真实未绿标截图中央模型姿态；沿用原检测ROI
+	I_JUE_TARGET_UNMARKED = RuleImage(roi_front=(604,501,70,66), roi_back=(588,485,102,98), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/jue_target_unmarked.png")
+	# 中央目标绿标下部；仅目标专属窄ROI
+	I_JUE_MARK = RuleImage(roi_front=(630,356,17,29), roi_back=(620,346,37,49), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/jue_mark.png")
+	# 真实失败帧力量标题渲染变体：仅作属性页证据，不含等级与正文
+	I_ATTRIBUTE_PAGE_STRENGTH_ALT = RuleImage(roi_front=(236,334,114,35), roi_back=(232,330,122,43), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/attribute_page_strength_alt.png")
+	# 真实双选失败帧技巧标题渲染变体：独立页面证据，不含等级与正文
+	I_ATTRIBUTE_PAGE_TECHNIQUE_ALT = RuleImage(roi_front=(415,334,114,35), roi_back=(411,330,122,43), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/attribute_page_technique_alt.png")
+	# 属性奖励弹窗标题：不含奖励图标/数量
+	I_SIX_ATTRIBUTE_REWARD_TITLE = RuleImage(roi_front=(539,132,215,54), roi_back=(529,122,235,74), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/attribute_reward_title.png")
+	# 属性奖励弹窗稳定关闭提示：不含奖励内容
+	I_SIX_ATTRIBUTE_REWARD_CLOSE_HINT = RuleImage(roi_front=(551,656,164,25), roi_back=(541,646,184,45), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/attribute_reward_close_hint.png")
+	# Real summon dialog identities; existing confirm/enter buttons are not mutually exclusive.
+	I_SIX_SUMMON_CONFIRM_TITLE = RuleImage(roi_front=(560,302,231,30), roi_back=(556,298,239,38), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/summon_confirm_title.png")
+	I_SIX_SUMMON_INSUFFICIENT_TITLE = RuleImage(roi_front=(429,289,222,28), roi_back=(425,285,230,36), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/summon_insufficient_title.png")

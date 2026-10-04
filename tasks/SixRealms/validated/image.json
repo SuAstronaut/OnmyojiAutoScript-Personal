@@ -1,0 +1,200 @@
+[
+  {
+    "itemName": "attribute_three_strength",
+    "imageName": "attribute_three_strength.png",
+    "roiFront": "246,505,92,28",
+    "roiBack": "242,501,100,36",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "三选左：力量选择"
+  },
+  {
+    "itemName": "attribute_three_technique",
+    "imageName": "attribute_three_technique.png",
+    "roiFront": "601,505,92,28",
+    "roiBack": "597,501,100,36",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "三选中：技巧选择"
+  },
+  {
+    "itemName": "attribute_three_charm",
+    "imageName": "attribute_three_charm.png",
+    "roiFront": "957,505,92,28",
+    "roiBack": "953,501,100,36",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "三选右：魅力选择"
+  },
+  {
+    "itemName": "attribute_two_technique",
+    "imageName": "attribute_two_technique.png",
+    "roiFront": "424,505,92,28",
+    "roiBack": "420,501,100,36",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "双选左：技巧选择"
+  },
+  {
+    "itemName": "attribute_two_charm",
+    "imageName": "attribute_two_charm.png",
+    "roiFront": "779,505,92,28",
+    "roiBack": "775,501,100,36",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "双选右：魅力选择"
+  },
+  {
+    "itemName": "attribute_three_strength_title",
+    "imageName": "attribute_three_strength_title.png",
+    "roiFront": "236,334,114,35",
+    "roiBack": "232,330,122,43",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "三选力量标题：面板确认"
+  },
+  {
+    "itemName": "attribute_three_technique_title",
+    "imageName": "attribute_three_technique_title.png",
+    "roiFront": "592,334,114,35",
+    "roiBack": "588,330,122,43",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "三选技巧标题：面板确认"
+  },
+  {
+    "itemName": "attribute_three_charm_title",
+    "imageName": "attribute_three_charm_title.png",
+    "roiFront": "947,334,114,35",
+    "roiBack": "943,330,122,43",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "三选魅力标题：面板确认"
+  },
+  {
+    "itemName": "attribute_two_technique_title",
+    "imageName": "attribute_two_technique_title.png",
+    "roiFront": "415,334,114,35",
+    "roiBack": "411,330,122,43",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "双选技巧标题：面板确认"
+  },
+  {
+    "itemName": "attribute_two_charm_title",
+    "imageName": "attribute_two_charm_title.png",
+    "roiFront": "769,334,114,35",
+    "roiBack": "765,330,122,43",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "双选魅力标题：面板确认"
+  },
+  {
+    "itemName": "six_boss_name",
+    "imageName": "six_boss_name.png",
+    "roiFront": "328,80,68,21",
+    "roiBack": "324,76,76,29",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "实战迦摩天名称；不包括变化血量"
+  },
+  {
+    "itemName": "six_boss_auto",
+    "imageName": "six_boss_auto.png",
+    "roiFront": "32,648,44,43",
+    "roiBack": "26,642,56,55",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "可操作战斗自动按钮"
+  },
+  {
+    "itemName": "jue_target_a",
+    "imageName": "jue_target_a.png",
+    "roiFront": "604,501,70,66",
+    "roiBack": "588,485,102,98",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "用户人工命中区域对应中央模型：姿态A，仅检测不作点击ROI"
+  },
+  {
+    "itemName": "jue_target_b",
+    "imageName": "jue_target_b.png",
+    "roiFront": "604,501,70,66",
+    "roiBack": "588,485,102,98",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "用户人工命中区域对应中央模型：姿态B，仅检测不作点击ROI"
+  },
+  {
+    "itemName": "jue_target_unmarked",
+    "imageName": "jue_target_unmarked.png",
+    "roiFront": "604,501,70,66",
+    "roiBack": "588,485,102,98",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "真实未绿标截图中央模型姿态；沿用原检测ROI"
+  },
+  {
+    "itemName": "attribute_page_strength_alt",
+    "imageName": "attribute_page_strength_alt.png",
+    "roiFront": "236,334,114,35",
+    "roiBack": "232,330,122,43",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "真实失败帧力量标题渲染变体：仅作属性页证据，不含等级与正文"
+  },
+  {
+    "itemName": "jue_mark",
+    "imageName": "jue_mark.png",
+    "roiFront": "630,356,17,29",
+    "roiBack": "620,346,37,49",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "中央目标绿标下部；仅目标专属窄ROI"
+  },
+  {
+    "itemName": "attribute_reward_title",
+    "imageName": "attribute_reward_title.png",
+    "roiFront": "539,132,215,54",
+    "roiBack": "529,122,235,74",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "属性奖励弹窗标题：不含奖励图标/数量"
+  },
+  {
+    "itemName": "attribute_reward_close_hint",
+    "imageName": "attribute_reward_close_hint.png",
+    "roiFront": "551,656,164,25",
+    "roiBack": "541,646,184,45",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "属性奖励弹窗稳定关闭提示：不含奖励内容"
+  },
+  {
+    "itemName": "attribute_page_technique_alt",
+    "imageName": "attribute_page_technique_alt.png",
+    "roiFront": "415,334,114,35",
+    "roiBack": "411,330,122,43",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "真实双选失败帧技巧标题渲染变体：独立页面证据，不含等级与正文"
+  },
+  {
+    "itemName": "summon_confirm_title",
+    "imageName": "summon_confirm_title.png",
+    "roiFront": "560,302,231,30",
+    "roiBack": "556,298,239,38",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "Real summon dialog identity; no full-page OCR"
+  },
+  {
+    "itemName": "summon_insufficient_title",
+    "imageName": "summon_insufficient_title.png",
+    "roiFront": "429,289,222,28",
+    "roiBack": "425,285,230,36",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "Real summon dialog identity; no full-page OCR"
+  }
+]

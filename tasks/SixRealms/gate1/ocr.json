@@ -43,5 +43,23 @@
     "method": "Default",
     "keyword": "",
     "description": "Ocr-description"
+  },
+  {
+    "itemName": "boss_rounds_remaining",
+    "roiFront": "1072,235,36,24",
+    "roiBack": "1072,235,36,24",
+    "mode": "Single",
+    "method": "CF_HSV(0F5A64,23FFFF)",
+    "keyword": "",
+    "description": "Native map boss countdown: yellow digits only, not the Chinese sentence"
+  },
+  {
+    "itemName": "two_technique_level",
+    "roiFront": "431,236,19,24",
+    "roiBack": "431,236,19,24",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "TWO technique card level digit only; real Lv1 and Lv2 verified"
   }
 ]
