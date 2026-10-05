@@ -20,6 +20,7 @@ from module.exception import TaskEnd, GameStuckError
 from module.atom.image import RuleImage
 from module.atom.click import RuleClick
 from module.atom.ocr import RuleOcr
+from module.ocr.base_ocr import enlarge_canvas
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -192,6 +193,356 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
     def run(self):
         self.run_2()
 
+    def screenshot(self):
+        # 限时只作用于本任务退四的进入/准备设置；正常 battle 不受此期限影响。
+        self._realm_exit_four_checkpoint()
+        image = super().screenshot()
+        self._realm_exit_four_checkpoint()
+        return image
+
+    def _realm_exit_four_identity(self):
+        return (id(self.config), getattr(self.config, 'config_name', None),
+                getattr(self.config, 'generation', None), getattr(self.config, 'task', None))
+
+    def _realm_exit_four_checkpoint(self):
+        context = getattr(self, '_realm_exit_four_context', None)
+        if context is None:
+            return
+        if context['identity'] != self._realm_exit_four_identity():
+            raise GameStuckError('RealmRaid exit four ABORT: task/config changed')
+        deadline = context.get('deadline')
+        if deadline is not None and time.monotonic() >= deadline:
+            raise GameStuckError(f"RealmRaid exit four ABORT: timeout at {context['state']}")
+
+    def _realm_retry_text(self, rule):
+        """Quiet OCR of one dedicated ROI, returning unique full-frame boxes."""
+        if self.device.image.shape[:2] != (720, 1280):
+            raise GameStuckError('RealmRaid retry requires 1280 x 720')
+        roi_x, roi_y, roi_w, roi_h = rule.roi
+        cropped = enlarge_canvas(rule.pre_process(rule.crop(self.device.image, rule.roi)))
+        result = {}
+        # Use the existing model API without BaseCor's per-frame full-text log.
+        for item in rule.model.detect_and_ocr(cropped):
+            text = re.sub(r'[\s？?。！!]', '', rule.after_process(item.ocr_text))
+            if item.score < 0.90 or text not in (
+                    '再次挑战', '再次战斗', '重新战斗', '是否再次挑战', '确定'):
+                continue
+            xs, ys = [p[0] for p in item.box], [p[1] for p in item.box]
+            left, top, right, bottom = int(min(xs)), int(min(ys)), int(max(xs)), int(max(ys))
+            if not (0 <= left < right <= roi_w and 0 <= top < bottom <= roi_h):
+                continue
+            result.setdefault(text, []).append((roi_x+left, roi_y+top, right-left, bottom-top))
+        # Ambiguous labels are rejected, rather than choosing the first box.
+        return {text: boxes[0] if len(boxes) == 1 else None for text, boxes in result.items()}
+
+    def _realm_retry_click(self, roi, name):
+        x, y, w, h = roi
+        # Click inside the recognized label, avoiding its OCR edges.
+        inset = (x + w//4, y + h//4, max(1, w//2), max(1, h//2))
+        self.click(RuleClick(inset, inset, name=name))
+
+    def _realm_prepare_visible(self):
+        if self.is_in_real_battle(False):
+            raise GameStuckError('RealmRaid exit four ABORT: unexpected real battle')
+        return (not self.appear(self.I_FALSE) and not self.appear(self.I_EXIT_ENSURE)
+                and self.is_in_prepare(False))
+
+    def _realm_wait(self, state, predicate, timeout=30):
+        deadline = time.monotonic() + timeout
+        context = getattr(self, '_realm_exit_four_context', None)
+        if context is not None:
+            context.update(state=state, deadline=deadline)
+        while time.monotonic() < deadline:
+            self.screenshot()
+            if predicate():
+                return
+        raise GameStuckError(f'RealmRaid exit four ABORT: timeout at {state}')
+
+    def _exit_prepare_once(self):
+        """S1 -> S2 -> S3 -> S4. Keep the confirmed defeat screen open."""
+        def prepare_exit_available():
+            if self.is_in_real_battle(False):
+                raise GameStuckError('RealmRaid exit four ABORT: unexpected real battle')
+            if self.appear(self.I_FALSE):
+                raise GameStuckError('RealmRaid exit four ABORT: unexpected defeat before prepare exit')
+            if self.appear(self.I_EXIT_ENSURE):
+                raise GameStuckError('RealmRaid exit four ABORT: unexpected exit confirmation before prepare exit')
+            # fire/retry can see prepare markers before the exit control loads.
+            # Require both on the same fresh frame before sending any exit input.
+            return self.is_in_prepare(False) and self.appear(self.I_EXIT)
+
+        try:
+            self._realm_wait('prepare', prepare_exit_available, timeout=8)
+        except GameStuckError as exc:
+            # The scoped screenshot guard may also report this exact deadline.
+            # Preserve real-battle/device/config errors without relabeling them.
+            if str(exc) != 'RealmRaid exit four ABORT: timeout at prepare':
+                raise
+            raise GameStuckError('RealmRaid exit four ABORT: missing prepare exit') from exc
+        self.click(self.I_EXIT)
+
+        def exit_confirmation():
+            if self.is_in_real_battle(False):
+                raise GameStuckError('RealmRaid exit four ABORT: unexpected real battle')
+            return self.appear(self.I_EXIT_ENSURE) and not self.appear(self.I_FALSE)
+
+        self._realm_wait('exit_confirmation', exit_confirmation)
+        self.click(self.I_EXIT_ENSURE)
+
+        def new_defeat():
+            if self.is_in_real_battle(False):
+                raise GameStuckError('RealmRaid exit four ABORT: unexpected real battle')
+            return (self.appear(self.I_FALSE) and not self.appear(self.I_EXIT_ENSURE)
+                    and not self.is_in_prepare(False))
+
+        self._realm_wait('new_defeat', new_defeat)
+
+    def _retry_same_target(self):
+        """S4 -> optional retry confirmation -> fresh prepare, including round four."""
+        def retry_button():
+            if self.is_in_real_battle(False):
+                raise GameStuckError('RealmRaid exit four ABORT: unexpected real battle')
+            if not self.appear(self.I_FALSE) or self.appear(self.I_EXIT_ENSURE):
+                return False
+            texts = self._realm_retry_text(self.O_REALM_RETRY_BUTTON)
+            buttons = [texts[label] for label in ('再次挑战', '再次战斗', '重新战斗')
+                       if label in texts]
+            if '是否再次挑战' in texts or len(buttons) != 1 or buttons[0] is None:
+                return False
+            if '是否再次挑战' in self._realm_retry_text(self.O_REALM_RETRY_DIALOG):
+                return False
+            logger.info('RealmRaid retry button detected confidence>=0.90')
+            self._realm_retry_click(buttons[0], 'realm_retry')
+            return True
+
+        self._realm_wait('retry_button', retry_button)
+        confirmed = False
+        dialog_logged = False
+        no_remind_clicked_at = None
+        no_remind_last_state = None
+
+        def retry_destination():
+            nonlocal confirmed, dialog_logged, no_remind_clicked_at, no_remind_last_state
+            if self.is_in_real_battle(False):
+                raise GameStuckError('RealmRaid exit four ABORT: unexpected real battle')
+            # A direct prepare transition needs no OCR at all.
+            if self._realm_prepare_visible():
+                return True
+            texts = self._realm_retry_text(self.O_REALM_RETRY_DIALOG)
+            if '是否再次挑战' in texts:
+                if not dialog_logged:
+                    logger.info('RealmRaid retry dialog detected')
+                    dialog_logged = True
+                title = texts['是否再次挑战']
+                button = self._realm_retry_text(self.O_REALM_RETRY_CONFIRM).get('确定')
+                if not confirmed and title and button and button[1] >= title[1] + title[3]:
+                    state = self._realm_retry_no_remind_state()
+                    if state != no_remind_last_state:
+                        logger.info(f'RealmRaid retry no-remind state={state}')
+                        no_remind_last_state = state
+                    if state == 'off' and no_remind_clicked_at is None:
+                        self._realm_retry_click(tuple(self.I_REALM_RETRY_NO_REMIND_OFF.roi_front),
+                                                'realm_retry_no_remind')
+                        no_remind_clicked_at = time.monotonic()
+                        return False  # Confirm ON on a fresh screenshot before confirming.
+                    if no_remind_clicked_at is not None and state != 'on':
+                        if time.monotonic() - no_remind_clicked_at < 5:
+                            return False
+                        if state == 'off':
+                            raise GameStuckError('RealmRaid retry no-remind ON not confirmed')
+                        logger.warning('RealmRaid retry no-remind ON not confirmed; confirm only, no further toggle')
+                    elif state == 'unknown':
+                        logger.warning('RealmRaid retry no-remind state unknown; confirm only')
+                    self._realm_retry_click(button, 'realm_retry_confirm')
+                    confirmed = True
+                return False
+            return False
+
+        self._realm_wait('retry_prepare', retry_destination)
+
+    def _realm_retry_no_remind_state(self):
+        off = self.appear(self.I_REALM_RETRY_NO_REMIND_OFF)
+        on = self.appear(self.I_REALM_RETRY_NO_REMIND_ON)
+        if bool(off) == bool(on):
+            return 'unknown'
+        return 'off' if off else 'on'
+
+    def _realm_clear_reward(self):
+        """Drain recognized personal-raid/normal settlement, never an unknown page."""
+        if self.appear(self.I_SOUL_RAID):
+            self.appear_then_click(self.I_SOUL_RAID, interval=1.5)
+            return True
+        for target, threshold in ((self.I_REWARD, 0.6), (self.I_REWARD_GOLD, 0.8),
+                                  (self.I_EXTRA_INFO, None), (self.I_STATISTICS, None),
+                                  (self.I_WIN, 0.8), (self.I_WIN_2, 0.8),
+                                  (self.I_DE_WIN, 0.8), (self.I_FALSE, 0.8)):
+            if self.appear(target, threshold=threshold):
+                self.settlement_click(target, self.C_RANDOM_CLICK,
+                                      interval=1.5, threshold=threshold)
+                return True  # Even if click is cooling down, no grid scan yet.
+        if self.reward_grid_appear():
+            self.settlement_click_grid(self.C_RANDOM_CLICK, interval=1.5)
+            return True
+        return False
+
+    def _realm_grid_slot_signature(self):
+        """Visual grid precheck only: no fallback anchors, cell selection or level OCR."""
+        hits = self._slot_hits(self.device.image)
+        rows = _cluster([y for _, y, _ in hits], ROW_CLUSTER_GAP)
+        cols = _cluster([x for x, _, _ in hits], COL_CLUSTER_GAP)
+        if len(rows) != GRID_ROWS or len(cols) != GRID_COLS:
+            return None
+        xs, ys = [min(col) for col in cols], [min(row) for row in rows]
+        counts = tuple(sum(abs(hy-y) < ROW_CLUSTER_GAP
+                           and x-20 <= hx < x + SLOTS_PER_CELL*SLOT_GAP
+                           for hx, hy, _ in hits) for y in ys for x in xs)
+        if any(count == 0 for count in counts):
+            return None
+        return tuple(xs), tuple(ys), counts
+
+    def _wait_realmraid_grid(self):
+        """Positive, two-frame personal-grid gate after every kind of settlement."""
+        previous = None
+        handled_reward = False
+
+        def stable_grid():
+            nonlocal previous, handled_reward
+            if self._realm_clear_reward():
+                previous = None
+                handled_reward = True
+                return False
+            if not self._realm_safe_grid():
+                previous = None
+                return False
+            signature = self._realm_grid_slot_signature()
+            stable = signature is not None and signature == previous
+            previous = signature
+            return stable
+
+        self._realm_wait('stable_personal_grid', stable_grid)
+        return handled_reward
+
+    def _realm_safe_grid(self):
+        # Reject overlaid target detail, rewards, settlement and any battle controls.
+        if not (self.appear(self.I_CHECK_REALM_RAID) and self.appear(self.I_RR_PERSON)):
+            return False
+        if (self.is_in_real_battle(False) or self.is_in_prepare(False)
+                or any(self.appear(target) for target in
+                       (self.I_FIRE, self.I_FALSE, self.I_EXIT_ENSURE,
+                        self.I_SOUL_RAID, self.I_FRESH_ENSURE, self.I_REWARD,
+                        self.I_UI_CONFIRM, self.I_UI_CONFIRM_SAMLL))):
+            return False
+        return bool(self.appear(self.I_LOCK)) != bool(self.appear(self.I_UNLOCK))
+
+    def _restore_realmraid_lock(self, expected, timeout=30):
+        stable = 0
+        clicked = False
+        desired, opposite = (self.I_LOCK, self.I_UNLOCK) if expected else (self.I_UNLOCK, self.I_LOCK)
+
+        def confirmed_grid_lock():
+            nonlocal stable, clicked
+            if not self._realm_safe_grid():
+                stable = 0
+                return False
+            stable += 1
+            if stable < 2:
+                return False
+            if self.appear(desired):
+                return True
+            if not clicked and self.appear(opposite):
+                self.click(opposite)
+                clicked = True
+                stable = 0
+            return False
+
+        self._realm_wait('grid_lock', confirmed_grid_lock, timeout)
+
+    def _finish_exit_four_battle(self, config, exit_count):
+        if exit_count != 4:
+            raise GameStuckError('RealmRaid exit four ABORT: invalid exit count')
+        self._realm_wait('fifth_prepare', self._realm_prepare_visible)
+        # The parent is entered after real battle, so preserve its first normal
+        # battle's unlocked preset setup here, without changing persistent config.
+        if not config.lock_team_enable and self.current_count == 0:
+            context = self._realm_exit_four_context
+            context.update(state='fifth_preset', deadline=time.monotonic() + 30)
+            self.switch_preset_team(config.preset_enable, config.preset_group, config.preset_team)
+            self.check_and_open_buff(None)
+            self._realm_wait('fifth_prepare_after_preset', self._realm_prepare_visible)
+        ready_clicked = False
+
+        def started():
+            nonlocal ready_clicked
+            if self.is_in_real_battle(False):
+                if not ready_clicked:
+                    raise GameStuckError('RealmRaid exit four ABORT: battle started before ready')
+                return True
+            if self.appear(self.I_FALSE):
+                raise GameStuckError('RealmRaid exit four ABORT: fifth preparation failed')
+            if self.appear_then_click(self.I_DISABLE_7DAYS_DIFF_SOUL, interval=0.6):
+                return False
+            if self.appear_then_click(self.I_CONFIRM_CLOSE_DIFF_SOUL, interval=0.6):
+                return False
+            if (not ready_clicked and self._realm_prepare_visible()
+                    and self.appear(self.I_PREPARE_HIGHLIGHT)):
+                self.click(self.I_PREPARE_HIGHLIGHT)
+                ready_clicked = True
+            return False
+
+        self._realm_wait('fifth_real_battle', started)
+        self._realm_exit_four_context.update(state='normal_battle', deadline=None)
+        # Only the original normal entry owns current_count += 1.
+        return self.run_general_battle(config)
+
+    def _run_exit_four_with_retry(self, index, config):
+        # This context is task-local and always discarded. It is never resumed
+        # from a FAILED stamp, an exception or a prior task's partial progress.
+        context = dict(identity=self._realm_exit_four_identity(), state='unlock',
+                       deadline=None, exit_count=0)
+        self._realm_exit_four_context = context
+        expected_lock = config.lock_team_enable
+        try:
+            self._restore_realmraid_lock(False)
+            # Unlock confirmation takes fresh frames. If the grid changed in
+            # that interval, cancel before entering a different last target.
+            cells = self._detect_attack_cells(read_level=False)
+            remaining = [cell for cell in cells if cell['state'] != CELL_FINISHED]
+            if (len(cells) != GRID_ROWS * GRID_COLS or len(remaining) != 1
+                    or remaining[0]['index'] != index):
+                self._restore_realmraid_lock(expected_lock)
+                return None
+            context.update(state='first_fire', deadline=time.monotonic() + 30)
+            if self.fire(index, revalidate=True) is False:
+                self._restore_realmraid_lock(expected_lock)
+                return None
+            exit_count = 0
+            while exit_count < 4:
+                self._exit_prepare_once()
+                # The only commit: exit confirmation was clicked and a new
+                # defeat screenshot was observed (S3 -> S4), exactly once/round.
+                exit_count += 1
+                context['exit_count'] = exit_count
+                logger.info(f'RealmRaid confirmed prepare exits: {exit_count}/4')
+                self._retry_same_target()
+            win = self._finish_exit_four_battle(config, exit_count)
+
+            self._wait_realmraid_grid()
+            self._restore_realmraid_lock(expected_lock)
+            return win
+        except Exception:
+            logger.warning(f"RealmRaid exit four ABORT at {context['state']}; confirmed exits={context['exit_count']}")
+            # Recovery never navigates away from settlement/unknown pages.
+            try:
+                context.update(state='safe_recovery', deadline=time.monotonic() + 5)
+                self.screenshot()
+                if self._realm_safe_grid():
+                    self._restore_realmraid_lock(expected_lock, timeout=5)
+            except Exception:
+                logger.warning('RealmRaid lock recovery unavailable; next safe entry will correct it')
+            raise
+        finally:
+            self._realm_exit_four_context = None
+
     def run_2(self):
         con = self.config.realm_raid
         if con.switch_soul_config.enable:
@@ -207,7 +558,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
         self.ui_goto(page_realm_raid)
 
         # 判断是不是锁定阵容
-        self.ensure_lock(con.general_battle_config.lock_team_enable)
+        self._restore_realmraid_lock(con.general_battle_config.lock_team_enable)
 
         # 开始循环
         success = True
@@ -271,30 +622,25 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
                 and remaining[0]['index'] == index
             )
             # exit_all 只在 auto_exit_all 开启时才可能为 True，此处无需再判一次
+            # 安全入口补偿：上一任务被强停时也按当前配置重新校正锁定。
+            self._restore_realmraid_lock(con.general_battle_config.lock_team_enable)
+            after_exit_four = is_last_target and not exit_all and exit_four_enable
             if is_last_target and not exit_all:
                 logger.info(f'Last undefeated realm at position {index}')
-                if exit_four_enable:
-                    logger.info('Exit four enable')
-                    if self.fire(index, revalidate=True) is False:
-                        continue
-                    self.run_general_battle_back(con.general_battle_config, exit_four=True)
-                    self.fire(index)
-                    self.run_general_battle_back(con.general_battle_config, exit_four=True)
-                    self.fire(index)
-                    self.run_general_battle_back(con.general_battle_config, exit_four=True)
-                    self.fire(index)
-                    self.run_general_battle_back(con.general_battle_config, exit_four=True)
-            # 退四后仍允许重进 FAILED；普通攻击则在清理弹窗后复核目标。
-            after_exit_four = is_last_target and not exit_all and exit_four_enable
-            if self.fire(index, revalidate=not after_exit_four) is False:
-                continue
-            # 全退模式（auto_exit_all 判定等级过高）：进战斗立即退出，逐格清场降级
-            if exit_all:
-                logger.info('Exit all')
-                self.run_general_battle_back(con.general_battle_config, exit_four=True)
-                last_battle = False
+            if after_exit_four:
+                last_battle = self._run_exit_four_with_retry(index, con.general_battle_config)
+                if last_battle is None:  # 首次 fire 复核发现目标变化，尚未退出。
+                    continue
             else:
-                last_battle = self.run_general_battle(con.general_battle_config)
+                if self.fire(index, revalidate=True) is False:
+                    continue
+                # 全退与普通战斗继续使用原入口。
+                if exit_all:
+                    logger.info('Exit all')
+                    self.run_general_battle_back(con.general_battle_config, exit_four=True)
+                    last_battle = False
+                else:
+                    last_battle = self.run_general_battle(con.general_battle_config)
             # 检查是否每三次领一个奖励
             if self.reward_detect_click(False):
                 logger.info('Rewards of three wins')
@@ -532,6 +878,7 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
 
     def _detect_attack_cells(self, read_level: bool=False) -> list:
         """有可信目标就继续；只剩零槽或网格不明确时有限重检。"""
+        self._wait_realmraid_grid()
         for attempt in range(3):
             cells = self.detect_cells(attempt > 0, read_level=read_level)
             zero_slots = [cell['index'] for cell in cells
@@ -667,38 +1014,10 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
         return target_cell['index']
 
     def reward_detect_click(self, screenshot: bool=True) -> bool:
-        """
-        检测是否出现 每三次就有奖励的界面, 有就领取
-        :return:
-        """
-        if screenshot:
-            self.screenshot()
-        # 由于更改识别顺序，退出战斗之后，需要先等待回到个人突破界面，即识别到红色退出按钮，再进行奖励判断
-        self.wait_until_appear(self.I_BACK_RED)
-        text = self.O_TEXT.ocr(self.device.image)
-        # 识别突破卷区域，如果识别到了且其中含有文字，即有聊天框遮挡则进入循环，等待三胜奖励出现并点击，循环退出条件为识别到票（即*/*的形式）
-        if text != "":
-            if re.search(r'[\u4e00-\u9fff]', text):
-                while 1:
-                    self.screenshot()
-                    result = self.O_TEXT.ocr(self.device.image)
-                    if not re.search(r'[\u4e00-\u9fff]', result) and re.search(r'(\d+)/(\d+)', result):
-                        return True
-                    if self.appear_then_click(self.I_SOUL_RAID, interval=1.5):
-                        continue
-
-        # if self.appear(self.I_SOUL_RAID):
-        #     self.screenshot()
-        #     # 稳定一次的截图时间
-        #     # 再次判断是否出现的
-        #     if not self.appear(self.I_SOUL_RAID):
-        #         return False
-        #     while 1:
-        #         self.screenshot()
-        #         if not self.appear(self.I_SOUL_RAID, threshold=0.7):
-        #             return True
-        #         if self.appear_then_click(self.I_SOUL_RAID, interval=1.5):
-        #             continue
+        """每三胜额外奖励也必须排空，并正向确认九宫格稳定。"""
+        # Always read fresh frames; an old ticket OCR result cannot prove that
+        # the additional settlement layer has disappeared.
+        return self._wait_realmraid_grid()
 
     def check_refresh(self, screenshot: bool=True) -> bool:
         """

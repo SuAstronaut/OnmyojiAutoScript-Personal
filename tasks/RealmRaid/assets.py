@@ -44,10 +44,23 @@ class RealmRaidAssets:
 	I_RR_PERSON = RuleImage(roi_front=(1203,236,56,100), roi_back=(1203,236,56,155), threshold=0.8, method="Template matching", file="./tasks/RealmRaid/res/res_rr_person.png")
 
 
+	# Image Rule Assets
+	# 个人突破重试弹窗今日不再提示 off，真实1280x720截图小图标
+	I_REALM_RETRY_NO_REMIND_OFF = RuleImage(roi_front=(537,341,38,38), roi_back=(533,337,46,46), threshold=0.9, method="Template matching", file="./tasks/RealmRaid/res/realm_retry_no_remind_off.png")
+	# 个人突破重试弹窗今日不再提示 on，真实1280x720截图小图标
+	I_REALM_RETRY_NO_REMIND_ON = RuleImage(roi_front=(537,341,38,38), roi_back=(533,337,46,46), threshold=0.9, method="Template matching", file="./tasks/RealmRaid/res/realm_retry_no_remind_on.png")
+
+
 	# Ocr Rule Assets
 	# 右上角 突破卷的数量 
 	O_NUMBER = RuleOcr(roi=(1143,13,80,39), area=(0,0,100,100), mode="DigitCounter", method="Default", keyword="", name="number")
 	# text 
 	O_TEXT = RuleOcr(roi=(1143,13,80,39), area=(0,0,100,100), mode="Single", method="Default", keyword="", name="text")
+	# 失败页再次挑战按钮，仅识别局部文字
+	O_REALM_RETRY_BUTTON = RuleOcr(roi=(805,540,125,45), area=(0,0,100,100), mode="Full", method="Default", keyword="", name="realm_retry_button")
+	# 是否再次挑战专属弹窗标题，仅识别局部文字
+	O_REALM_RETRY_DIALOG = RuleOcr(roi=(548,265,190,37), area=(0,0,100,100), mode="Full", method="Default", keyword="", name="realm_retry_dialog")
+	# 专属重试弹窗确定文字，仅识别局部文字
+	O_REALM_RETRY_CONFIRM = RuleOcr(roi=(708,403,102,60), area=(0,0,100,100), mode="Full", method="Default", keyword="", name="realm_retry_confirm")
 
 

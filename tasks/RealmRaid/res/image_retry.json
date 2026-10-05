@@ -1,0 +1,20 @@
+[
+  {
+    "itemName": "realm_retry_no_remind_off",
+    "imageName": "realm_retry_no_remind_off.png",
+    "roiFront": "537,341,38,38",
+    "roiBack": "533,337,46,46",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "个人突破重试弹窗今日不再提示 off，真实1280x720截图小图标"
+  },
+  {
+    "itemName": "realm_retry_no_remind_on",
+    "imageName": "realm_retry_no_remind_on.png",
+    "roiFront": "537,341,38,38",
+    "roiBack": "533,337,46,46",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "个人突破重试弹窗今日不再提示 on，真实1280x720截图小图标"
+  }
+]

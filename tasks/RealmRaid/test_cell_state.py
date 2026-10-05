@@ -113,6 +113,9 @@ class Core:
         self.ui_get_current_page = Mock()
         self.ui_goto = Mock()
         self.ensure_lock = Mock()
+        self._restore_realmraid_lock = Mock()
+        self._wait_realmraid_grid = Mock()
+        self._run_exit_four_with_retry = Mock(side_effect=self.battle_exit_four)
         self.check_ticket = Mock(return_value=True)
         self.check_refresh = Mock(return_value=False)
         self.reward_detect_click = Mock(return_value=False)
@@ -160,6 +163,10 @@ class Core:
     def battle(self, config):
         self.current_count += 1
         return True
+
+    def battle_exit_four(self, index, config):
+        # State-level behavior lives in tests/unit/logic/test_realmraid_retry.py.
+        return self.run_general_battle(config)
 
 
 def runtime(frames=None):
@@ -619,20 +626,16 @@ class FireRecoveryTests(unittest.TestCase):
 
 
 class TaskFlowTests(unittest.TestCase):
-    def test_exit_four_keeps_four_retreats_and_failed_reentry(self):
+    def test_exit_four_dispatches_to_local_retry_flow(self):
         task, _ = runtime([frame(finished=range(1, 9))])
         task.config.realm_raid.raid_config.exit_four = True
         task.fire = Mock()
         with self.assertRaises(EndTask):
             task.run_2()
-        self.assertEqual(task.fire.call_args_list[0].args, (9,))
-        self.assertEqual(task.fire.call_args_list[0].kwargs, {'revalidate': True})
-        self.assertEqual(len(task.fire.call_args_list), 5)
-        self.assertEqual([call.kwargs for call in task.fire.call_args_list[1:]],
-                         [{}, {}, {}, {'revalidate': False}])
-        self.assertEqual(task.run_general_battle_back.call_count, 4)
-        self.assertTrue(all(call.kwargs == {'exit_four': True}
-                            for call in task.run_general_battle_back.call_args_list))
+        task._run_exit_four_with_retry.assert_called_once_with(
+            9, task.config.realm_raid.general_battle_config)
+        task.fire.assert_not_called()
+        task.run_general_battle_back.assert_not_called()
         task.run_general_battle.assert_called_once()
 
     def test_cancelled_target_reselects_without_battle_or_refresh(self):

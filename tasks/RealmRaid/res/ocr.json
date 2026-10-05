@@ -16,5 +16,32 @@
     "method": "Default",
     "keyword": "",
     "description": "text"
+  },
+  {
+    "itemName": "realm_retry_button",
+    "roiFront": "805,540,125,45",
+    "roiBack": "0,0,100,100",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "",
+    "description": "失败页再次挑战按钮，仅识别局部文字"
+  },
+  {
+    "itemName": "realm_retry_dialog",
+    "roiFront": "548,265,190,37",
+    "roiBack": "0,0,100,100",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "",
+    "description": "是否再次挑战专属弹窗标题，仅识别局部文字"
+  },
+  {
+    "itemName": "realm_retry_confirm",
+    "roiFront": "708,403,102,60",
+    "roiBack": "0,0,100,100",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "",
+    "description": "专属重试弹窗确定文字，仅识别局部文字"
   }
 ]
