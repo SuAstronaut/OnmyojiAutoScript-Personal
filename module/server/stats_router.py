@@ -25,6 +25,7 @@ class TaskRunStatsResponse(BaseModel):
     end_time: str
     duration_seconds: float
     battle: BattleStatsResponse | None = None
+    completed_run_count: int | None = None  # SixRealms settled runs, not dispatches.
 
 
 class TaskStatsResponse(BaseModel):
@@ -32,6 +33,7 @@ class TaskStatsResponse(BaseModel):
     total_duration_seconds: float
     battle: BattleStatsResponse | None = None
     runs: list[TaskRunStatsResponse] = Field(default_factory=list)
+    completed_run_count: int | None = None
 
 
 class MultiTaskResponse(BaseModel):
@@ -113,6 +115,7 @@ class StatsResponse(BaseModel):
     total_battle_count: int
     tasks: dict[str, TaskStatsResponse] = Field(default_factory=dict)
     multi: MultiStatsResponse | None = None
+    statistics_warnings: list[str] = Field(default_factory=list)
 
 
 class StatsAvailableDatesResponse(BaseModel):
@@ -128,6 +131,7 @@ class StatsUpdateResponse(BaseModel):
     changed_tasks: dict[str, TaskStatsResponse] = Field(default_factory=dict)
     removed_tasks: list[str] = Field(default_factory=list)
     multi: MultiStatsResponse | None = None
+    statistics_warnings: list[str] = Field(default_factory=list)
 
 
 def _parse_target_date(date_text: str) -> date:

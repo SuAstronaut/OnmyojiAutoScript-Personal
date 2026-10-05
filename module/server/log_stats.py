@@ -29,6 +29,10 @@ _BATTLE_TITLE = "GENERAL BATTLE START"
 _BATTLE_END_MARKERS = ("Battle result is", "Reconfirm the results of the battle")
 _START_TITLE = "START"
 _STAT_PREFIX = "[STAT] "
+_SIXREALMS_COMPLETION_RE = re.compile(
+    r"^Run (?P<count>\d+) times,avg time: (?:\d+ days?, )?\d+:\d{2}:\d{2}, "
+    r"total time: (?:\d+ days?, )?\d+:\d{2}:\d{2}$"
+)
 
 
 def _format_multi_ts(ts: datetime | None) -> str | None:
@@ -123,6 +127,7 @@ class TaskRunState:
     last_time: datetime | None = None
     battle_count: int = 0
     battle_total_duration_seconds: float = 0.0
+    completed_run_count: int = 0  # SixRealms: cumulative one() completions in this execution.
 
 
 @dataclass
@@ -137,6 +142,8 @@ class LogStatsParser:
         self._pending_battle_start = False
         self._active_task: TaskRunState | None = None
         self._active_battle: BattleState | None = None
+        self.statistics_warnings: list[str] = []
+        self._seen_execution_events: set[tuple[datetime, str]] = set()
 
     def consume_lines(self, lines: list[str]) -> None:
         index = 0
@@ -155,7 +162,7 @@ class LogStatsParser:
                 index += 1
                 continue
 
-            self._consume_regular_line(line)
+            self._consume_regular_line(lines[index])
             index += 1
 
     def snapshot(self, script_name: str = "", tail_lines: list[str] | None = None) -> dict[str, Any]:
@@ -177,6 +184,7 @@ class LogStatsParser:
                 for task in tasks.values()
             ),
             "tasks": tasks,
+            "statistics_warnings": parser.statistics_warnings,
         }
 
     @classmethod
@@ -233,6 +241,23 @@ class LogStatsParser:
             return
 
         message = line.split("|", 3)[-1].strip()
+        completion = _SIXREALMS_COMPLETION_RE.fullmatch(message)
+        event = _SCHEDULER_TASK_RE.fullmatch(message)
+        if self._active_task is None and (
+                "moon_sea.py:" in line.split("|", 3)[1]
+                or message.startswith(("Skill power level:", "Entering island self.cnt_skill"))
+                or message.startswith(_STAT_PREFIX) and '"ev":"sixrealms_' in message):
+            self._warn("sixrealms_missing_execution_start: counts and duration are partial")
+        if event or completion:
+            # Replaying a complete chunk must not reopen a finished execution.
+            if not line.endswith("\n"):
+                if completion:
+                    self._warn("sixrealms_incomplete_completion_line: counts are partial")
+                return
+            key = (ts, message)
+            if key in self._seen_execution_events:
+                return
+            self._seen_execution_events.add(key)
         # These belong to a NEW process, before its START title is printed.
         # Close at the old run's last evidence, not at this restart timestamp.
         if message.startswith("[START_DIAG] "):
@@ -240,7 +265,6 @@ class LogStatsParser:
             self._close_active_task()
             return
 
-        event = _SCHEDULER_TASK_RE.fullmatch(message)
         if event:
             if event.group("event") == "Start":
                 self._close_active_battle()
@@ -261,7 +285,18 @@ class LogStatsParser:
             return
 
         if self._active_task is not None:
-            self._active_task.last_time = ts
+            self._active_task.last_time = max(ts, self._active_task.last_time or ts)
+
+        if completion:
+            if self._active_task is None or self._active_task.name != "SixRealms":
+                self._warn("sixrealms_missing_execution_start: counts and duration are partial")
+            else:
+                count = int(completion.group("count"))
+                if count < self._active_task.completed_run_count:
+                    self._warn("sixrealms_counter_decreased_without_restart: counts are partial")
+                self._active_task.completed_run_count = max(
+                    count, self._active_task.completed_run_count
+                )
 
         if self._pending_battle_start and self._active_task is not None:
             self._active_battle = BattleState(start_time=ts, last_time=ts)
@@ -297,6 +332,10 @@ class LogStatsParser:
         self._active_battle = None
         self._pending_battle_start = False
 
+    def _warn(self, message: str) -> None:
+        if message not in self.statistics_warnings:
+            self.statistics_warnings.append(message)
+
     def _close_active_task(self) -> None:
         if self._active_task is None:
             return
@@ -319,6 +358,10 @@ class LogStatsParser:
             },
         )
         task_data["run_count"] += 1
+        if self._active_task.name == "SixRealms":
+            task_data["completed_run_count"] = (
+                task_data.get("completed_run_count", 0) + self._active_task.completed_run_count
+            )
         task_data["total_duration_seconds"] = round(task_data["total_duration_seconds"] + duration, 3)
         task_data["battle_count"] += self._active_task.battle_count
         task_data["battle_total_duration_seconds"] = round(
@@ -336,6 +379,8 @@ class LogStatsParser:
                 ),
             }
         )
+        if self._active_task.name == "SixRealms":
+            task_data["runs"][-1]["completed_run_count"] = self._active_task.completed_run_count
 
         self._active_task = None
 
@@ -351,6 +396,8 @@ class LogStatsParser:
                 ),
                 "runs": task_data.get("runs", []),
             }
+            if task_name == "SixRealms":
+                cleaned_tasks[task_name]["completed_run_count"] = task_data.get("completed_run_count", 0)
         return cleaned_tasks
 
     def _current_total_runtime(self) -> float:
@@ -1041,7 +1088,8 @@ class LogStatsService:
             for field in ("total_runtime_seconds", "total_task_run_count", "total_battle_count")
         )
         multi_changed = previous_snapshot.get("multi") != current_snapshot.get("multi")
-        if not totals_changed and not changed_tasks and not removed_tasks and not multi_changed:
+        warnings_changed = previous_snapshot.get("statistics_warnings") != current_snapshot.get("statistics_warnings")
+        if not totals_changed and not changed_tasks and not removed_tasks and not multi_changed and not warnings_changed:
             return None
 
         return {
@@ -1052,6 +1100,7 @@ class LogStatsService:
             "changed_tasks": changed_tasks,
             "removed_tasks": removed_tasks,
             "multi": current_snapshot.get("multi"),
+            "statistics_warnings": current_snapshot.get("statistics_warnings", []),
         }
 
     def _parse_log_file(self, path: Path) -> dict[str, Any]:
@@ -1082,6 +1131,7 @@ class LogStatsService:
             "total_battle_count": int(payload.get("total_battle_count", 0)),
             "tasks": payload.get("tasks", {}),
             "multi": multi,
+            "statistics_warnings": payload.get("statistics_warnings", []),
         }
 
     def _today_log_signature(self, script_name: str) -> tuple[int, int]:
@@ -1204,6 +1254,7 @@ class LogStatsService:
             "total_battle_count": 0,
             "tasks": {},
             "multi": None,
+            "statistics_warnings": [],
         }
 
     @staticmethod
