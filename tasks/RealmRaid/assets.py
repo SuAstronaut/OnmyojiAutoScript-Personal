@@ -41,7 +41,7 @@ class RealmRaidAssets:
 	# 已经进攻三次了 
 	I_RR_THREE = RuleImage(roi_front=(346,584,42,44), roi_back=(346,584,42,44), threshold=0.8, method="Template matching", file="./tasks/RealmRaid/res/res_rr_three.png")
 	# 个人 
-	I_RR_PERSON = RuleImage(roi_front=(1203,236,56,100), roi_back=(1203,236,56,155), threshold=0.8, method="Template matching", file="./tasks/RealmRaid/res/res_rr_person.png")
+	I_RR_PERSON = RuleImage(roi_front=(1203,236,56,100), roi_back=(1200,236,62,155), threshold=0.8, method="Template matching", file="./tasks/RealmRaid/res/res_rr_person.png")
 
 
 	# Image Rule Assets
