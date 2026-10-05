@@ -65,7 +65,8 @@ asset_class.body = [node for node in asset_class.body if isinstance(node, ast.As
 asset_ns = dict(RuleImage=RuleImage, RuleOcr=RuleOcr)
 exec(compile(ast.Module(body=[asset_class], type_ignores=[]), 'actual_six_assets', 'exec'), asset_ns)
 A = asset_ns['SixRealmsAssets']
-for relative in ('tasks/GlobalGame/assets.py', 'tasks/GameUi/assets.py'):
+for relative in ('tasks/GlobalGame/assets.py', 'tasks/GameUi/assets.py',
+                 'tasks/Component/GeneralBattle/assets.py'):
     tree = ast.parse((ROOT / relative).read_text(encoding='utf-8'))
     cls = next(node for node in tree.body if isinstance(node, ast.ClassDef))
     cls.body = [node for node in cls.body if isinstance(node, ast.Assign)
@@ -124,7 +125,9 @@ for number in (102, 103, 104, 105):
 moon_tree = ast.parse((ROOT / 'tasks/SixRealms/moon_sea/moon_sea.py').read_text(encoding='utf-8'))
 nodes = [node for node in moon_tree.body if isinstance(node, (ast.ClassDef, ast.FunctionDef))
          or isinstance(node, ast.Assign) and node.targets[0].id in {
-             'JUE_SAFE_POINTS', 'JUE_TARGET_RULE', 'JUE_MARK_CONFIRM_RULE', 'BOSS_REAL_SCENE_RULES'}]
+              'JUE_SAFE_POINTS', 'JUE_TARGET_RULE', 'JUE_MARK_CONFIRM_RULE', 'BOSS_REAL_SCENE_RULES',
+              'BOSS_BATTLE_START_RULES'}]
+NS['GeneralBattleAssets'] = A
 exec(compile(ast.Module(body=nodes, type_ignores=[]), 'actual_six_moon', 'exec'), NS)
 Moon = NS['MoonSea']
 NS.update(SwitchSoul=type('SwitchSoul', (), {}), GameUi=type('GameUi', (), {}),
@@ -733,6 +736,206 @@ class GuaranteeTests(OfflineBase):
         self.assertEqual(self.obj.cnt_skillpower, before)
 
 
+class CharmBossChainTests(OfflineBase):
+    def dispatch_charm(self):
+        self.panel('TWO')
+        self.obj.read_technique_level = Mock(return_value=3)
+        self.assertTrue(self.obj.select_skill())
+        self.assertIs(self.obj.charm_selected, True)
+
+    def test_charm_dispatch_arms_before_selected_log(self):
+        self.dispatch_charm()
+        self.assertEqual(self.obj.clicks, [A.I_ATTRIBUTE_TWO_CHARM])
+        messages = [entry.args[0] for entry in LOG.info.call_args_list]
+        self.assertLess(messages.index('[SixRealms] charm selected, Jue green mark armed'),
+                        messages.index('SixRealms attribute selected: layout=TWO, selected=charm'))
+        self.assertTrue(json.loads(self.obj.six_flags_path.read_text())['charm_selected'])
+
+    def test_failed_charm_dispatch_does_not_arm(self):
+        self.panel('TWO')
+        self.obj.read_technique_level = Mock(return_value=3)
+        self.obj.appear_then_click = Mock(return_value=False)
+        self.obj.select_skill()
+        self.assertFalse(self.obj.charm_selected)
+        LOG.info.assert_not_called()
+
+    def test_real_two_layout_dispatch_arms_with_known_level3(self):
+        self.real_pixels('two_attribute_full_scene_real')
+        # Supplied real TWO image validates layout; Lv3 is a synthetic OCR result.
+        self.obj.read_technique_level = Mock(return_value=3)
+        self.obj.appear_then_click = Mock(return_value=True)
+        self.assertTrue(self.obj.select_skill())
+        self.obj.appear_then_click.assert_called_once_with(A.I_ATTRIBUTE_TWO_CHARM, interval=1)
+        self.assertTrue(self.obj.charm_selected)
+
+    def test_two_technique_does_not_arm_or_log_charm(self):
+        self.panel('TWO')
+        self.obj.read_technique_level = Mock(return_value=2)
+        self.obj.select_skill()
+        self.assertFalse(self.obj.charm_selected)
+        LOG.info.assert_called_once_with('SixRealms attribute selected: layout=TWO, selected=technique')
+
+    def test_two_consecutive_charm_dispatches_stay_armed(self):
+        self.dispatch_charm()
+        self.dispatch_charm()
+        self.assertEqual(self.obj.clicks, [A.I_ATTRIBUTE_TWO_CHARM] * 2)
+        self.assertTrue(json.loads(self.obj.six_flags_path.read_text())['charm_selected'])
+
+    def test_charm_boss_hook_follows_fire_and_real_battle_identity(self):
+        self.dispatch_charm()
+        self.obj.visible = {A.I_BOSS_FIRE}
+        order = []
+        def mark():
+            order.append('mark')
+            self.obj._six_jue_mark_checked = True
+            self.obj.visible = {A.I_BOSS_SHARE}
+        self.obj.maybe_mark_jue_in_boss = Mock(side_effect=mark)
+        self.obj.ui_click_until_disappear.side_effect = lambda *a, **k: order.append('fire')
+        def screenshot():
+            if not self.obj._six_jue_mark_checked:
+                self.obj.visible = set(NS['BOSS_REAL_SCENE_RULES'] + NS['BOSS_BATTLE_START_RULES'])
+        self.obj.screenshot.side_effect = screenshot
+        self.obj.ui_reward_appear_click = Mock(return_value=False)
+        self.assertTrue(self.obj.boss_battle())
+        self.assertEqual(order, ['fire', 'mark'])
+        LOG.info.assert_any_call('[SixRealms] boss green mark state: charm_selected=True')
+        LOG.info.assert_any_call('[SixRealms] boss fire clicked; fire button left')
+
+    def test_no_charm_boss_keeps_old_fire_flow(self):
+        self.obj.visible = {A.I_BOSS_SHARE}
+        self.obj.maybe_mark_jue_in_boss = Mock()
+        self.assertTrue(self.obj.boss_battle())
+        self.obj.maybe_mark_jue_in_boss.assert_not_called()
+        self.obj.ui_click_until_disappear.assert_called_once_with(A.I_BOSS_FIRE, interval=1)
+        LOG.info.assert_any_call('[SixRealms] boss green mark state: charm_selected=False')
+
+    def test_post_fire_preparation_waits_then_marks_on_two_ready_frames(self):
+        self.dispatch_charm()
+        self.obj.visible = {A.I_BOSS_FIRE}  # Preparation cannot trigger a target click.
+        self.obj.ui_reward_appear_click = Mock(return_value=False)
+        frame = 0
+        clicked = False
+        def screenshot():
+            nonlocal frame
+            frame += 1
+            if frame == 1:
+                self.obj.visible = {A.I_PREPARE_HIGHLIGHT, A.I_JUE_TARGET_UNMARKED}
+            else:
+                self.obj.visible = set(NS['BOSS_REAL_SCENE_RULES'] + NS['BOSS_BATTLE_START_RULES']) | {A.I_JUE_TARGET_UNMARKED}
+            if clicked:
+                self.obj.visible |= {A.I_JUE_MARK, A.I_BOSS_SHARE}
+        self.obj.screenshot.side_effect = screenshot
+        def click(x, y):
+            nonlocal clicked
+            self.assertGreaterEqual(frame, 3)
+            clicked = True
+        self.obj.device.click.side_effect = click
+        self.assertTrue(self.obj.boss_battle())
+        self.obj.device.click.assert_called_once_with(625, 544)
+        self.assertTrue(self.obj._six_jue_mark_checked)
+        LOG.info.assert_any_call('[SixRealms] Jue green mark waiting: real battle not detected')
+        LOG.info.assert_any_call('[SixRealms] Jue target detected')
+        LOG.info.assert_any_call('[SixRealms] Jue P1 attempt')
+        LOG.info.assert_any_call('[SixRealms] Jue green mark success, attempts=1')
+
+    def test_ready_boss_mark_attempt_is_once_after_fire(self):
+        self.dispatch_charm()
+        self.obj.visible = set(NS['BOSS_REAL_SCENE_RULES'] + NS['BOSS_BATTLE_START_RULES']) | {A.I_JUE_TARGET_UNMARKED}
+        def click(x, y):
+            self.obj.ui_click_until_disappear.assert_called_once_with(A.I_BOSS_FIRE, interval=1)
+            self.obj.visible |= {A.I_JUE_MARK, A.I_BOSS_SHARE}
+        self.obj.device.click.side_effect = click
+        self.obj.ui_reward_appear_click = Mock(return_value=False)
+        self.assertTrue(self.obj.boss_battle())
+        self.obj.device.click.assert_called_once_with(625, 544)
+        self.assertTrue(self.obj._six_jue_mark_checked)
+
+    def test_charm_survives_actual_ordinary_island_and_ningxi(self):
+        self.dispatch_charm()
+        ns = dict(NS)
+        definitions('tasks/SixRealms/moon_sea/l104.py', ns, {'MoonSeaL104'})
+        frames = [{A.I_NPC_FIRE}, {A.I_NPC_FIRE}, {A.I_SKILL_REFRESH}]
+        self.obj.screenshot.side_effect = lambda: setattr(self.obj, 'visible', frames.pop(0))
+        ns['MoonSeaL104'].run_l104(self.obj)
+        self.assertTrue(self.obj.charm_selected)
+        self.obj.screenshot.side_effect = None
+        self.obj.O_COIN_NUM.ocr.return_value = 0
+        self.obj.visible = {A.I_M_STORE}
+        self.obj.run_l101()
+        self.assertTrue(self.obj.charm_selected)
+        self.assertTrue(json.loads(self.obj.six_flags_path.read_text())['charm_selected'])
+
+    def test_new_start_after_charm_dispatch_clears_flag(self):
+        self.dispatch_charm()
+        frames = [{A.I_MSTART}, {A.I_MSHOUZU}, {A.I_PREPARE_BATTLE}, {A.I_M_STORE}]
+        self.obj.screenshot.side_effect = lambda: setattr(self.obj, 'visible', frames.pop(0))
+        self.assertTrue(self.obj._start())
+        self.assertFalse(self.obj.charm_selected)
+        self.assertFalse(json.loads(self.obj.six_flags_path.read_text())['charm_selected'])
+
+    def test_waiting_diagnostics_do_not_repeat_per_frame(self):
+        self.obj.charm_selected = True
+        for _ in range(10):
+            self.obj.maybe_mark_jue_in_boss()
+        LOG.info.assert_called_once_with('[SixRealms] Jue green mark waiting: real battle not detected')
+        self.obj.visible = set(NS['BOSS_REAL_SCENE_RULES'] + NS['BOSS_BATTLE_START_RULES'])
+        for _ in range(10):
+            self.obj.maybe_mark_jue_in_boss()
+        self.assertEqual(LOG.info.call_count, 3)
+        LOG.info.assert_any_call('[SixRealms] Jue target not detected; waiting')
+        self.obj.device.click.assert_not_called()
+
+    def test_boss_end_reports_silent_guard_failure(self):
+        self.obj.charm_selected = True
+        self.obj.visible = {A.I_BOSS_SHARE}
+        self.assertTrue(self.obj.boss_battle())
+        self.obj.device.click.assert_not_called()
+        LOG.warning.assert_any_call(
+            '[SixRealms] Jue green mark failed: real battle not detected; no clicks sent')
+
+    def test_stuck_status_and_round_title_cannot_authorize_mark(self):
+        self.obj.charm_selected = True
+        self.obj.visible = set(NS['BOSS_REAL_SCENE_RULES']) | {A.I_BOSS_SKIP, A.I_JUE_TARGET_UNMARKED}
+        self.obj.device.stuck_record_add('BATTLE_STATUS_S')
+        for _ in range(3):
+            self.obj.maybe_mark_jue_in_boss()
+        self.obj.device.click.assert_not_called()
+        self.assertFalse(getattr(self.obj, '_six_jue_mark_checked', False))
+
+    def test_battle_gate_requires_both_general_signals_and_six_boss_identity(self):
+        complete = set(NS['BOSS_REAL_SCENE_RULES'] + NS['BOSS_BATTLE_START_RULES'])
+        self.obj.visible = complete
+        self.assertTrue(self.obj.six_boss_battle_started())
+        for rule in complete:
+            with self.subTest(missing=str(rule)):
+                self.obj.visible = complete - {rule}
+                self.assertFalse(self.obj.six_boss_battle_started())
+
+    def test_single_ready_target_frame_then_absence_does_not_mark(self):
+        self.obj.charm_selected = True
+        complete = set(NS['BOSS_REAL_SCENE_RULES'] + NS['BOSS_BATTLE_START_RULES'])
+        for scene in (complete | {A.I_JUE_TARGET_UNMARKED}, complete,
+                      complete | {A.I_JUE_TARGET_UNMARKED}):
+            self.obj.visible = scene
+            self.obj.maybe_mark_jue_in_boss()
+        self.obj.device.click.assert_not_called()
+        self.assertFalse(getattr(self.obj, '_six_jue_mark_checked', False))
+        self.assertEqual(self.obj._six_jue_target_frames, 1)
+
+    def test_no_charm_battle_ready_log_once_without_marking(self):
+        ready = set(NS['BOSS_REAL_SCENE_RULES'] + NS['BOSS_BATTLE_START_RULES'])
+        frames = [ready] * 3 + [{A.I_BOSS_SHARE}]
+        self.obj.screenshot.side_effect = lambda: setattr(self.obj, 'visible', frames.pop(0))
+        self.obj.ui_reward_appear_click = Mock(return_value=False)
+        self.obj.maybe_mark_jue_in_boss = Mock()
+        self.assertTrue(self.obj.boss_battle())
+        self.obj.maybe_mark_jue_in_boss.assert_not_called()
+        self.obj.device.click.assert_not_called()
+        messages = [entry.args[0] for entry in LOG.info.call_args_list]
+        self.assertEqual(messages.count('[SixRealms] boss battle ready, no charm mark required'), 1)
+        self.assertEqual(messages.count('[SixRealms] first real battle identity detected (I_BATTLE_INFO + I_EXIT)'), 1)
+
+
 class GreenMarkTests(OfflineBase):
     def test_exact_manually_validated_points(self):
         self.assertEqual(NS['JUE_SAFE_POINTS'], ((625, 544), (624, 526), (631, 569)))
@@ -779,21 +982,53 @@ class GreenMarkTests(OfflineBase):
 
     def test_real_already_marked_charm_has_no_clicks(self):
         self.real_pixels('boss_a')
+        # ROI-only fixture masks GeneralBattle's unrelated top-left gate pixels.
+        self.obj.six_boss_battle_started = Mock(return_value=True)
         self.obj.charm_selected = True
+        self.obj.maybe_mark_jue_in_boss()
         self.obj.maybe_mark_jue_in_boss()
         self.obj.device.click.assert_not_called()
         self.assertTrue(self.obj._six_jue_mark_checked)
+        LOG.info.assert_any_call('[SixRealms] Jue already marked; success, attempts=0')
+
+    def test_safe_point_attempt_logs_follow_bounded_confirmation(self):
+        for success in (1, 2, 3, None):
+            with self.subTest(success=success):
+                LOG.reset_mock()
+                self.obj._six_jue_mark_logged = set()
+                self.obj._six_jue_target_frames = 0
+                self.obj.charm_selected = True
+                self.obj.visible = set(NS['BOSS_REAL_SCENE_RULES'] + NS['BOSS_BATTLE_START_RULES']) | {A.I_JUE_TARGET_UNMARKED}
+                attempts = []
+                def click(x, y):
+                    attempts.append((x, y))
+                    if len(attempts) == success:
+                        self.obj.visible.add(A.I_JUE_MARK)
+                self.obj.device.click.side_effect = click
+                self.obj.maybe_mark_jue_in_boss()
+                self.obj.maybe_mark_jue_in_boss()
+                expected = success or 3
+                self.assertEqual(attempts, list(NS['JUE_SAFE_POINTS'][:expected]))
+                messages = [entry.args[0] for entry in LOG.info.call_args_list]
+                point_messages = [msg for msg in messages if re.fullmatch(r'\[SixRealms\] Jue P[123] attempt', msg)]
+                self.assertEqual(point_messages,
+                                 [f'[SixRealms] Jue P{n} attempt' for n in range(1, expected + 1)])
+                if success is None:
+                    LOG.warning.assert_any_call('[SixRealms] Jue green mark failed: failed, attempts=3')
+                else:
+                    LOG.info.assert_any_call(f'[SixRealms] Jue green mark success, attempts={expected}')
 
     def test_mark_confirms_three_consecutive_target_frames_after_click(self):
         self.obj.charm_selected = True
-        self.obj.visible = set(NS['BOSS_REAL_SCENE_RULES']) | {A.I_JUE_TARGET_UNMARKED}
+        self.obj.visible = set(NS['BOSS_REAL_SCENE_RULES'] + NS['BOSS_BATTLE_START_RULES']) | {A.I_JUE_TARGET_UNMARKED}
         self.obj.device.click.side_effect = lambda x, y: self.obj.visible.add(A.I_JUE_MARK)
+        self.obj.maybe_mark_jue_in_boss()
         self.obj.maybe_mark_jue_in_boss()
         self.obj.device.click.assert_called_once_with(625, 544)
 
     def test_mark_missing_target_keeps_opportunity_for_later_boss_frame(self):
         self.obj.charm_selected = True
-        self.obj.visible = set(NS['BOSS_REAL_SCENE_RULES'])
+        self.obj.visible = set(NS['BOSS_REAL_SCENE_RULES'] + NS['BOSS_BATTLE_START_RULES'])
         self.obj.maybe_mark_jue_in_boss()
         self.obj.device.click.assert_not_called()
         self.assertFalse(getattr(self.obj, '_six_jue_mark_checked', False))
@@ -807,7 +1042,7 @@ class GreenMarkTests(OfflineBase):
 
     def test_unstable_marker_does_not_satisfy_three_frame_confirmation(self):
         self.obj.charm_selected = True
-        base = set(NS['BOSS_REAL_SCENE_RULES']) | {A.I_JUE_TARGET_UNMARKED}
+        base = set(NS['BOSS_REAL_SCENE_RULES'] + NS['BOSS_BATTLE_START_RULES']) | {A.I_JUE_TARGET_UNMARKED}
         self.obj.visible = set(base)
         frame = 0
         def screenshot():
@@ -815,6 +1050,7 @@ class GreenMarkTests(OfflineBase):
             frame += 1
             self.obj.visible = base | ({A.I_JUE_MARK} if frame % 2 else set())
         self.obj.screenshot.side_effect = screenshot
+        self.obj.maybe_mark_jue_in_boss()
         self.obj.maybe_mark_jue_in_boss()
         self.assertEqual(self.obj.device.click.call_args_list,
                          [call(*point) for point in NS['JUE_SAFE_POINTS']])

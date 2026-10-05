@@ -160,6 +160,7 @@ class MoonSeaSkills(BaseTask, SixRealmsAssets):
             elif selected == 'charm':
                 self.charm_selected = True
                 self.save_run_flags()
+                logger.info('[SixRealms] charm selected, Jue green mark armed')
             logger.info(f'SixRealms attribute selected: layout={layout}, selected={selected}')
         return True
 

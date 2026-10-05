@@ -13,6 +13,7 @@ from tasks.SixRealms.moon_sea.l103 import MoonSeaL103
 from tasks.SixRealms.moon_sea.l104 import MoonSeaL104
 from tasks.SixRealms.moon_sea.l105 import MoonSeaL105
 from tasks.SixRealms.common import MoonSeaType
+from tasks.Component.GeneralBattle.assets import GeneralBattleAssets
 
 
 # OAS 1280x720 points captured with click_collector and manually hit-validated.
@@ -27,6 +28,8 @@ JUE_TARGET_RULE = (MoonSeaMap.I_JUE_TARGET_A, MoonSeaMap.I_JUE_TARGET_B,
                    MoonSeaMap.I_JUE_TARGET_UNMARKED)
 JUE_MARK_CONFIRM_RULE = MoonSeaMap.I_JUE_MARK  # Only the observed central target ROI.
 BOSS_REAL_SCENE_RULES = (MoonSeaMap.I_SIX_BOSS_NAME, MoonSeaMap.I_SIX_BOSS_AUTO)
+# Same shared, theme-adjusted evidence as GeneralBattle.is_in_real_battle().
+BOSS_BATTLE_START_RULES = (GeneralBattleAssets.I_BATTLE_INFO, GeneralBattleAssets.I_EXIT)
 
 
 def mark_with_safe_points(points: tuple[tuple[int, int], ...],
@@ -230,10 +233,20 @@ class MoonSea(MoonSeaMap, MoonSeaL101, MoonSeaL102, MoonSeaL103, MoonSeaL104, Mo
 
     def boss_battle(self) -> bool:
         logger.hr('Boss Battle')
-        self.ui_click_until_disappear(self.I_BOSS_FIRE, interval=1)
+        logger.info(f'[SixRealms] boss green mark state: charm_selected={self.charm_selected}')
         self._six_jue_mark_checked = False
+        self._six_jue_mark_logged = set()
+        self._six_jue_target_frames = 0
+        self._six_jue_wait_reason = 'real battle not detected'
+        fire_present = self.appear(self.I_BOSS_FIRE)
+        self.ui_click_until_disappear(self.I_BOSS_FIRE, interval=1)
+        if fire_present:
+            logger.info('[SixRealms] boss fire clicked; fire button left')
+        else:
+            logger.info('[SixRealms] boss fire absent; checking resumed battle')
         self.device.stuck_record_clear()
         self.device.stuck_record_add('BATTLE_STATUS_S')
+        battle_ready_logged = False
         while 1:
             self.screenshot()
             if self.appear(self.I_BOSS_SHARE):
@@ -245,6 +258,13 @@ class MoonSea(MoonSeaMap, MoonSeaL101, MoonSeaL102, MoonSeaL103, MoonSeaL104, Mo
                 continue
 
             self.observe_honglei_in_battle()
+            if not battle_ready_logged and self.six_boss_battle_started():
+                battle_ready_logged = True
+                logger.info('[SixRealms] first real battle identity detected (I_BATTLE_INFO + I_EXIT)')
+                if self.charm_selected:
+                    logger.info('[SixRealms] boss battle ready, Jue green mark armed')
+                else:
+                    logger.info('[SixRealms] boss battle ready, no charm mark required')
             if self.charm_selected and not self._six_jue_mark_checked:
                 self.maybe_mark_jue_in_boss()
 
@@ -267,6 +287,8 @@ class MoonSea(MoonSeaMap, MoonSeaL101, MoonSeaL102, MoonSeaL103, MoonSeaL104, Mo
                 self.device.stuck_record_clear()
                 self.device.stuck_record_add('BATTLE_STATUS_S')
                 continue
+        if self.charm_selected and not self._six_jue_mark_checked:
+            logger.warning(f'[SixRealms] Jue green mark failed: {self._six_jue_wait_reason}; no clicks sent')
         logger.info('Boss battle end')
         #self.save_image()
         if self.wait_until_appear(self.I_BOSS_SHUTU, wait_time=20):
@@ -342,6 +364,11 @@ class MoonSea(MoonSeaMap, MoonSeaL101, MoonSeaL102, MoonSeaL103, MoonSeaL104, Mo
     def six_real_boss_scene(self):
         return bool(BOSS_REAL_SCENE_RULES) and all(self.appear(rule) for rule in BOSS_REAL_SCENE_RULES)
 
+    def six_boss_battle_started(self):
+        # An entry log or vanished fire button cannot establish a real battle.
+        return (all(self.appear(rule) for rule in BOSS_BATTLE_START_RULES)
+                and self.six_real_boss_scene())
+
     def six_jue_target_present(self):
         rules = JUE_TARGET_RULE if isinstance(JUE_TARGET_RULE, tuple) else (JUE_TARGET_RULE,)
         return any(self.appear(rule) for rule in rules if rule is not None)
@@ -350,13 +377,36 @@ class MoonSea(MoonSeaMap, MoonSeaL101, MoonSeaL102, MoonSeaL103, MoonSeaL104, Mo
         """Called only by boss_battle; unknown coordinates/resources never click."""
         if not self.charm_selected:
             return
+        logged = getattr(self, '_six_jue_mark_logged', set())
+        self._six_jue_mark_logged = logged
+
+        def log_once(message):
+            if message not in logged:
+                logged.add(message)
+                logger.info(message)
+
         if (JUE_TARGET_RULE is None or JUE_MARK_CONFIRM_RULE is None
                 or not BOSS_REAL_SCENE_RULES):
             self._six_jue_mark_checked = True
             logger.warning('NEEDS_REAL_GAME_VALIDATION: Jue safe points/target confirmation/boss scene not configured; skip marking')
             return
-        if not self.six_real_boss_scene() or not self.six_jue_target_present():
+        if not self.six_boss_battle_started():
+            self._six_jue_target_frames = 0
+            self._six_jue_wait_reason = 'real battle not detected'
+            log_once('[SixRealms] Jue green mark waiting: real battle not detected')
             return
+        log_once('[SixRealms] Jue battle-start gate passed')
+        if not self.six_jue_target_present():
+            self._six_jue_target_frames = 0
+            self._six_jue_wait_reason = 'target not detected'
+            log_once('[SixRealms] Jue target not detected; waiting')
+            return
+        log_once('[SixRealms] Jue target detected')
+        self._six_jue_target_frames = getattr(self, '_six_jue_target_frames', 0) + 1
+        if self._six_jue_target_frames < 2:
+            self._six_jue_wait_reason = 'target not stable across two battle frames'
+            return  # Reuse the next boss-loop capture, without sleeping or input.
+        log_once('[SixRealms] Jue green mark start')
         self._six_jue_mark_checked = True
         if not JUE_SAFE_POINTS:
             logger.warning('NEEDS_REAL_GAME_VALIDATION: record a manually verified exact Jue P1; skip marking')
@@ -364,14 +414,14 @@ class MoonSea(MoonSeaMap, MoonSeaL101, MoonSeaL102, MoonSeaL103, MoonSeaL104, Mo
 
         def target_present():
             self.screenshot()
-            return self.six_real_boss_scene() and self.six_jue_target_present()
+            return self.six_boss_battle_started() and self.six_jue_target_present()
 
         def marked():
             # Wait briefly for input/animation, then require stable target marking.
             stable = 0
             for _ in range(8):
                 self.screenshot()
-                if not self.six_real_boss_scene():
+                if not self.six_boss_battle_started():
                     return False
                 stable = stable + 1 if (self.six_jue_target_present()
                                          and self.appear(JUE_MARK_CONFIRM_RULE)) else 0
@@ -380,11 +430,20 @@ class MoonSea(MoonSeaMap, MoonSeaL101, MoonSeaL102, MoonSeaL103, MoonSeaL104, Mo
                 self.device.sleep(0.2)
             return False
 
+        def click_point(x, y):
+            point_number = JUE_SAFE_POINTS.index((x, y)) + 1
+            logger.info(f'[SixRealms] Jue P{point_number} attempt')
+            self.device.click(x, y)
+
         result, attempts = mark_with_safe_points(JUE_SAFE_POINTS, target_present, marked,
-                                                 self.device.click)
+                                                 click_point)
         logger.info(f'SixRealms Jue green mark: {result}, attempts={attempts}')
-        if result not in {'marked', 'already_marked'}:
-            logger.warning(f'Jue green mark stopped: {result}, attempts={attempts}')
+        if result == 'already_marked':
+            logger.info('[SixRealms] Jue already marked; success, attempts=0')
+        elif result == 'marked':
+            logger.info(f'[SixRealms] Jue green mark success, attempts={attempts}')
+        else:
+            logger.warning(f'[SixRealms] Jue green mark failed: {result}, attempts={attempts}')
 
 
 if __name__ == '__main__':
