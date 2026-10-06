@@ -6,6 +6,7 @@ from pathlib import Path
 from module.base.timer import Timer
 from module.base.utils import save_image
 from module.logger import logger
+from module.exception import GameStuckError
 from tasks.GameUi.page import page_main, page_mall
 from tasks.DailyAltAcc.utils import DailyAltAccBase
 from tasks.RichMan.mall.mall import Mall
@@ -54,6 +55,16 @@ class Mshop(Mall, DailyAltAccBase):
                     continue
             if self.ui_get_current_page() != page_main:
                 self.ui_goto(page_main)
+
+    def run_consignment_ticket(self):
+        """独立购买寄售券；购买实现与商城返回均复用现有链路。"""
+        self.screenshot()
+        self.ui_get_current_page()
+        self.ui_goto(page_mall, confirm_wait=2.5)
+        self.execute_consignment(Consignment(enable=True, buy_sale_ticket=True))
+        if not self._back_to_mall_root():
+            raise GameStuckError('寄售屋后回到商城根页面失败')
+        self.ui_goto(page_main)
 
     def _back_to_mall_root(self, timeout: float = 15) -> bool:
         """退回商城根页面（底部导航栏可见的那一层）。

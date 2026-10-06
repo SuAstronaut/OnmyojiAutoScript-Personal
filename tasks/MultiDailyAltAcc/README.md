@@ -16,6 +16,7 @@
 | 捐勾玉 | `donatejade_enable` | 寮捐勾玉 |
 | 回礼 | `returngift_enable` | 好友回礼 |
 | 周奖励 | `weekaward_enable` | 领取寮周奖励、商店 |
+| 寄售券 | `total_consignment_ticket_enable` | 实例统一控制，独立进入寄售屋购买寄售券 |
 | 神秘商店 | `mysteryshop_enable` | 刷新并购买神秘商店 |
 | 种树 | `tree_planting_enable` | 0=不运行 1=买花 2=买花捐树 |
 | 试炼战斗 | `trialbattle_enable` | 每日试炼 |
@@ -60,6 +61,9 @@ DailyAltAcc/               # 单账号执行层
 - `sup_account_count`: 小号数量
 - `disable_task_rotation`: 关闭任务自动轮转（见下节）
 - `total_*_enable`: 各子任务的全局开关
+- `total_consignment_ticket_enable`: 独立购买寄售券，默认关闭；单账号对应 `consignment_ticket_enable`，也默认关闭。两者不继承 `weekaward`。
+- `task_plan.json` 的 `morning/afternoon.consignment_ticket` 与 `schedule.consignment_ticket_weekdays` 独立排程；星期格式仍为 0=周一…6=周日，默认 `[0]`。旧计划缺任务键时按关闭解析，不回写。首次修改计划只影响后续排程物化，可在 UI 手动启用本轮总开关。
+- 原 `weekaward` 的购买行为保留。两项同时开启可再次进入寄售屋，已买完时由剩余 0 判断退出；进度按轮次保存，没有另设按周购买记录。
 - `shutdown_after_finish`: 0点-8点期间同心战斗完成后检测是否关机
 
 ### 任务轮转与「关闭任务自动轮转」

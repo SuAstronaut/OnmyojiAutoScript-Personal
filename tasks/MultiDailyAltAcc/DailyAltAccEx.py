@@ -18,6 +18,9 @@ def get_config(self):
     config.daily_alt_acc_config.cooperation_enable = self.account_info.cooperation_enable
     config.daily_alt_acc_config.returngift_enable = self.account_info.returngift_enable
     config.daily_alt_acc_config.weekaward_enable = self.account_info.weekaward_enable
+    # 实例统一控制，不依赖账号的 weekaward 开关。
+    config.daily_alt_acc_config.consignment_ticket_enable = getattr(
+        self.daily_conf.multi_daily_alt_acc_config, 'total_consignment_ticket_enable', False)
     config.daily_alt_acc_config.mysteryshop_enable = self.account_info.mysteryshop_enable
     config.daily_alt_acc_config.isflower = self.account_info.isflower
     config.daily_alt_acc_config.kekkaiActivation_enable = self.account_info.kekkaiActivation_enable

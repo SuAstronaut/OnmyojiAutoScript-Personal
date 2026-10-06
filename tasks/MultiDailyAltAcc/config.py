@@ -48,6 +48,7 @@ class MultiDailyAltAccConfig(ConfigBase):
     total_cooperation_enable: bool = Field(default=True, description='协作')
     total_returngift_enable: bool = Field(default=True, description='回礼')
     total_weekaward_enable: bool = Field(default=True, description='寄售券,蓝票,黑蛋领取')
+    total_consignment_ticket_enable: bool = Field(default=False, description='购买寄售券')
     total_mysteryshop_enable: bool = Field(default=False, description='金蛇皮,逢魔皮,二花黑碎提醒')
     total_kekkaiActivation_enable: bool = Field(default=False, description='是否挂卡（只能和蹭卡/挂卡开启）')
     total_KekkaiUtilize_enable: bool = Field(default=False, description='是否蹭卡（只能和蹭卡/挂卡开启）')

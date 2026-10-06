@@ -23,6 +23,7 @@ TASK_KEYS = (
     "KekkaiUtilize",
     # 周奖励/神秘商店：早晚轮勾选决定哪个轮次负责领取，星期列表决定哪天开
     "weekaward",
+    "consignment_ticket",
     "mysteryshop",
 )
 # 回礼轮专属键：回礼时是否顺带翻勾协与神秘商店（只做发现，不做完整子任务流程）
@@ -54,6 +55,7 @@ DEFAULT_TASK_PLAN = {
         # 统一为执行日语义：列表=任务实际翻找的日子（早晚轮直接比对当日，
         # 回礼轮由前一晚排程判断次日）
         "weekaward_weekdays": [0],
+        "consignment_ticket_weekdays": [0],
         "mysteryshop_weekdays": [2, 5],
     },
     "morning": {
@@ -67,6 +69,7 @@ DEFAULT_TASK_PLAN = {
         "KekkaiUtilize": False,
         # 周奖励由早轮领取（星期门控：schedule.weekaward_weekdays）
         "weekaward": True,
+        "consignment_ticket": True,
         # 神秘商店早轮也翻（星期门控：schedule.mysteryshop_weekdays）
         "mysteryshop": True,
     },
@@ -81,6 +84,7 @@ DEFAULT_TASK_PLAN = {
         "KekkaiUtilize": False,
         # 下午轮默认不领（避免与早轮重复领取）
         "weekaward": False,
+        "consignment_ticket": False,
         "mysteryshop": False,
     },
     # 回礼轮专属阶段：cooperation / mysteryshop 两键（见 RETURNGIFT_KEYS）。
@@ -123,6 +127,7 @@ class TaskPlan:
     single_purpose: Mapping[str, bool]
     # 星期几开启周奖励/神秘商店（0=周一 … 6=周日）；空列表=不做
     weekaward_weekdays: tuple = ()
+    consignment_ticket_weekdays: tuple = ()
     mysteryshop_weekdays: tuple = ()
 
     def enabled(self, phase: str, task: str) -> bool:
@@ -246,7 +251,8 @@ def parse_task_plan(raw: object) -> TaskPlan:
     required_schedule = {"morning_time", "afternoon_time", "random_delay_minutes"}
     if not isinstance(schedule, dict) or not required_schedule.issubset(schedule):
         raise TaskPlanError("schedule must contain morning_time, afternoon_time, and random_delay_minutes")
-    unexpected = set(schedule) - required_schedule - {"weekaward_weekdays", "mysteryshop_weekdays"}
+    unexpected = set(schedule) - required_schedule - {
+        "weekaward_weekdays", "consignment_ticket_weekdays", "mysteryshop_weekdays"}
     if unexpected:
         raise TaskPlanError(f"schedule contains unknown keys: {sorted(unexpected)}")
     morning_time = _parse_time(schedule["morning_time"], "schedule.morning_time")
@@ -265,15 +271,26 @@ def parse_task_plan(raw: object) -> TaskPlan:
     mysteryshop_weekdays = _parse_weekdays(
         schedule.get("mysteryshop_weekdays", DEFAULT_TASK_PLAN["schedule"]["mysteryshop_weekdays"]),
         "schedule.mysteryshop_weekdays")
+    consignment_ticket_weekdays = _parse_weekdays(
+        schedule.get("consignment_ticket_weekdays", [0]),
+        "schedule.consignment_ticket_weekdays")
+    phases = {}
+    for phase in ("morning", "afternoon"):
+        phase_raw = _drop_removed_plan_keys(raw[phase])
+        if isinstance(phase_raw, dict) and "consignment_ticket" not in phase_raw:
+            # 旧文件只在解析结果中补关闭值，不继承 weekaward、不写回。
+            phase_raw = {**phase_raw, "consignment_ticket": False}
+        phases[phase] = _parse_phase(phase_raw, phase)
     return TaskPlan(
         morning_time=morning_time,
         afternoon_time=afternoon_time,
         random_delay_minutes=delay_minutes,
-        morning=_parse_phase(_drop_removed_plan_keys(raw["morning"]), "morning"),
-        afternoon=_parse_phase(_drop_removed_plan_keys(raw["afternoon"]), "afternoon"),
+        morning=phases["morning"],
+        afternoon=phases["afternoon"],
         returngift=_parse_phase(returngift_raw, "returngift", RETURNGIFT_KEYS),
         single_purpose=_parse_phase(single_purpose_raw, "single_purpose", SINGLE_PURPOSE_KEYS),
         weekaward_weekdays=weekaward_weekdays,
+        consignment_ticket_weekdays=consignment_ticket_weekdays,
         mysteryshop_weekdays=mysteryshop_weekdays,
     )
 

@@ -384,6 +384,9 @@ class ScriptTask(StatLogMixin, Courtyard, Mail, Donatejade, Cooperation,
                     self.execute_mall()
                     self._share_collect()
             self._run_with_stat("weekaward", run_weekaward)
+        if (getattr(con.daily_alt_acc_config, 'consignment_ticket_enable', False)
+                and not self._should_skip("consignment_ticket")):
+            self._run_with_stat("consignment_ticket", self.run_consignment_ticket)
         if con.daily_alt_acc_config.tree_planting_enable > 0 and not self._should_skip("tree"):
             self._run_with_stat("tree", self.run_tree_planting)
         if con.daily_alt_acc_config.trialbattle_enable and not self._should_skip("trialbattle"):

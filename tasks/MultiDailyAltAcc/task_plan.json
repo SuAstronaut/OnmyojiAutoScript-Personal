@@ -1,0 +1,34 @@
+{
+  "schedule": {
+    "morning_time": "07:05",
+    "afternoon_time": "18:00",
+    "random_delay_minutes": 0,
+    "weekaward_weekdays": [0],
+    "consignment_ticket_weekdays": [0],
+    "mysteryshop_weekdays": [2, 5]
+  },
+  "morning": {
+    "courtyard": false,
+    "mail": true,
+    "cooperation": true,
+    "donatejade": false,
+    "alliedteam_ap": true,
+    "kekkaiActivation": false,
+    "KekkaiUtilize": false,
+    "weekaward": false,
+    "consignment_ticket": true,
+    "mysteryshop": false
+  },
+  "afternoon": {
+    "courtyard": true,
+    "mail": false,
+    "cooperation": true,
+    "donatejade": false,
+    "alliedteam_ap": false,
+    "kekkaiActivation": false,
+    "KekkaiUtilize": false,
+    "weekaward": false,
+    "consignment_ticket": false,
+    "mysteryshop": false
+  }
+}

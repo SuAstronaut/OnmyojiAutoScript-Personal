@@ -44,7 +44,7 @@ class Consignment(Buy, MallNavbar):
         if remain_number == 10:
             self.buy_more(self.I_CON_TICKET)
         else:
-            self.buy_one(self.I_CON_TICKET, remain_number)
+            self.buy_more(self.I_CON_TICKET, number=remain_number)
         logger.info('Consignment buy_sale_ticket is success')
 
 

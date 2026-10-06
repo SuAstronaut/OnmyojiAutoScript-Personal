@@ -204,6 +204,7 @@ PHASE_FLAG_KEYS = (
     'total_mail_enable',
     'total_cooperation_enable',
     'total_weekaward_enable',
+    'total_consignment_ticket_enable',
     'total_mysteryshop_enable',
     # 单次运行标志：由 _reset_one_shot_flags 在成功收尾时清零，属于阶段语义
     'total_tree_planting_enable',

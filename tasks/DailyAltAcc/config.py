@@ -32,6 +32,7 @@ class DailyAltAccConfig(BaseModel):
   cooperation_enable: bool = Field(default=True, description='是否开启寻找协作')
   returngift_enable: bool = Field(default=False, description='是否开启回礼')
   weekaward_enable: bool = Field(default=False, description='领取周奖励')
+  consignment_ticket_enable: bool = Field(default=False, description='购买寄售券')
   mysteryshop_enable: bool = Field(default=False, description='是否开启神秘商店')
   isflower: int = Field(default=0, ge=0, le=3, description='几花账号：0零花 1一花 2二花 3三花，决定神秘商店解锁哪些货')
   kekkaiActivation_enable: bool = Field(default=False, description='是否挂卡')

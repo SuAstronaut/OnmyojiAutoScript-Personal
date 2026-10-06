@@ -422,6 +422,11 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
         try:
             key = self._progress_key_of(account_info)
             done = self._progress.is_account_done(key)
+            # 升级接续旧账号 done 时，仅放行尚未了结的新寄售券任务。
+            if (done and getattr(self.daily_conf.multi_daily_alt_acc_config,
+                                 'total_consignment_ticket_enable', False)
+                    and not self._progress.is_task_finished(key, 'consignment_ticket')):
+                return True
         except Exception:
             logger.exception('读取账号进度失败，按未完成处理')
             return True
@@ -441,7 +446,8 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
         # 创建配置对象
         config = self._create_account_config(account_info)
         # 只执行账号已启用的日常子任务，无任务时直接跳过。
-        enabled_tasks = self._enabled_task_keys(config)
+        enabled_tasks = self._enabled_task_keys(
+            config, self.daily_conf.multi_daily_alt_acc_config.total_consignment_ticket_enable)
         if not enabled_tasks:
             logger.info(f"Skipping account {account_info.character} - No tasks enabled")
             return True
@@ -583,6 +589,7 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
         ("total_cooperation_enable", False),
         ("total_returngift_enable", False),
         ("total_weekaward_enable", False),
+        ("total_consignment_ticket_enable", False),
         ("total_mysteryshop_enable", False),
         ("total_kekkaiActivation_enable", False),
         ("total_KekkaiUtilize_enable", False),
@@ -639,6 +646,7 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
         ("kekkaiActivation", "total_kekkaiActivation_enable"),
         ("KekkaiUtilize", "total_KekkaiUtilize_enable"),
         ("weekaward", "total_weekaward_enable"),
+        ("consignment_ticket", "total_consignment_ticket_enable"),
         ("mysteryshop", "total_mysteryshop_enable"),
     )
 
@@ -647,6 +655,7 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
     # 翻找的日子；早/晚轮参考日即执行日，回礼轮决策在前一晚判断次日。
     _WEEKDAY_GATED = (
         ("weekaward", "weekaward_weekdays"),
+        ("consignment_ticket", "consignment_ticket_weekdays"),
         ("mysteryshop", "mysteryshop_weekdays"),
     )
 
@@ -679,7 +688,7 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
             )
 
     @staticmethod
-    def _enabled_task_keys(config):
+    def _enabled_task_keys(config, consignment_ticket_enabled=False):
         """按实际开启状态返回本账号会执行的子任务键。"""
         task_flags = [
             ("courtyard", config.courtyard_enable),
@@ -688,6 +697,7 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
             ("donatejade", config.donatejade_enable),
             ("returngift", config.returngift_enable),
             ("weekaward", config.weekaward_enable),
+            ("consignment_ticket", consignment_ticket_enabled),
             ("mysteryshop", config.mysteryshop_enable),
             ("kekkaiActivation", config.kekkaiActivation_enable),
             ("KekkaiUtilize", config.KekkaiUtilize_enable),
@@ -841,7 +851,8 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
         """
         if self._progress is not None:
             key = self._progress_key_of(account_info)
-            enabled_tasks = self._enabled_task_keys(account_config)
+            enabled_tasks = self._enabled_task_keys(
+                account_config, self.daily_conf.multi_daily_alt_acc_config.total_consignment_ticket_enable)
             if self._progress.has_pending_tasks(key, enabled_tasks):
                 logger.warning(f"{account_info.character} 仍有未完成子任务，保留进度并重试")
                 return False
@@ -1084,6 +1095,7 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
         ('total_cooperation_enable', '协作', 'cooperation'),
         ('total_returngift_enable', '回礼', None),
         ('total_weekaward_enable', '每周奖励', None),
+        ('total_consignment_ticket_enable', '购买寄售券', None),
         ('total_mysteryshop_enable', '神秘商店', None),
         ('total_kekkaiActivation_enable', '挂卡', 'kekkaiActivation'),
         ('total_KekkaiUtilize_enable', '蹭卡', 'KekkaiUtilize'),
@@ -1261,6 +1273,7 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
         self.daily_conf.multi_daily_alt_acc_config.total_courtyard_enable = False
         self.daily_conf.multi_daily_alt_acc_config.total_mail_enable = False
         self.daily_conf.multi_daily_alt_acc_config.total_cooperation_enable = False
+        self.daily_conf.multi_daily_alt_acc_config.total_consignment_ticket_enable = False
         # 单用途轮（phase=None 不走 plan 过滤）必须显式关掉捐勾/挂卡/蹭卡，
         # 否则承接上一普通轮的 True 会在回礼轮误跑。
         self.daily_conf.multi_daily_alt_acc_config.total_donatejade_enable = False
@@ -1276,6 +1289,7 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
                           persist=False)
         self.daily_conf = self.config.model.multi_daily_alt_acc
         self.daily_conf.multi_daily_alt_acc_config.total_weekaward_enable = False
+        self.daily_conf.multi_daily_alt_acc_config.total_consignment_ticket_enable = False
         # 回礼轮附加任务（勾协/神秘商店）的决策时刻都提前一晚：晚轮完成排程时
         # 按 plan.returngift 勾选写好开关，回礼轮运行前过滤照单执行。
         # 神秘商店星期为执行日语义：列表=实际翻找日，这里判断次日（回礼轮执行日）
