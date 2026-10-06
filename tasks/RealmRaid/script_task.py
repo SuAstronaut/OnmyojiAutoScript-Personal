@@ -460,7 +460,15 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
     def _finish_exit_four_battle(self, config, exit_count):
         if exit_count != 4:
             raise GameStuckError('RealmRaid exit four ABORT: invalid exit count')
-        self._realm_wait('fifth_prepare', self._realm_prepare_visible)
+
+        def fifth_prepare_visible():
+            if self.appear(self.I_FALSE):
+                raise GameStuckError('RealmRaid exit four ABORT: fifth preparation failed')
+            if self.appear(self.I_EXIT_ENSURE):
+                raise GameStuckError('RealmRaid exit four ABORT: unexpected exit confirmation during fifth preparation')
+            return self._realm_prepare_visible()
+
+        self._realm_wait('fifth_prepare', fifth_prepare_visible)
         # The parent is entered after real battle, so preserve its first normal
         # battle's unlocked preset setup here, without changing persistent config.
         if not config.lock_team_enable and self.current_count == 0:
@@ -468,25 +476,47 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
             context.update(state='fifth_preset', deadline=time.monotonic() + 30)
             self.switch_preset_team(config.preset_enable, config.preset_group, config.preset_team)
             self.check_and_open_buff(None)
-            self._realm_wait('fifth_prepare_after_preset', self._realm_prepare_visible)
-        ready_clicked = False
+            self._realm_wait('fifth_prepare_after_preset', fifth_prepare_visible)
+        max_prepare_attempts = 3
+        prepare_cooldown = 1.0
+        prepare_attempts = 0
+        last_prepare_at = None
+        still_visible_attempt = 0
+        attempts_exhausted = False
 
         def started():
-            nonlocal ready_clicked
+            nonlocal prepare_attempts, last_prepare_at, still_visible_attempt, attempts_exhausted
             if self.is_in_real_battle(False):
-                if not ready_clicked:
+                if prepare_attempts == 0:
                     raise GameStuckError('RealmRaid exit four ABORT: battle started before ready')
+                logger.info(f'RealmRaid fifth real battle confirmed after {prepare_attempts} prepare attempts')
                 return True
             if self.appear(self.I_FALSE):
                 raise GameStuckError('RealmRaid exit four ABORT: fifth preparation failed')
+            if self.appear(self.I_EXIT_ENSURE):
+                raise GameStuckError('RealmRaid exit four ABORT: unexpected exit confirmation during fifth preparation')
             if self.appear_then_click(self.I_DISABLE_7DAYS_DIFF_SOUL, interval=0.6):
                 return False
             if self.appear_then_click(self.I_CONFIRM_CLOSE_DIFF_SOUL, interval=0.6):
                 return False
-            if (not ready_clicked and self._realm_prepare_visible()
-                    and self.appear(self.I_PREPARE_HIGHLIGHT)):
-                self.click(self.I_PREPARE_HIGHLIGHT)
-                ready_clicked = True
+            if not (self._realm_prepare_visible() and self.appear(self.I_PREPARE_HIGHLIGHT)):
+                return False
+            if prepare_attempts >= max_prepare_attempts:
+                if not attempts_exhausted:
+                    logger.warning(f'RealmRaid fifth prepare attempts exhausted: {prepare_attempts}/{max_prepare_attempts}')
+                    attempts_exhausted = True
+                return False
+            if last_prepare_at is not None:
+                if still_visible_attempt != prepare_attempts:
+                    logger.info(f'RealmRaid fifth prepare still visible after attempt {prepare_attempts}')
+                    still_visible_attempt = prepare_attempts
+                if time.monotonic() - last_prepare_at < prepare_cooldown:
+                    return False
+            # Every retry uses this fresh frame; the existing total deadline is unchanged.
+            self.click(self.I_PREPARE_HIGHLIGHT)
+            prepare_attempts += 1
+            last_prepare_at = time.monotonic()
+            logger.info(f'RealmRaid fifth prepare attempt {prepare_attempts}/{max_prepare_attempts}')
             return False
 
         self._realm_wait('fifth_real_battle', started)
