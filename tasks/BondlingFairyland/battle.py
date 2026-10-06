@@ -68,9 +68,10 @@ class BondlingBattle(GeneralBattle, BondlingFairylandAssets):
         # 有时候 只会点击 获得奖励和开始战斗
         # 战斗过程 随机点击和滑动 防封
         logger.info("Start battle process")
-        win: bool = False
+        self._catch_result = None
         bondling_mode = self.config.bondling_fairyland.bondling_config.bondling_mode
-        cap_again = bondling_mode in [BondlingMode.MODE3, BondlingMode.MODE4]
+        # 低级和中级均只进行单次结契；高级保留原有再次结契策略。
+        cap_again = bondling_mode == BondlingMode.MODE4
         cap_cnt, max_cap = 0, 10
         while 1:
             # 捕获次数超过最大次数限制, 则不再进行捕获
@@ -79,13 +80,13 @@ class BondlingBattle(GeneralBattle, BondlingFairylandAssets):
             self.screenshot()
             # 如果捕获成功
             if self.appear_then_click(self.I_CAP_SUCCESS, action=self.C_CAP_SUCCESS,  interval=1):
-                win = True
+                self._catch_result = True
             # 连续结契捕获失败
             if self.appear_then_click(self.I_CAP_FAILURE, action=self.C_CAP_SUCCESS, interval=1):
-                win = False
+                self._catch_result = False
             # 非连续结契且单次抓捕失败
             if not cap_again and self.appear_then_click(self.I_BATTLE_FAIL_ABANDON, interval=1):
-                win = False
+                self._catch_result = False
             # 连续结契则继续结契
             if cap_again and self.appear_then_click(self.I_CAP_AGAIN, interval=1):
                 self.device.click_record_clear()  # 需要10次结契因此清空点击记录
@@ -109,32 +110,44 @@ class BondlingBattle(GeneralBattle, BondlingFairylandAssets):
             if random_click_swipt_enable:
                 self.random_click_swipt()
 
-        # 确定获得奖励 无论是胜利还是失败
-        if win:
-            logger.info("Catch success")
-        else:
-            logger.info("Catch failure")
+        # 确定获得奖励，无论是胜利还是失败；残留结果仍交给同一个结算入口。
         while 1:
             self.screenshot()
-            # 如果出现领奖励：全屏减去常驻禁点区域与检测出的奖励行（与基类同一套安全落点）；
-            # 结算场景按概率连点（双击/三击），见 settlement_click
-            action_click = weighted_choice(self.reward_click_actions())
-            if (self.settlement_click(self.I_REWARD, action_click, interval=1.5) or
-                    # I_REWARD 失配时的兜底：只要还检测到奖励框就照样点安全区域
-                    self.settlement_click_grid(action_click, interval=1.5)):
+            if self._clear_catch_settlement():
                 continue
-            # 胜利画面兜底：I_WIN/I_WIN_2 共判，点安全区域
-            if self.win_appear(threshold=0.6):
-                self.settlement_click(self.I_WIN, action_click, threshold=0.6, interval=0.5) or \
-                    self.settlement_click(self.I_WIN_2, action_click, threshold=0.6, interval=0.5)
-                continue
-            if self.appear_then_click(self.I_BATTLE_SUCCESS, threshold=0.6, interval=1):
-                continue
-            if self.appear_then_click(self.I_BATTLE_FAIL_ABANDON, interval=1):
-                continue
-            if self.appear_then_click(self.I_BATTLE_FAIL, threshold=0.6, interval=1):
-                continue
-            if not self.appear(self.I_REWARD) and not self.reward_grid_appear():
-                break
+            break
+        if self._catch_result is True:
+            logger.info("Catch success")
+        elif self._catch_result is False:
+            logger.info("Catch failure")
+        else:
+            logger.info("Catch result unknown")
         logger.info("Get reward")
-        return win
+        return self._catch_result is True
+
+    def _clear_catch_settlement(self) -> bool:
+        """处理当前帧的已知结算，返回是否仍被遮挡（不等同于已发出点击）。"""
+        if self.appear(self.I_REWARD) or self.reward_grid_appear():
+            action = weighted_choice(self.reward_click_actions())
+            self.settlement_click(self.I_REWARD, action, interval=1.5) or \
+                self.settlement_click_grid(action, interval=1.5)
+            return True
+        if self.win_appear(threshold=0.6):
+            action = weighted_choice(self.reward_click_actions())
+            self.settlement_click(self.I_WIN, action, threshold=0.6, interval=0.5) or \
+                self.settlement_click(self.I_WIN_2, action, threshold=0.6, interval=0.5)
+            return True
+        for target in (self.I_CAP_SUCCESS, self.I_CAP_FAILURE):
+            if self.appear(target):
+                if self.appear_then_click(target, action=self.C_CAP_SUCCESS, interval=1):
+                    self._catch_result = target is self.I_CAP_SUCCESS
+                return True
+        for target, threshold in ((self.I_BATTLE_SUCCESS, 0.6),
+                                  (self.I_BATTLE_FAIL_ABANDON, None),
+                                  (self.I_BATTLE_FAIL, 0.6)):
+            if self.appear(target, threshold=threshold):
+                if self.appear_then_click(target, threshold=threshold, interval=1):
+                    if target is self.I_BATTLE_FAIL_ABANDON:
+                        self._catch_result = False
+                return True
+        return False

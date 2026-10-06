@@ -9,7 +9,7 @@ from cached_property import cached_property
 from datetime import datetime
 from datetime import timedelta, time
 from module.base.timer import Timer
-from module.exception import TaskEnd
+from module.exception import TaskEnd, GamePageUnknownError
 from module.logger import logger
 from tasks.BondlingFairyland.assets import BondlingFairylandAssets
 from tasks.BondlingFairyland.battle import BondlingBattle
@@ -273,12 +273,17 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, BondlingBattle, SwitchSoul,
         current_ball_index = idx if idx is not None else 1
         capture_setting_checked = False
         while 1:
-            if not self.in_search_ui(screenshot=True):
+            page_state = self._wait_bondling_page()
+            if page_state is None:
                 self.ui_get_current_page()
-                self.ui_goto(page_bondling_fairyland)
+                if not self.ui_goto(page_bondling_fairyland):
+                    raise GamePageUnknownError('BondlingFairyland page recovery failed')
                 continue
             if bondling_config.bondling_mode != BondlingMode.MODE1:
-                if self.ball_click(current_ball_index):
+                # 仍在结契准备界面时直接继续，不再点击探查界面的目标入口。
+                if page_state == 'catch':
+                    pass
+                elif self.ball_click(current_ball_index):
                     logger.info(f'Current ball index: {current_ball_index} ')
                 else:
                     if self.run_stone(bondling_config.bondling_stone_enable):
@@ -299,7 +304,7 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, BondlingBattle, SwitchSoul,
                 try:
                     # 执行捕捉
                     if self.run_catch(bondling_config, battle_config):
-                        logger.info(f'Catch successful and current ball number: {current_ball_index} ')
+                        logger.info(f'Capture loop returned to bondling page; target index: {current_ball_index}')
                     else:
                         break
                 except BondlingNumberMax:
@@ -309,19 +314,47 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, BondlingBattle, SwitchSoul,
                 # 否则就是模式1
                 break
 
-        # 退出的时候如果是在结契的界面，要退回到探查界面
-        while 1:
-            self.screenshot()
-            if self.in_search_ui():
-                break
-            if self.in_catch_ui():
-                self.appear_then_click(self.I_BACK_Y, interval=1)
-        logger.info('BondlingFairyland task finished')
-
+        # 任务收尾与场间继续分开：本地有限退出后，仍须可靠回庭院。
+        self._wait_bondling_page(leave_catch=True)
         self.ui_get_current_page()
-        self.ui_goto(page_main)
+        if not self.ui_goto(page_main) or not self.ui_wait_until_appear(
+                page_main, timeout=5, skip_first_screenshot=False):
+            raise GamePageUnknownError('BondlingFairyland failed to return to page_main')
+        logger.info('BondlingFairyland task finished')
         self.set_next_run(task='BondlingFairyland', finish=True, success=True)
         raise TaskEnd('BondlingFairyland')
+
+    def _wait_bondling_page(self, timeout: float = 3, leave_catch: bool = False) -> str | None:
+        """用两张连续新截图确认正常页面；超时由调用方交给现有导航恢复。"""
+        timer = Timer(timeout).start()
+        last_state, stable_frames = None, 0
+        while not timer.reached():
+            self.screenshot()
+            if timer.reached():
+                break
+            # 已识别的结算优先于背后的页面，点击被冷却限流时也不能视为结束。
+            if self._clear_catch_settlement() or self.appear(self.I_CAP_AGAIN):
+                state = None
+            elif self.in_catch_ui():
+                if leave_catch:
+                    self.appear_then_click(self.I_BACK_Y, interval=1)
+                    state = None
+                else:
+                    state = 'catch'
+            elif self.in_search_ui() or self.appear(self.I_BALL_AREA):
+                state = 'search'
+            else:
+                state = None
+            if state is not None and state == last_state:
+                stable_frames += 1
+            else:
+                stable_frames = int(state is not None)
+            last_state = state
+            if stable_frames >= 2:
+                logger.info(f'Bondling page stable: {state}')
+                return state
+        logger.warning(f'Bondling page confirmation timeout ({timeout}s), use existing recovery')
+        return None
 
     def run_stone(self, bondling_stone_enable: bool):
         """
@@ -395,7 +428,7 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, BondlingBattle, SwitchSoul,
         (1) 盘子没了，返回False (退出页面是结契界面)
         (2) 时间到了，返回False (退出页面是结契界面)
         (3) 挑战次数到了，返回False (退出页面是结契界面)
-        (4) 捕获成功，返回True (退出页面是捕获的页面)
+        (4) 返回契灵探查页面，返回True；不代表实际捕获成功
         """
         logger.hr('Start run catch', 2)
         self.lock_team()
@@ -437,14 +470,14 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, BondlingBattle, SwitchSoul,
         success = True
         logger.hr(f'开始执行战斗循环', 2)
         while 1:
-            self.screenshot()
-
-            if self.appear(self.I_BALL_AREA):
+            page_state = self._wait_bondling_page()
+            if page_state is None:
+                self.ui_get_current_page()
+                if not self.ui_goto(page_bondling_fairyland):
+                    raise GamePageUnknownError('BondlingFairyland page recovery failed')
                 return True
-
-            # 如果不在结契界面，就等待
-            if not self.in_catch_ui():
-                continue
+            if page_state == 'search':
+                return True
 
             # 检查是否有盘子
             if not check_plate_number():
