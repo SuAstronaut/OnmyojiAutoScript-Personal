@@ -367,8 +367,19 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RealmRaidAssets):
             return 'unknown'
         return 'off' if off else 'on'
 
+    def _realm_final_reward_visible(self):
+        """Require the local continue hint plus positive settlement evidence."""
+        return (self.appear(self.I_REALM_FINAL_REWARD_CONTINUE)
+                and (self.appear(self.I_SOUL_RAID) or self.appear(self.I_REWARD)
+                     or self.reward_grid_appear()))
+
     def _realm_clear_reward(self):
         """Drain recognized personal-raid/normal settlement, never an unknown page."""
+        if self._realm_final_reward_visible():
+            if self.settlement_click(self.I_REALM_FINAL_REWARD_CONTINUE,
+                                     self.C_RANDOM_CLICK, interval=1.5):
+                logger.info('RealmRaid final extra reward: safe continue')
+            return True  # A click/cooldown is not evidence of a stable grid.
         if self.appear(self.I_SOUL_RAID):
             self.appear_then_click(self.I_SOUL_RAID, interval=1.5)
             return True

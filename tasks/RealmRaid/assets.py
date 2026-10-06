@@ -45,6 +45,11 @@ class RealmRaidAssets:
 
 
 	# Image Rule Assets
+	# 个人突破最终奖励底部点击屏幕继续；须同时确认福袋或奖励框
+	I_REALM_FINAL_REWARD_CONTINUE = RuleImage(roi_front=(556,680,173,29), roi_back=(544,672,197,45), threshold=0.85, method="Template matching", file="./tasks/RealmRaid/res/realm_final_reward_continue.png")
+
+
+	# Image Rule Assets
 	# 个人突破重试弹窗今日不再提示 off，真实1280x720截图小图标
 	I_REALM_RETRY_NO_REMIND_OFF = RuleImage(roi_front=(537,341,38,38), roi_back=(533,337,46,46), threshold=0.9, method="Template matching", file="./tasks/RealmRaid/res/realm_retry_no_remind_off.png")
 	# 个人突破重试弹窗今日不再提示 on，真实1280x720截图小图标

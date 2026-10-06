@@ -1,0 +1,11 @@
+[
+  {
+    "itemName": "realm_final_reward_continue",
+    "imageName": "realm_final_reward_continue.png",
+    "roiFront": "556,680,173,29",
+    "roiBack": "544,672,197,45",
+    "method": "Template matching",
+    "threshold": 0.85,
+    "description": "个人突破最终奖励底部点击屏幕继续；须同时确认福袋或奖励框"
+  }
+]
