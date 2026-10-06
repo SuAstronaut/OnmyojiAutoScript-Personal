@@ -14,6 +14,7 @@ class InviteNumber(str, Enum):
 class FindMode(str, Enum):
     AUTO_FIND = 'auto_find'
     RECENT_FRIEND = 'recent_friend'
+    CROSS_REGION_FIRST = 'cross_region_first'
 
 class InviteConfig(BaseModel):
 

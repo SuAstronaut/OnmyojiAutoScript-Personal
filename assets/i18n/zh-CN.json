@@ -337,6 +337,8 @@
   "random_delay_min": "随机延时下限(分钟)",
   "random_delay_max": "随机延时上限(分钟)",
   "recent_friend": "最近好友",
+  "cross_region_first": "跨区优先",
+  "find_mode_help": "自动寻找通常按 好友 → 最近 → 寮友 → 跨区 查找指定队友；最近好友仅查最近；跨区优先按 跨区 → 好友 → 最近 → 寮友 查找。每次扫描一轮，未找到时按现有等待与重试规则处理。契灵页面仅有好友和跨区。",
   "recheck_interval": "再次检测间隔(分)",
   "require_at_all": "需检测到@全体成员",
   "restart": "restart",

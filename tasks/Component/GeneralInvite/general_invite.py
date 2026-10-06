@@ -35,6 +35,41 @@ class RoomType(str, Enum):
     NORMAL_5 = 'normal_5'
 
 
+def find_cross_region_first(task, name, tabs, selected_color=None) -> bool:
+    """仅供跨区优先模式使用；tabs 保留标题与物理按钮的对应关系。"""
+    aliases = {'蔡友': '寮友', '察友': '寮友', '路区': '跨区', '区': '跨区'}
+    for title, expected, flag_on, flag_off in tabs:
+        title = (title or '').replace(' ', '').replace('、', '')
+        if aliases.get(title, title) != expected:
+            logger.warning(f'Skip unconfirmed invite tab: {expected}')
+            continue
+
+        def selected():
+            if selected_color is not None:
+                return flag_on.match_mean_color(task.device.image, selected_color, 10)
+            return task.appear(flag_on)
+
+        # 新模式切换必须确认 ON；不认识当前状态时跳过，避免猜点或无限重试。
+        switch_timer = Timer(5).start()
+        while not switch_timer.reached():
+            task.screenshot()
+            if selected():
+                break
+            if not task.appear(flag_off):
+                break
+            task.appear_then_click(flag_off, interval=1)
+        if switch_timer.reached() or not selected():
+            logger.warning(f'Invite tab switch not confirmed: {expected}')
+            continue
+
+        logger.info(f'Now find friend in {expected}')
+        for _ in range(2):
+            sleep(1)
+            if task.detect_select(name):
+                return True
+    return False
+
+
 class GeneralInvite(BaseTask, GeneralInviteAssets):
     # 注意：不要把 GameUiAssets 加进基类。宿主若同时继承含 GeneralBuff 的组件
     # （如 Secret 的 ScriptTask），GameUiAssets 会与 GeneralBuffAssets 的 MRO 顺序
@@ -362,6 +397,8 @@ class GeneralInvite(BaseTask, GeneralInviteAssets):
         list_2 = self.O_F_LIST_2.ocr(self.device.image)
         list_3 = self.O_F_LIST_3.ocr(self.device.image)
         list_4 = self.O_F_LIST_4.ocr(self.device.image)
+        if find_mode == FindMode.CROSS_REGION_FIRST:
+            list_1, list_2, list_3, list_4 = (title or '' for title in (list_1, list_2, list_3, list_4))
         list_1 = list_1.replace(' ', '').replace('、', '')
         list_2 = list_2.replace(' ', '').replace('、', '')
         list_3 = list_3.replace(' ', '').replace('、', '')
@@ -385,6 +422,14 @@ class GeneralInvite(BaseTask, GeneralInviteAssets):
         logger.info(f'Friend class: {friend_class}')
 
         is_select: bool = False  # 是否选中了好友
+        if find_mode == FindMode.CROSS_REGION_FIRST:
+            # 固定物理顺序 3 -> 0 -> 1 -> 2，不使用压缩后的 friend_class 下标。
+            is_select = find_cross_region_first(self, name, [
+                (list_4, '跨区', self.I_FLAG_4_ON, self.I_FLAG_4_OFF),
+                (list_1, '好友', self.I_FLAG_1_ON, self.I_FLAG_1_OFF),
+                (list_2, '最近', self.I_FLAG_2_ON, self.I_FLAG_2_OFF),
+                (list_3, '寮友', self.I_FLAG_3_ON, self.I_FLAG_3_OFF),
+            ])
         if find_mode == FindMode.RECENT_FRIEND:
             logger.info('Find recent friend')
             # 获取’最近‘在friend_class中的index

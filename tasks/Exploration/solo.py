@@ -8,6 +8,7 @@ from module.logger import logger
 from module.base.timer import Timer
 from script import Script 
 from tasks.Component.GeneralInvite.config_invite import InviteConfig, InviteNumber, FindMode
+from tasks.Component.GeneralInvite.general_invite import find_cross_region_first
 from tasks.Exploration.base import BaseExploration, UpType, Scene
 from tasks.Exploration.config import ChooseRarity, AutoRotate, UserStatus, ExplorationLevel
 
@@ -397,6 +398,8 @@ class SoloExploration(BaseExploration):
         list_2 = self.O_F_LIST_2.ocr(self.device.image)
         list_3 = self.O_F_LIST_3.ocr(self.device.image)
         list_4 = self.O_F_LIST_4.ocr(self.device.image)
+        if find_mode == FindMode.CROSS_REGION_FIRST:
+            list_1, list_2, list_3, list_4 = (title or '' for title in (list_1, list_2, list_3, list_4))
         list_1 = list_1.replace(' ', '').replace('、', '')
         list_2 = list_2.replace(' ', '').replace('、', '')
         list_3 = list_3.replace(' ', '').replace('、', '')
@@ -420,6 +423,14 @@ class SoloExploration(BaseExploration):
         logger.info(f'Friend class: {friend_class}')
 
         is_select: bool = False  # 是否选中了好友
+        if find_mode == FindMode.CROSS_REGION_FIRST:
+            # 固定物理顺序 3 -> 0 -> 1 -> 2，保留探索页面的选中颜色判断。
+            is_select = find_cross_region_first(self, name, [
+                (list_4, '跨区', self.I_FLAG_4_ON, self.I_FLAG_4_OFF),
+                (list_1, '好友', self.I_FLAG_1_ON, self.I_FLAG_1_OFF),
+                (list_2, '最近', self.I_FLAG_2_ON, self.I_FLAG_2_OFF),
+                (list_3, '寮友', self.I_FLAG_3_ON, self.I_FLAG_3_OFF),
+            ], selected_color=self.INVITE_FLAG_ON)
         if find_mode == FindMode.RECENT_FRIEND:
             logger.info('Find recent friend')
             # 获取’最近‘在friend_class中的index

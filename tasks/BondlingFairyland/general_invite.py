@@ -12,6 +12,7 @@ from module.base.timer import Timer
 from tasks.base_task import BaseTask
 from tasks.Component.GeneralInvite.assets import GeneralInviteAssets
 from tasks.Component.GeneralInvite.config_invite import InviteConfig, InviteNumber, FindMode
+from tasks.Component.GeneralInvite.general_invite import find_cross_region_first
 from tasks.Component.GeneralBattle.assets import GeneralBattleAssets
 from tasks.BondlingFairyland.assets import BondlingFairylandAssets
 
@@ -321,6 +322,8 @@ class GeneralInvite(BaseTask, BondlingFairylandAssets, GeneralInviteAssets):
         class_index = 0
         list_1 = self.O_FRIEND.ocr(self.device.image)
         list_2 = self.O_KUAQU.ocr(self.device.image)
+        if find_mode == FindMode.CROSS_REGION_FIRST:
+            list_1, list_2 = (title or '' for title in (list_1, list_2))
         list_1 = list_1.replace(' ', '').replace('、', '')
         list_2 = list_2.replace(' ', '').replace('、', '')
         if list_1 is not None and list_1 != '' and list_1 in self.friend_class:
@@ -339,6 +342,11 @@ class GeneralInvite(BaseTask, BondlingFairylandAssets, GeneralInviteAssets):
         logger.info(f'Friend class: {friend_class}')
 
         is_select: bool = False  # 是否选中了好友
+        if find_mode == FindMode.CROSS_REGION_FIRST:
+            is_select = find_cross_region_first(self, name, [
+                (list_2, '跨区', self.I_SELECT_KUAQU_ON, self.I_SELECT_KUAQU_OFF),
+                (list_1, '好友', self.I_SELECT_FRIEND_ON, self.I_SELECT_FRIEND_OFF),
+            ])
         if find_mode == FindMode.RECENT_FRIEND:
             logger.info('Find recent friend')
             # 获取’最近‘在friend_class中的index
