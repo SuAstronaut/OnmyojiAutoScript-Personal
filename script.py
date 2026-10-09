@@ -39,6 +39,7 @@ from module.exception import *
 from module.server.i18n import I18n
 from module.ocr.rpc import ensure_ocr_server_started, notify_ocr_instance_state
 from module.server.setting import State
+from tasks.Restart.reconnect import ReconnectGate, ReconnectInterrupted
 
 
 
@@ -113,6 +114,10 @@ class Script:
             exit(1)
 
     @cached_property
+    def reconnect(self):
+        return ReconnectGate(lambda: self.config, self.config_name)
+
+    @cached_property
     def device(self) -> "Device":
         try:
             from module.device.device import Device
@@ -120,6 +125,7 @@ class Script:
             # 进程内游戏 Restart 不重建快照，只有新脚本进程/新 Config session 才重新划定边界。
             self.config.begin_device_initialization()
             device = Device(config=self.config)
+            device._reconnect_gate = self.reconnect
             self.config.freeze_startup_device_snapshot()
             return device
         except RequestHumanTakeover:
@@ -526,6 +532,9 @@ class Script:
 
     def run(self, command: str) -> bool:
         """在任务执行期间向 OCR RPC 保持实例活跃状态。"""
+        if not self._ocr_task_depth and not self.reconnect.pending:
+            self.reconnect.task = getattr(self.config, 'actual_running_task', '') or command
+            self.reconnect.last_scan = float('-inf')
         self._ocr_task_start()
         try:
             return self._run_task(command)
@@ -562,7 +571,15 @@ class Script:
             logger.info(f'module_path: {module_path}, module_name: {module_name}')
             task_module = load_module(module_name, module_path)
             task_module.ScriptTask(config=self.config, device=self.device).run()
+            if self.reconnect.pending:
+                raise RequestHumanTakeover('Recovered task did not report a verified completion')
+        except ReconnectInterrupted:
+            # No Restart scheduling, no task completion notification. The loop
+            # closes this execution segment before entering the instance gate.
+            return False
         except TaskEnd as e:
+            if self.reconnect.pending and self.reconnect.state != 'RECOVERED':
+                return False
             task_name = self._resolve_task_end_name(command, e)
             # 任务正常结束说明页面识别已恢复，清零连续未识别计数
             self.page_unknown_count = 0
@@ -580,10 +597,16 @@ class Script:
             self.config.task_call('Restart')
             return False
         except GameNotRunningError as e:
+            if self.reconnect.pending:
+                self.reconnect.state, self.reconnect.error = 'FAILED', str(e)
+                return False
             logger.warning(e)
             self.config.task_call('Restart')
             return False
         except (GameStuckError, GameTooManyClickError) as e:
+            if self.reconnect.pending:
+                self.reconnect.state, self.reconnect.error = 'FAILED', str(e)
+                return False
             logger.error(e)
             self.save_error_log()
             logger.warning(f'Game stuck, {self.device.package} will be restarted in 10 seconds')
@@ -601,6 +624,9 @@ class Script:
             self.device.sleep(10)
             return False
         except GamePageUnknownError:
+            if self.reconnect.pending:
+                self.reconnect.state, self.reconnect.error = 'FAILED', 'Cannot safely re-enter task page'
+                return False
             logger.info('Game server may be under maintenance or network may be broken, check server status now')
             # 连续 3 次无法识别页面才重启客户端：偶发弹窗遮挡在下一轮任务重试时
             # 往往已自行消失（弹窗有有效期），立刻重启代价过高；3 次内恢复识别则
@@ -705,6 +731,192 @@ class Script:
             self.config.store.release_scheduler_task(self.config_name, task, runtime)
             self._publish_schedule()
 
+    def _reconnect_checkpoint(self):
+        self._config_checkpoint('reconnect_wait')
+        stop = getattr(self, 'stop_event', None)
+        if ((stop is not None and stop.is_set()) or not self.reconnect.enabled()
+                or self.reconnect.state == 'FAILED'):
+            raise RequestHumanTakeover(self.reconnect.error or 'Reconnect stopped or disabled by user')
+
+    def _reconnect_login_allowed(self):
+        # Keep the existing forbidden-time rule. A future foster login window
+        # can add a check here without changing the gate or task plans.
+        return self.config.get_forbidden_time_end(self.reconnect.task) is None
+
+    def _reconnect_probe(self, task, *, allow_closed=False):
+        """Fresh, read-only verification; a vanished overlay alone is insufficient."""
+        gate = self.reconnect
+        start = gate.clock()
+        previous, since, hits = '', start, 0
+        while gate.clock() - start <= 10:
+            self._reconnect_checkpoint()
+            try:
+                self.device.screenshot()
+            except GameNotRunningError:
+                # A closed desktop client is a login requirement only at the
+                # initial, due-time probe. Missing again after login is failure.
+                if self.device.is_desktop and allow_closed:
+                    return 'login'
+                raise
+            hit = gate.scan(self.device.image)
+            hits = hits + 1 if hit else 0
+            if hits >= 2:
+                return 'login'
+            status = 'takeover' if hit else task.reconnect_status()
+            if status != previous:
+                previous, since = status, gate.clock()
+            if status.startswith('page:') and gate.clock() - since >= 2.5:
+                return 'stable'
+            if status == 'login' and gate.clock() - since >= 0.3:
+                return 'login'
+            gate.sleep(0.3)
+        raise RequestHumanTakeover('Reconnect cannot confirm a stable game or login page')
+
+    def _wait_for_reconnect(self):
+        """Instance-only gate BEFORE selecting tasks / idle device operations."""
+        if getattr(self.device, 'is_desktop', False):
+            return self._wait_for_desktop_reconnect()
+        gate = self.reconnect
+        gate.android_staged = True
+        gate.checkpoint, gate.login_allowed = self._reconnect_checkpoint, self._reconnect_login_allowed
+        # FAILED terminates this event, including a failed restored task.
+        try:
+            self._reconnect_checkpoint()
+        except RequestHumanTakeover as error:
+            gate.state, gate.error = 'FAILED', str(error)
+            gate.log_android_login('terminated', force=True)
+            raise
+        gate.state = 'VERIFY'
+        self.device.stuck_record_clear()
+        self.device.click_record_clear()
+        from tasks.Restart.script_task import ScriptTask
+        task = ScriptTask(self.config, self.device)
+        self._ocr_task_start()
+        try:
+            try:
+                stable = self._reconnect_probe(task) == 'stable'
+            except GameNotRunningError:
+                stable = False
+            if stable and gate.game_entry_at is None:
+                task.android_game_login_ready(refresh=True)
+                raise RequestHumanTakeover('Android already entered a role without this event entry; '
+                                           'possible early auto-login or manual recovery')
+            while True:
+                try:
+                    if not stable:
+                        self._reconnect_checkpoint()
+                        gate.state = 'PREPARE_LOGIN'
+                        gate.entry_candidate = gate.game_entry_at = None
+                        task.app_reconnect(prepare_only=True)
+                    gate.state = 'WAIT_AT_GAME_LOGIN'
+                    while gate.clock() < gate.deadline or not self._reconnect_login_allowed():
+                        self._reconnect_checkpoint()
+                        if not stable:
+                            # False is an unconfirmed/loading frame, not evidence of danger.
+                            task.android_game_login_ready(refresh=True)
+                        gate.sleep(min(1, gate.deadline-gate.clock()) if gate.clock() < gate.deadline else 1)
+                    self._reconnect_checkpoint()
+                    if not stable:
+                        # At due, start over with two consecutive NEW ready frames.
+                        validation_end, confirmed = gate.clock() + 10, 0
+                        gate.log_android_login('deadline', force=True)
+                        while gate.clock() <= validation_end:
+                            self._reconnect_checkpoint()
+                            confirmed = confirmed + 1 if task.android_game_login_ready(refresh=True) else 0
+                            if confirmed >= 2:
+                                break
+                            gate.sleep(gate.CONFIRM_INTERVAL)
+                        else:
+                            raise RequestHumanTakeover('Android entry unconfirmed after bounded deadline verification')
+                        gate.entry_check = lambda: task.android_game_login_ready(refresh=True)
+                        self.device.stuck_record_clear()
+                        self.device.click_record_clear()
+                        gate.state = 'RECONNECTING'
+                        task.app_handle_login()
+                    gate.state = 'VERIFY'
+                    if self._reconnect_probe(task) != 'stable':
+                        raise RequestHumanTakeover('Android reconnect did not reach a stable game page')
+                    logger.info(f'[Reconnect] instance={gate.instance} courtyard_confirmed={gate.wall_clock()}')
+                    break
+                except (GameNotRunningError, GameStuckError, GameTooManyClickError):
+                    if gate.attempts >= gate.MAX_ATTEMPTS:
+                        raise RequestHumanTakeover('Android reconnect failed after two login attempts')
+                    stable = False
+            gate.state = 'RECOVERED'
+            self.config.update_scheduler()
+            # Respect disable/postpone shortcuts applied while waiting; do not
+            # overwrite schedules or a task's own completed intermediate plan.
+            scheduled = next((item for item in self.config.pending_task
+                              if item.command == gate.task), None)
+            if scheduled is None:
+                gate.complete_task()
+                return None
+            self.config.task = scheduled
+            logger.info(f'[Reconnect] {gate.instance}: re-enter {gate.task} from a new task object')
+            return gate.task
+        except (Exception, ReconnectInterrupted) as error:
+            gate.state, gate.error = 'FAILED', str(error) or gate.error
+            gate.log_android_login('terminated', force=True)
+            raise
+        finally:
+            self._ocr_task_end()
+
+    def _wait_for_desktop_reconnect(self):
+        """Prepare immediately; only the game-entry press is delayed."""
+        gate = self.reconnect
+        gate.desktop_staged = True
+        gate.checkpoint, gate.login_allowed = self._reconnect_checkpoint, self._reconnect_login_allowed
+        gate.state = 'VERIFY'
+        self.device.stuck_record_clear()
+        self.device.click_record_clear()
+        from tasks.Restart.script_task import ScriptTask
+        task = ScriptTask(self.config, self.device)
+        self._ocr_task_start()
+        try:
+            stable = self._reconnect_probe(task, allow_closed=True) == 'stable'
+            while True:
+                try:
+                    if not stable:
+                        self._reconnect_checkpoint()
+                        gate.state = 'PREPARE_LOGIN'
+                        gate.entry_candidate = gate.game_entry_at = None
+                        task.app_reconnect(prepare_only=True)
+                    gate.state = 'WAIT_AT_GAME_LOGIN'
+                    while gate.clock() < gate.deadline or not self._reconnect_login_allowed():
+                        self._reconnect_checkpoint()
+                        if not stable and not task.desktop_game_login_ready(refresh=True):
+                            raise RequestHumanTakeover('Second-layer login changed while waiting')
+                        gate.sleep(min(1, gate.deadline-gate.clock()) if gate.clock() < gate.deadline else 1)
+                    self._reconnect_checkpoint()
+                    if not stable:
+                        if not task.desktop_game_login_ready(refresh=True):
+                            raise RequestHumanTakeover('Second-layer login no longer ready at deadline')
+                        gate.entry_check = lambda: task.desktop_game_login_ready(refresh=True)
+                        self.device.stuck_record_clear()
+                        self.device.click_record_clear()
+                        gate.state = 'RECONNECTING'
+                        task.app_handle_login()
+                    gate.state = 'VERIFY'
+                    if self._reconnect_probe(task) != 'stable':
+                        raise RequestHumanTakeover('Desktop login did not reach a stable game page')
+                    logger.info(f'[Reconnect] instance={gate.instance} courtyard_confirmed={gate.wall_clock()}')
+                    break
+                except (GameNotRunningError, GameStuckError, GameTooManyClickError):
+                    if gate.attempts >= gate.MAX_ATTEMPTS:
+                        raise RequestHumanTakeover('Desktop reconnect failed after two login attempts')
+                    stable = False
+            gate.state = 'RECOVERED'
+            self.config.update_scheduler()
+            scheduled = next((item for item in self.config.pending_task if item.command == gate.task), None)
+            if scheduled is None:
+                gate.complete_task()
+                return None
+            self.config.task = scheduled
+            logger.info(f'[Reconnect] instance={gate.instance} resume_task={gate.task} at={gate.wall_clock()}')
+            return gate.task
+        finally:
+            self._ocr_task_end()
+
     def loop(self):
         """
         Main loop of scheduler.
@@ -736,16 +948,30 @@ class Script:
             self._config_checkpoint("before_task")
 
             # Get task
-            task = self.get_next_task()
+            if self.reconnect.pending:
+                try:
+                    task = self._wait_for_reconnect()
+                except (Exception, ReconnectInterrupted) as error:
+                    self.reconnect.state = 'FAILED'
+                    logger.critical(f'[{self.config_name}] Reconnect requires human takeover: {error}')
+                    self.config.notifier.push(title='自动重连停止', content=str(error))
+                    break
+                if task is None:
+                    continue
+            else:
+                task = self.get_next_task()
             success = self._execute_scheduled_task(task)
             if success is None:
                 continue
 
             if success:
+                if self.reconnect.pending and self.reconnect.state == 'RECOVERED':
+                    self.reconnect.complete_task()
                 # 任务结束边界：WARM/COLD 刷新并上报 config_state
                 self._config_checkpoint("task_end")
                 continue
-            elif self.config.script.error.handle_error or self._page_unknown_recoverable:
+            elif (self.reconnect.pending or self.config.script.error.handle_error
+                  or self._page_unknown_recoverable):
                 # page unknown 失败自带恢复策略（重试/满 3 次 Restart），
                 # 即使 handle_error=False 也放行继续调度，不停摆
                 self._page_unknown_recoverable = False

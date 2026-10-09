@@ -473,11 +473,12 @@ class Handle:
 
         windows = []
         EnumWindows(enum_cb, windows)
-        for hwnd in windows:
-            if GetWindowText(hwnd) in DESKTOP_WINDOW_TITLES:
-                _, win_pid = GetWindowThreadProcessId(hwnd)
-                if win_pid == pid_int:
-                    return hwnd
+        matches = [hwnd for hwnd in windows
+                   if self._desktop_existing_window_valid({'hwnd': hwnd, 'pid': pid_int})]
+        if len(matches) == 1:
+            return matches[0]
+        if len(matches) > 1:
+            raise RequestHumanTakeover(f'Multiple desktop game windows for PID={pid_int}')
         logger.warning(f'Desktop client window not found, PID={pid}')
         raise EmulatorNotRunningError(f'Desktop client window not found, PID={pid}')
 
@@ -587,16 +588,19 @@ class Handle:
 
         windows = []
         EnumWindows(enum_cb, windows)
+        matches = []
         for hwnd in windows:
             try:
                 if GetClassName(hwnd) != DESKTOP_LOGIN_POPUP_CLASS:
                     continue
                 if GetWindowThreadProcessId(hwnd)[1] == pid_int:
-                    return hwnd
+                    matches.append(hwnd)
             except Exception:
                 # 窗口在枚举与取属性之间被关闭，跳过即可
                 continue
-        return 0
+        if len(matches) > 1:
+            raise RequestHumanTakeover('Multiple MPay windows for this client; no account confirmation')
+        return matches[0] if matches else 0
 
     def desktop_confirm_login_popup(self, wait: float = 15.0) -> bool:
         """向 MPay 登录弹窗发送回车，并确认对应 HWND 已真实消失。
@@ -608,20 +612,35 @@ class Handle:
 
         返回 True 表示弹窗确实已关闭；False 表示没有弹窗，或超时后弹窗仍然存活。
         """
+        gate = getattr(self, '_reconnect_gate', None)
+        staged = bool(gate and gate.pending and gate.desktop_staged)
+        def pause(seconds):
+            while staged and seconds > 0:
+                gate.checkpoint()
+                step = min(1, seconds)
+                gate.sleep(step)
+                seconds -= step
+            if not staged:
+                time.sleep(seconds)
+        if staged:
+            gate.checkpoint()
         if not self.find_desktop_login_popup():
             return False
         logger.info('Desktop MPay login popup found, wait 5s before closing to let it load')
         # 实测弹窗出现太早（启动后约 6s）时，回车关掉弹窗后客户端仍停在黑屏；给弹窗
         # 5 秒加载时间再回车，降低 Enter 后黑屏卡死的概率（成功案例弹窗出现都偏晚）。
-        time.sleep(5)
-        deadline = time.time() + wait
-        while time.time() < deadline:
+        pause(5)
+        now = gate.clock if staged else time.time
+        deadline = now() + wait
+        while now() < deadline:
+            if staged:
+                gate.checkpoint()
             hwnd = self.find_desktop_login_popup()
             if not hwnd:
                 logger.info('Desktop MPay login popup confirmed closed')
                 return True
             self._desktop_send_enter(hwnd)
-            time.sleep(1)
+            pause(1)
         logger.warning(f'Desktop MPay login popup still present after {wait}s, Enter had no effect')
         return False
 
@@ -632,10 +651,8 @@ class Handle:
         handle。script.device 是 COLD 受保护子树，任务边界 reload 会覆盖运行模型，
         因此本会话的窗口存在性判断必须以实例状态为准，否则重新拉起后会误判为未运行。
         """
-        pid = getattr(self, 'root_handle', None) or self.config.script.device.handle
         try:
-            self.find_desktop_window_by_pid(pid)
-            return True
+            return self._desktop_rebind_window()
         except EmulatorNotRunningError:
             return False
 
@@ -695,13 +712,17 @@ class Handle:
         只要拿到重建后的新窗口即可。
         """
         try:
-            hwnd = self.find_desktop_window_by_pid(self.root_handle)
+            hwnd = self.find_desktop_window_by_pid(self.desktop_pid())
         except EmulatorNotRunningError:
             return False
         if hwnd != self.root_handle_num:
             logger.info(f'Desktop window rebuilt, rebind hwnd {self.root_handle_num} -> {hwnd}')
             self.root_handle_num = hwnd
             self._desktop_clear_handle_cache()
+            self.__dict__.pop('image', None)
+            self.__dict__.pop('_desktop_cursor', None)
+            self._screen_size_checked = False
+            self._screen_black_checked = False
         return True
 
     def desktop_window_set_size(self, width: int = 1280, height: int = 720) -> bool:
@@ -753,6 +774,10 @@ class Handle:
             if client_w == width and client_h == height:
                 logger.info('Desktop client size already matches target')
                 return False
+            gate = getattr(self, '_reconnect_gate', None)
+            if gate and gate.pending and gate.desktop_staged:
+                raise RequestHumanTakeover('Desktop client size is not 1280x720; '
+                                           'set neox.xml dimensions and restart manually')
             # 用 AdjustWindowRectEx 精确计算含标题栏/边框的窗口总尺寸
             style = GetWindowLong(hwnd, GWL_STYLE)
             ex_style = GetWindowLong(hwnd, GWL_EXSTYLE)
@@ -868,12 +893,11 @@ class Handle:
     def desktop_game_exe(root) -> str:
         """返回游戏可执行文件路径；找不到返回空串。
 
-        顺序即优先级：必须优先游戏本体 bin/onmyoji.exe。
-        Launch.exe 是登录器，它会再拉起 bin/onmyoji.exe，
-        导致双开且 OAS 绑定到登录器 PID 上找不到游戏窗口。
+        优先安装目录的 Launch.exe；游戏主窗口仍按实际 onmyoji.exe PID 绑定。
+        直接启动游戏本体不能代替启动器的客户端初始化。
         """
         root = Path(root)
-        for name in ('bin/onmyoji.exe', 'Launch.exe'):
+        for name in ('Launch.exe', 'bin/onmyoji.exe'):
             exe = root / name
             if exe.is_file():
                 return str(exe)
@@ -904,10 +928,8 @@ class Handle:
                 return False
             bound_pid, spawned_pid = pids
             if bound_pid:
-                # 启动成功也要记住本轮拉起的全部 PID：onmyoji.exe 是启动器，它会派生出
-                # 真正的游戏窗口进程后自己继续存活（实测启动器 8932 派生窗口进程 6816，
-                # 89 线程 42s CPU 却无窗口）。OAS 靠枚举窗口只绑到窗口进程，关闭时若只杀
-                # 它，启动器就成了无主残留。这里留档，交给 desktop_stop_client 一并清理
+                # 启动器 PID 与真正的游戏窗口 PID 分别留档；启动器可能先退出，也可能
+                # 留下无窗口进程。关闭时仅清理本轮已验证的 PID，不按名称全局结束进程。
                 self._desktop_spawned_pids = set(spawned_pid)
                 # 客户端已拉起，强制保持显示器常亮，防止电源超时关屏导致截图黑帧卡死
                 desktop_keep_screen_on(True)
@@ -929,6 +951,7 @@ class Handle:
         before_pids = {w['pid'] for w in list_desktop_windows()}
         logger.info(f'自动启动桌面客户端（第 {attempt} 轮）: {exe}')
         spawned = set()
+        launched_at = time.time()
         try:
             proc = subprocess.Popen([exe], cwd=root,
                                     creationflags=getattr(subprocess, 'CREATE_NEW_PROCESS_GROUP', 0))
@@ -941,8 +964,22 @@ class Handle:
         stable_hwnd = 0
         stable_count = 0
         while time.time() < deadline:
-            candidates = [w for w in list_desktop_windows() if w['pid'] not in before_pids]
-            if candidates:
+            candidates = []
+            for window in list_desktop_windows():
+                if window['pid'] in before_pids or not self._desktop_existing_window_valid(window):
+                    continue
+                try:
+                    if psutil.Process(window['pid']).create_time() < launched_at - 0.02:
+                        continue
+                    owned = (window['pid'] == proc.pid or
+                             psutil.Process(window['pid']).ppid() == proc.pid or
+                             proc.pid in [parent.pid for parent in psutil.Process(window['pid']).parents()])
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
+                if owned:
+                    candidates.append(window)
+                    spawned.add(window['pid'])
+            if len(candidates) == 1:
                 candidate = candidates[0]
                 if candidate['hwnd'] == stable_hwnd:
                     stable_count += 1
@@ -959,6 +996,8 @@ class Handle:
                     # 这里不再等弹窗：启动侧等一遍、登录侧再确认一遍是串行叠加的重复工作，
                     # 实测白等约 20 秒，而登录循环本可以边截图边处理掉它
                     return candidate['pid'], spawned
+            else:
+                stable_hwnd, stable_count = 0, 0
             time.sleep(1)
         logger.warning(f'桌面客户端进程已启动，但 {timeout} 秒内未识别到游戏窗口')
         return 0, spawned
@@ -973,6 +1012,8 @@ class Handle:
             except (TypeError, ValueError):
                 continue
             for attempt in range(1, DESKTOP_KILL_ATTEMPTS + 1):
+                if not self._desktop_process_can_stop(pid_int, launcher=True):
+                    break
                 # PROCESS_TERMINATE(0x0001)
                 handle = kernel32.OpenProcess(0x0001, False, pid_int)
                 if not handle:
@@ -1033,9 +1074,19 @@ class Handle:
 
         窗口可能在两条消息之间被销毁（回车已生效），此时忽略异常即可。
         """
+        gate = getattr(self, '_reconnect_gate', None)
+        if gate and gate.pending and gate.desktop_staged:
+            gate.checkpoint()
+            if gate.state not in {'PREPARE_LOGIN', 'RECONNECTING'}:
+                raise RequestHumanTakeover('MPay input is not allowed in the game-login wait')
+        if (not IsWindow(hwnd) or GetClassName(hwnd) != DESKTOP_LOGIN_POPUP_CLASS
+                or GetWindowThreadProcessId(hwnd)[1] != self.desktop_pid()):
+            raise RequestHumanTakeover('MPay target changed; no account input sent')
         try:
             SendMessage(hwnd, WM_KEYDOWN, VK_RETURN, 0)
-            SendMessage(hwnd, WM_KEYUP, VK_RETURN, 0)
+            if (IsWindow(hwnd) and GetClassName(hwnd) == DESKTOP_LOGIN_POPUP_CLASS
+                    and GetWindowThreadProcessId(hwnd)[1] == self.desktop_pid()):
+                SendMessage(hwnd, WM_KEYUP, VK_RETURN, 0)
         except Exception as e:
             logger.info(f'Send Enter to window {hwnd} failed (window may be closed): {e}')
 
@@ -1143,11 +1194,9 @@ class Handle:
     def _desktop_kill_spawned_leftovers(self, bound_pid) -> bool:
         """清理本次自己拉起、但没被绑定的客户端进程，返回是否已全部清掉。
 
-        onmyoji.exe 是启动器：Popen 起来后它派生真正的游戏窗口进程，自己继续存活且
-        没有窗口（实测启动器 89 线程、42s CPU、主窗口句柄为 0）。OAS 靠枚举游戏窗口
-        绑定，只会绑到窗口进程，关闭时若只杀它，启动器就成了无主残留——既占内存，
-        也让下一轮启动的窗口识别多一个干扰源。这些 PID 由 launch_desktop_client
-        在启动成功时留档到 _desktop_spawned_pids。
+        启动器和游戏窗口的生命周期不同；窗口消失不能证明启动器已退出。
+        这些 PID 由 launch_desktop_client 在启动成功时留档到 _desktop_spawned_pids，
+        只清理本轮尚存且 exe/安装目录仍匹配的进程。
         """
         spawned = getattr(self, '_desktop_spawned_pids', None)
         if not spawned:
@@ -1196,6 +1245,8 @@ class Handle:
         except (TypeError, ValueError):
             logger.error(f'Invalid desktop PID: {pid}, skip force kill')
             return
+        if not self._desktop_process_can_stop(pid_int):
+            return
         kernel32 = ctypes.windll.kernel32
         # PROCESS_TERMINATE(0x0001)
         handle = kernel32.OpenProcess(0x0001, False, pid_int)
@@ -1207,6 +1258,26 @@ class Handle:
             logger.info(f'Desktop client PID={pid_int} force terminated')
         finally:
             kernel32.CloseHandle(handle)
+
+    def _desktop_process_can_stop(self, pid_int, *, launcher=False) -> bool:
+        # A PID saved before the delay may have been reused after client exit.
+        # Never terminate an unrelated executable merely because the PID lives.
+        try:
+            exe = psutil.Process(pid_int).exe()
+        except psutil.NoSuchProcess:
+            return False
+        except (psutil.AccessDenied, OSError) as error:
+            raise RequestHumanTakeover('Cannot verify desktop process before stopping') from error
+        configured = getattr(self.config.script.device, 'desktop_game_path', '') or ''
+        root = self._desktop_root_from_path(configured) if configured else None
+        name = Path(exe).name.lower()
+        expected = root / 'Launch.exe' if launcher and name == 'launch.exe' and root else (
+            root / 'bin' / 'onmyoji.exe' if root else None)
+        if (name not in ({'onmyoji.exe', 'launch.exe'} if launcher else {'onmyoji.exe'}) or
+                (root is not None and os.path.normcase(str(Path(exe).resolve())) !=
+                 os.path.normcase(str(expected.resolve())))):
+            raise RequestHumanTakeover(f'Desktop PID={pid_int} no longer belongs to the game')
+        return True
 
     def desktop_window_restore_if_minimized(self, wait: float = 3.0) -> bool:
         """桌面窗口被最小化（用户误操作）时还原并等待客户区恢复，返回是否发生过还原。

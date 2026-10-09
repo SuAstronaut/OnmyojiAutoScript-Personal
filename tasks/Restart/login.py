@@ -207,6 +207,81 @@ class LoginHandler(BaseTask, RestartAssets, GameUiAssets):
             self.click(assets.C_SA_LOGIN_FORM_USER_CENTER, interval=1)
         return False
 
+    def desktop_game_login_ready(self, *, refresh=False):
+        if refresh:
+            self.screenshot()
+        if self.device.find_desktop_login_popup():
+            return False
+        if self.device.desktop_client_size() != (1280, 720):
+            raise RequestHumanTakeover('Game login client size changed; no entry input')
+        return (self.appear(self.I_LOGIN_8) and self.appear(self.I_CHECK_LOGIN_FORM)
+                and self.device._reconnect_gate.game_login_text(self.device.image))
+
+    def desktop_prepare_login(self):
+        """MPay only; no game input while preparing the second-layer entry."""
+        gate = self.device._reconnect_gate
+        deadline, confirmed, handled = gate.clock() + 120, 0, 0
+        while gate.clock() <= deadline:
+            gate.checkpoint()
+            if self.device.find_desktop_login_popup():
+                handled += 1
+                if handled > DESKTOP_MPAY_CLOSE_LIMIT or not self.device.desktop_confirm_login_popup():
+                    raise RequestHumanTakeover('MPay account confirmation cannot be verified')
+                confirmed = 0
+                continue
+            self.screenshot()
+            if self.desktop_game_login_ready():
+                confirmed += 1
+                if confirmed >= 2:
+                    logger.info(f'[Reconnect] instance={gate.instance} prepared_at={gate.wall_clock()} '
+                                f'monotonic={gate.clock():.3f} deadline={gate.deadline:.3f}')
+                    return
+            else:
+                confirmed = 0
+                if self.appear(self.I_CHECK_MAIN) or self.appear(self.I_MAIN_BUFF):
+                    raise RequestHumanTakeover('Desktop entered a role during preparation; stop')
+            gate.sleep(0.5)
+        raise GameStuckError('Desktop preparation did not reach the game login page')
+
+    def android_game_login_ready(self, *, refresh=False):
+        """Observe entry, role and known blocking pages without any game input."""
+        if refresh:
+            self.screenshot()
+        role_names = ('I_CHECK_MAIN', 'I_MAIN_BUFF', 'I_MAIN_GOTO_SHIKIGAMI_RECORDS',
+                      'I_LOGIN_SCROOLL_OPEN', 'I_LOGIN_SCROOLL_CLOSE', 'I_LOGIN_COURTYARD')
+        popup_names = ('I_CANCEL_BATTLE', 'I_OFF_TICKET', 'I_LOGIN_GET_COUPON',
+                       'I_LOGIN_LOAD_DOWN', 'I_WATCH_VIDEO_CANCEL', 'I_LOGIN_RED_CLOSE',
+                       'I_LOGIN_YELLOW_CLOSE', 'I_CLICK_REFUSE', 'I_LOGIN_LOGIN_GOTO_BIND_PHONE',
+                       'I_CREATE_ACCOUNT', 'I_EARLY_SERVER', 'I_EARLY_SERVER_CANCEL',
+                       'I_SELECT_CHARACTER', 'I_LOGIN_SPECIFIC_SERVE')
+        roles = [name for name in role_names if self.appear(getattr(self, name))]
+        blockers = [name for name in popup_names
+                    if getattr(self, name, None) is not None and self.appear(getattr(self, name))]
+        for name in ('I_SA_ACCOUNT_LOGIN_BTN', 'I_SA_LOGIN_FORM_ANDROID'):
+            if self.appear(getattr(SwitchAccountAssets, name)):
+                blockers.append(name)
+        return self.device._reconnect_gate.inspect_android_login(
+            self.device.image, template=self.appear(self.I_LOGIN_8),
+            role_markers=roles, blocking_markers=blockers)
+
+    def android_prepare_login(self):
+        """Only observe loading; no SDK confirmation or game input before due."""
+        gate = self.device._reconnect_gate
+        deadline, confirmed, orientation_at = gate.clock() + 120, 0, float('-inf')
+        while gate.clock() <= deadline:
+            gate.checkpoint()
+            if gate.clock() - orientation_at >= 10:
+                self.device.get_orientation()
+                orientation_at = gate.clock()
+            self.screenshot()
+            confirmed = confirmed + 1 if self.android_game_login_ready() else 0
+            if confirmed >= 2:
+                logger.info(f'[Reconnect] instance={gate.instance} android_prepared_at={gate.wall_clock()} '
+                            f'monotonic={gate.clock():.3f} deadline={gate.deadline:.3f}')
+                return
+            gate.sleep(0.5)
+        raise GameStuckError('Android preparation did not reach the game login page')
+
     def _app_handle_login(self, stop_at_login: bool = False) -> bool:
         """
         普通登录最终到庭院；指定交接时在可操作的账号选择页结束。
@@ -389,12 +464,17 @@ class LoginHandler(BaseTask, RestartAssets, GameUiAssets):
         # 桌面客户端的启动、清理和三轮重建统一由 _desktop_start_and_login 管理。
         # 这里若再 stop/start，会在内部重试耗尽后留下一个从未验证的新进程。
         # 每次启动重新选择交接对象；普通切号调用方始终完整登录。
-        handoff_task = '' if account_retry else self._get_login_handoff_task()
+        reconnect = self.__dict__.get('_reconnect_mode', False)
+        handoff_task = '' if account_retry or reconnect else self._get_login_handoff_task()
         # 当前任务实例的应用重试共享保护状态；切号会新建普通 LoginHandler。
         self._login_handoff_protected = (bool(handoff_task)
                                         or self.__dict__.get('_login_handoff_protected', False))
-        attempts = 1 if self.device.is_desktop else 2
+        staged_android = bool(reconnect and not self.device.is_desktop
+                              and self.device._reconnect_gate.android_staged)
+        attempts = 1 if self.device.is_desktop or staged_android else 2
         for attempt in range(attempts):
+            if reconnect and not self.device.is_desktop and not staged_android:
+                self.device._reconnect_gate.before_attempt()
             self.device.stuck_record_clear()
             self.device.click_record_clear()
             try:
@@ -403,6 +483,8 @@ class LoginHandler(BaseTask, RestartAssets, GameUiAssets):
                     self.device.app_start()
                 # 保留普通调用签名，切号组件使用的 LoginHandler 不会启用提前结束。
                 result = self._app_handle_login(stop_at_login=True) if handoff_task else self._app_handle_login()
+                if reconnect and result is not True:
+                    raise RequestHumanTakeover('Reconnect login or character selection could not be verified')
                 if result is False:
                     # 切号调用方已有三次账号级预算，普通未识别不叠加应用重启重试。
                     if account_retry:
@@ -412,7 +494,7 @@ class LoginHandler(BaseTask, RestartAssets, GameUiAssets):
                 # 桌面分支：登录成功标记登录态，使 app_is_running 判定为已在游戏中
                 if self.device.is_desktop:
                     self.device.desktop_mark_logged_in()
-                if self.config.restart.harvest_config.enable:
+                if not reconnect and self.config.restart.harvest_config.enable:
                     self.harvest()
                 return True
             except LoginHandoffReady as ready:
@@ -424,7 +506,7 @@ class LoginHandler(BaseTask, RestartAssets, GameUiAssets):
                 return True
             except (GameNotRunningError, GameTooManyClickError, GameStuckError) as e:
                 logger.warning(e)
-                if self.device.is_desktop:
+                if self.device.is_desktop or staged_android:
                     raise
                 # 最后一轮也清理失败的游戏进程，但启动留给下一轮 try 内执行。
                 self.device.app_stop()

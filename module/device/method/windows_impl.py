@@ -22,6 +22,7 @@ from win32con import (SRCCOPY, DESKTOPHORZRES, DESKTOPVERTRES, WM_LBUTTONUP,
                       WM_CHAR, WM_KEYDOWN, WM_KEYUP, VK_RETURN)
 from win32ui import CreateDCFromHandle, CreateBitmap
 from win32api import GetSystemMetrics, SendMessage, MAKELONG, PostMessage
+from win32process import GetWindowThreadProcessId
 from win32con import SRCCOPY
 
 
@@ -30,7 +31,8 @@ from module.exception import RequestHumanTakeover, ScriptError
 from module.base.decorator import Config
 from module.base.timer import timer
 from module.logger import logger
-from module.device.handle import Handle, window_scale_rate, EmulatorFamily, dpi_awareness
+from module.device.handle import (Handle, window_scale_rate, EmulatorFamily, dpi_awareness,
+                                  DESKTOP_WINDOW_TITLES)
 from module.device.humanize.timing import PROFILE_MAX_POINTS
 
 
@@ -319,6 +321,38 @@ class Window(Handle):
                     PostMessage(self.control_handle_list[0], WM_MOUSEMOVE, MK_LBUTTON, MAKELONG(px, py))
             SendMessage(self.control_handle_list[0], WM_LBUTTONUP, 0, clickPos)
 
+    def _desktop_check_message(self, hwnd, message):
+        """Never retarget an in-flight gesture to a rebuilt/reused window."""
+        gate = getattr(self, '_reconnect_gate', None)
+        if gate is not None and (gate.pending or message in (WM_LBUTTONDOWN, WM_CHAR, WM_KEYDOWN)):
+            gate.guard_input(self)
+            if (gate.pending and gate.desktop_staged and gate.state == 'RECONNECTING'
+                    and gate.game_entry_at is None and message in (WM_CHAR, WM_KEYDOWN)):
+                raise RequestHumanTakeover('Game entry requires the verified second-layer button')
+        try:
+            valid = (hwnd == self.root_handle_num and IsWindow(hwnd)
+                     and GetWindowThreadProcessId(hwnd)[1] == self.desktop_pid()
+                     and GetWindowText(hwnd) in DESKTOP_WINDOW_TITLES)
+        except Exception:
+            valid = False
+        if not valid:
+            raise RequestHumanTakeover('Desktop input target changed; discard the old gesture')
+
+    def _desktop_post_message(self, hwnd, message, wparam, lparam):
+        self._desktop_check_message(hwnd, message)
+        gate = getattr(self, '_reconnect_gate', None)
+        entry = False
+        if gate is not None and message == WM_LBUTTONDOWN:
+            entry = bool(gate.before_game_entry(self))
+            self._desktop_check_message(hwnd, message)
+        PostMessage(hwnd, message, wparam, lparam)
+        if entry:
+            gate.record_game_entry()
+
+    def _desktop_send_message(self, hwnd, message, wparam, lparam):
+        self._desktop_check_message(hwnd, message)
+        SendMessage(hwnd, message, wparam, lparam)
+
     def desktop_message_coord(self, x, y) -> tuple:
         """把资产坐标（截图空间 1280x720）换算成窗口消息坐标。
 
@@ -365,12 +399,12 @@ class Window(Handle):
             for point, sec in dwell.segments:
                 if point is not None:
                     px, py = self.desktop_message_coord(*point)
-                    PostMessage(hwnd, WM_MOUSEMOVE, 0, MAKELONG(px, py))
+                    self._desktop_post_message(hwnd, WM_MOUSEMOVE, 0, MAKELONG(px, py))
                 time.sleep(sec)
-        PostMessage(hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lparam)
+        self._desktop_post_message(hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lparam)
         time.sleep(press_time)
-        PostMessage(hwnd, WM_LBUTTONUP, 0, lparam)
-        SendMessage(hwnd, WM_CAPTURECHANGED, 0, 0)
+        self._desktop_post_message(hwnd, WM_LBUTTONUP, 0, lparam)
+        self._desktop_send_message(hwnd, WM_CAPTURECHANGED, 0, 0)
         # 维度 F（指针语义）：UP 后漂移替换原有同坐标移动（hover 刷新）。
         # plan_pointer_tail 永不返回 None——"完全不补"会丢 hover，风险不值
         tail = humanizer.plan_pointer_tail((int(x), int(y))) if humanizer else None
@@ -378,12 +412,12 @@ class Window(Handle):
             for (px, py), dt in zip(tail.points, tail.delays):
                 time.sleep(dt)
                 qx, qy = self.desktop_message_coord(px, py)
-                PostMessage(hwnd, WM_MOUSEMOVE, 0, MAKELONG(qx, qy))
+                self._desktop_post_message(hwnd, WM_MOUSEMOVE, 0, MAKELONG(qx, qy))
             # tail 是最后实际发送的指针位置，后续移动与 idle 必须从这里开始。
             self._desktop_cursor = (int(tail.points[-1][0]), int(tail.points[-1][1]))
         else:
             # 抬起后补一次移动，让客户端刷新悬停状态
-            PostMessage(hwnd, WM_MOUSEMOVE, 0, lparam)
+            self._desktop_post_message(hwnd, WM_MOUSEMOVE, 0, lparam)
 
     def move_desktop_window_message(self, x: int, y: int) -> None:
         """桌面客户端后台鼠标移动：从上一落点沿贝塞尔轨迹移动到 (x, y)。
@@ -402,7 +436,7 @@ class Window(Handle):
 
         def post_move(px, py):
             mx, my = self.desktop_message_coord(px, py)
-            PostMessage(hwnd, WM_MOUSEMOVE, 0, MAKELONG(mx, my))
+            self._desktop_post_message(hwnd, WM_MOUSEMOVE, 0, MAKELONG(mx, my))
 
         if start is None:
             # 首次操作没有历史位置，直接跳到目标点
@@ -448,7 +482,7 @@ class Window(Handle):
         for (px, py), dt in zip(plan.points, plan.delays):
             time.sleep(dt)
             mx, my = self.desktop_message_coord(px, py)
-            PostMessage(hwnd, WM_MOUSEMOVE, 0, MAKELONG(mx, my))
+            self._desktop_post_message(hwnd, WM_MOUSEMOVE, 0, MAKELONG(mx, my))
         self._desktop_cursor = (int(plan.points[-1][0]), int(plan.points[-1][1]))
 
     @staticmethod
@@ -502,7 +536,10 @@ class Window(Handle):
             # delays[i] 是发送 points[i] 前的等待（全局契约 4）
             time.sleep(dt)
             qx, qy = self._hold_jitter_coord(px, py)
-            PostMessage(hwnd, WM_MOUSEMOVE, press_wparam, MAKELONG(qx, qy))
+            if is_desktop:
+                self._desktop_post_message(hwnd, WM_MOUSEMOVE, press_wparam, MAKELONG(qx, qy))
+            else:
+                PostMessage(hwnd, WM_MOUSEMOVE, press_wparam, MAKELONG(qx, qy))
 
     def _hold_jitter_coord(self, x, y) -> tuple:
         """hold 微颤点的消息坐标换算；模拟器入口走 window_scale_rate，
@@ -569,25 +606,25 @@ class Window(Handle):
             for point, sec in dwell.segments:
                 if point is not None:
                     px, py = self.desktop_message_coord(*point)
-                    PostMessage(hwnd, WM_MOUSEMOVE, 0, MAKELONG(px, py))
+                    self._desktop_post_message(hwnd, WM_MOUSEMOVE, 0, MAKELONG(px, py))
                 time.sleep(sec)
-        PostMessage(hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lparam)
+        self._desktop_post_message(hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lparam)
         # 维度 J：hold 期间微颤 MOVE 流替换纯 sleep（桌面指针语义，wparam=0）
         self._hold_jitter_moves(hwnd, int(x), int(y), duration, 0)
-        PostMessage(hwnd, WM_LBUTTONUP, 0, lparam)
-        SendMessage(hwnd, WM_CAPTURECHANGED, 0, 0)
+        self._desktop_post_message(hwnd, WM_LBUTTONUP, 0, lparam)
+        self._desktop_send_message(hwnd, WM_CAPTURECHANGED, 0, 0)
         # 维度 F（指针语义）：UP 后漂移替换原有同坐标移动（hover 刷新）
         tail = humanizer.plan_pointer_tail((int(x), int(y))) if humanizer else None
         if tail is not None:
             for (px, py), dt in zip(tail.points, tail.delays):
                 time.sleep(dt)
                 qx, qy = self.desktop_message_coord(px, py)
-                PostMessage(hwnd, WM_MOUSEMOVE, 0, MAKELONG(qx, qy))
+                self._desktop_post_message(hwnd, WM_MOUSEMOVE, 0, MAKELONG(qx, qy))
             # 与点击路径一致，记录 after-UP tail 的真实末点。
             self._desktop_cursor = (int(tail.points[-1][0]), int(tail.points[-1][1]))
         else:
             # 抬起后补一次移动，让客户端刷新悬停状态
-            PostMessage(hwnd, WM_MOUSEMOVE, 0, lparam)
+            self._desktop_post_message(hwnd, WM_MOUSEMOVE, 0, lparam)
 
     # @timer
     def swipe_window_message(self, startPos: list, endPos: list, duration=None) -> None:
@@ -730,7 +767,7 @@ class Window(Handle):
         # （预定位内部消费 plan_move，pointer_move 语义）
         self.move_desktop_window_message(startPos[0], startPos[1])
         start_lparam = MAKELONG(*self.desktop_message_coord(startPos[0], startPos[1]))
-        PostMessage(hwnd, WM_LBUTTONDOWN, MK_LBUTTON, start_lparam)
+        self._desktop_post_message(hwnd, WM_LBUTTONDOWN, MK_LBUTTON, start_lparam)
         # 维度 D：手势主体走最终 plan_swipe（新几何 + 恒定回报率点流）。
         # None（off/失败）回退原逐点循环。维度 I：UP 前固定 sleep(0.05) 换同均值抖动
         humanizer = self._humanizer
@@ -766,17 +803,17 @@ class Window(Handle):
             for (px, py), dt in zip(plan.points, plan.delays):
                 time.sleep(dt)
                 lparam = MAKELONG(*self.desktop_message_coord(px, py))
-                PostMessage(hwnd, WM_MOUSEMOVE, MK_LBUTTON, lparam)
+                self._desktop_post_message(hwnd, WM_MOUSEMOVE, MK_LBUTTON, lparam)
             time.sleep(final_gap)
             end_lparam = MAKELONG(*self.desktop_message_coord(endPos[0], endPos[1]))
-            PostMessage(hwnd, WM_LBUTTONUP, 0, end_lparam)
-            SendMessage(hwnd, WM_CAPTURECHANGED, 0, 0)
+            self._desktop_post_message(hwnd, WM_LBUTTONUP, 0, end_lparam)
+            self._desktop_send_message(hwnd, WM_CAPTURECHANGED, 0, 0)
             self._desktop_cursor = (int(endPos[0]), int(endPos[1]))
             return
         # 一点一点移动鼠标，最后几个点放慢，让客户端识别为拖拽而非瞬移
         for index, pos in enumerate(trace):
             lparam = MAKELONG(*self.desktop_message_coord(pos[0], pos[1]))
-            PostMessage(hwnd, WM_MOUSEMOVE, MK_LBUTTON, lparam)
+            self._desktop_post_message(hwnd, WM_MOUSEMOVE, MK_LBUTTON, lparam)
             if manual_control >= total_len - index:
                 time.sleep(0.08)
             elif duration is None:
@@ -788,8 +825,8 @@ class Window(Handle):
                                                                  per_point_delay * 0.2), 0.001))
         time.sleep(final_gap)
         end_lparam = MAKELONG(*self.desktop_message_coord(endPos[0], endPos[1]))
-        PostMessage(hwnd, WM_LBUTTONUP, 0, end_lparam)
-        SendMessage(hwnd, WM_CAPTURECHANGED, 0, 0)
+        self._desktop_post_message(hwnd, WM_LBUTTONUP, 0, end_lparam)
+        self._desktop_send_message(hwnd, WM_CAPTURECHANGED, 0, 0)
         self._desktop_cursor = (int(endPos[0]), int(endPos[1]))
 
     def input_text_desktop(self, text: str, clear: bool = False) -> None:
@@ -813,18 +850,18 @@ class Window(Handle):
         if clear:
             # 退格次数取昵称长度上限，空框时为无害空操作
             for _ in range(self.DESKTOP_CLEAR_BACKSPACE):
-                SendMessage(hwnd, WM_CHAR, 0x08, 0)
+                self._desktop_send_message(hwnd, WM_CHAR, 0x08, 0)
             time.sleep(0.05)
 
         for char in text:
             code = ord(char)
             if code == 0x0A:
                 # 换行
-                SendMessage(hwnd, WM_KEYDOWN, VK_RETURN, 0)
-                SendMessage(hwnd, WM_KEYUP, VK_RETURN, 0)
+                self._desktop_send_message(hwnd, WM_KEYDOWN, VK_RETURN, 0)
+                self._desktop_send_message(hwnd, WM_KEYUP, VK_RETURN, 0)
             else:
                 # 字符一律只发 WM_CHAR，携带真实 Unicode 码点
-                SendMessage(hwnd, WM_CHAR, code, 0)
+                self._desktop_send_message(hwnd, WM_CHAR, code, 0)
             # 逐字符小间隔，避免消息过快被客户端丢弃或乱序
             time.sleep(0.03)
 

@@ -68,6 +68,9 @@ class Control(Minitouch, Adb, Scrcpy, Window, NemuIpc):
         """
         if self._humanizer_enabled():
             self.humanizer.pace_execute()
+        gate = getattr(self, '_reconnect_gate', None)
+        if gate is not None:
+            gate.guard_input(self)
 
     def _pace_action_after(self, target=None, name=None, roi=None,
                            repeat_exempt: bool = False):
@@ -212,6 +215,11 @@ class Control(Minitouch, Adb, Scrcpy, Window, NemuIpc):
         if pace:
             self._pace_action_before()
             self._maybe_deliver_idle()
+        # Also covers settlement follow-up clicks with both checks disabled.
+        gate = getattr(self, '_reconnect_gate', None)
+        if gate is not None:
+            gate.guard_input(self)
+            gate.guard_game_entry(self, (x, y))
         # 所有档位（含 off）都刷新空闲计时基准：off 跳过 plan_idle，不消费策略
         # RNG、不产生游移，但同样更新时间戳——保证开档的首次点击 since_last ≈ 0
         self._last_action_ts = time.time()
@@ -226,7 +234,10 @@ class Control(Minitouch, Adb, Scrcpy, Window, NemuIpc):
                 method = self.click_methods.get(control_method, self.click_adb)
         else:
             method = self.click_methods.get(control_method, self.click_adb)
+        entry = bool(gate and getattr(gate, 'android_staged', False) and gate.before_game_entry(self))
         method(x, y)
+        if entry:
+            gate.record_game_entry()
         # 全操作共享 CD：操作结束打点（控件名+roi_front 优先判同一资源，
         # 坐标兜底）。连点追加击不打点：手势只在首击记一次节奏与退避
         if pace:

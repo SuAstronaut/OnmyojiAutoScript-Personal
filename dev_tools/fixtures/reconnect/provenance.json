@@ -1,0 +1,54 @@
+{
+  "desktop": {
+    "source_sha256": "7b42cacf493e2ae8e9672787bc8d099d4723b325100938a97fdef982a777a124",
+    "source_size": [
+      1136,
+      640
+    ],
+    "crop_xywh": [
+      410,
+      265,
+      315,
+      50
+    ]
+  },
+  "mumu": {
+    "source_sha256": "c0a4f63e729576a3cf317812f9c46c5fe5fa787acf5d90ec7c2f347d60ea8946",
+    "source_size": [
+      1280,
+      720
+    ],
+    "crop_xywh": [
+      460,
+      290,
+      360,
+      65
+    ]
+  },
+  "desktop_1280": {
+    "source_sha256": "7d6408d65ae62f12de76f6060f9d3d05bfa2d1ea51e410bb123fb8cdb2f4b8b4",
+    "source_size": [
+      1280,
+      720
+    ],
+    "crop_xywh": [
+      460,
+      290,
+      360,
+      65
+    ]
+  },
+  "desktop_game_login": {
+    "source_sha256": "e4d32b9a63e2c60a0e2e0331d4d39c9b9a2c12667de82eb532be6fb36b32c0f9",
+    "source_size": [
+      1280,
+      720
+    ],
+    "crop_xywh": [
+      550,
+      567,
+      176,
+      56
+    ]
+  }
+}

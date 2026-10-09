@@ -30,5 +30,12 @@
   "flow_huanxin_gift": "Huanxin Gift",
   "flow_huanxin_gift_help": "Enter the Huanxin Gift page, click Claim Reward until it disappears, then exit automatically; ends immediately if already claimed this period",
   "flow_seimei_skin": "Seimei Skin",
-  "flow_seimei_skin_help": "Enter the Seimei Skin page and complete the WeChat share, then exit automatically; scanning the QR code must be done outside OAS"
+  "flow_seimei_skin_help": "Enter the Seimei Skin page and complete the WeChat share, then exit automatically; scanning the QR code must be done outside OAS",
+  "auto_reconnect_config": "Takeover reconnect (single account only)",
+  "auto_reconnect_enable": "Enable takeover reconnect",
+  "auto_reconnect_enable_help": "Off by default. Only handles login on another device. All instance game actions wait. MultiDailyAltAcc and MultiTasks are excluded. Stop or disable to cancel. At most two login attempts.",
+  "auto_reconnect_delay_minutes": "Global reconnect delay (minutes)",
+  "auto_reconnect_delay_minutes_help": "1–1440 minutes, default 30. Starts at confirmation; all game actions in this instance wait.",
+  "foster_reconnect_delay_minutes": "Foster reconnect delay (minutes; 0 inherits)",
+  "foster_reconnect_delay_minutes_help": "0 inherits the global Restart delay; 1–1440 overrides it for single-account fostering."
 }

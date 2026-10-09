@@ -22,7 +22,7 @@ class ScriptTask(LoginHandler):
     def _get_login_handoff_task(self) -> str:
         """按当前调度顺序选择接手任务，不提前运行未来任务或越过普通任务。"""
         # 桌面客户端不支持切号，名单仅对模拟器生效，桌面继续完整登录。
-        if self.device.is_desktop:
+        if self.device.is_desktop or self.__dict__.get('_reconnect_mode', False):
             return ''
         handoff = getattr(self.config.restart, 'login_handoff_config', None)
         names = getattr(handoff, 'login_handoff_tasks', '')
@@ -53,6 +53,60 @@ class ScriptTask(LoginHandler):
     def app_stop(self):
         logger.hr('App stop')
         self.device.app_stop()
+
+    def app_reconnect(self, *, prepare_only=False):
+        """Use existing platform login boundaries without harvest or plan changes."""
+        self._reconnect_mode = True
+        if self.device.is_desktop:
+            if prepare_only and any(w['pid'] != self.device.desktop_pid()
+                                    for w in self.device.desktop_existing_candidates()):
+                raise RequestHumanTakeover('Another desktop instance is running; do not launch over it')
+            # Unlike an ordinary Restart, this client has a confirmed takeover
+            # overlay. Rebuild through the existing PID/window-aware stop path.
+            if not self.device.desktop_stop_client():
+                raise RequestHumanTakeover('Cannot close desktop client for reconnect')
+            self._desktop_start_and_login(prepare_only=prepare_only)
+        else:
+            if prepare_only:
+                gate = self.device._reconnect_gate
+                gate.checkpoint()
+                gate.before_attempt()
+                self.device.app_stop()
+                gate.checkpoint()
+                self.device.app_start()
+                self.android_prepare_login()
+            else:
+                self.device.app_stop()
+                self.app_handle_login(start_app=True)
+
+    def reconnect_status(self):
+        """Read-only observation of known game pages; no navigation or clicks."""
+        if self.device.is_desktop and self.device.find_desktop_login_popup():
+            return 'login'
+        if self.appear(self.I_LOGIN_8) or self.appear(self.I_LOGIN_SPECIFIC_SERVE):
+            return 'login'
+        popup_rules = (self.I_CANCEL_BATTLE, self.I_OFF_TICKET, self.I_LOGIN_GET_COUPON,
+                       self.I_LOGIN_LOAD_DOWN, self.I_WATCH_VIDEO_CANCEL,
+                       self.I_LOGIN_RED_CLOSE, self.I_LOGIN_YELLOW_CLOSE,
+                       self.I_CLICK_REFUSE, self.I_LOGIN_LOGIN_GOTO_BIND_PHONE)
+        if any(self.appear(rule) for rule in popup_rules):
+            return 'unknown'
+        from tasks.GameUi.game_ui import GameUi
+        from tasks.GameUi.page import page_login, page_friends
+        if '_reconnect_ui' not in self.__dict__:
+            self._reconnect_ui = GameUi(self.config, self.device)
+        ui = self._reconnect_ui
+        if ui._match_page(page_login):
+            return 'login'
+        # The friends-page marker matches through the removal confirmation's
+        # dim overlay. It cannot prove that resuming navigation is safe.
+        if ui._match_page(page_friends):
+            return 'unknown'
+        if ui._current_overlay_page() is None:
+            for page in ui.ui_pages:
+                if page.check_button and page != page_login and ui._match_page(page):
+                    return 'page:' + page.name
+        return 'unknown'
 
     def app_start(self):
         logger.hr('App start')
@@ -88,7 +142,7 @@ class ScriptTask(LoginHandler):
             # 不领取体力时保留默认重启计划；每次完成只保存一次调度时间。
             self.set_next_run(task='Restart', success=True, finish=True, server=True)
 
-    def _desktop_start_and_login(self) -> None:
+    def _desktop_start_and_login(self, *, prepare_only=False) -> None:
         """桌面模式：启动客户端并登录，客户端没起来就重建，不把异常抛给调度器。
 
         Restart 是负责启动客户端的那个任务，所以它必须自己扛住客户端起不来的情况：
@@ -98,13 +152,20 @@ class ScriptTask(LoginHandler):
         也必须在这里就地消化，不能放跑。
         因此这里就地重试：杀掉残留进程后重新走一遍启动+登录，连续失败才交人工。
         """
-        for attempt in range(1, DESKTOP_RESTART_ATTEMPTS + 1):
+        reconnect = self.__dict__.get('_reconnect_mode', False)
+        attempts = 2 if reconnect else DESKTOP_RESTART_ATTEMPTS
+        for attempt in range(1, attempts + 1):
+            if reconnect:
+                self.device._reconnect_gate.before_attempt()
             try:
                 self.device.app_start()
-                self.app_handle_login()
+                if prepare_only:
+                    self.desktop_prepare_login()
+                else:
+                    self.app_handle_login()
                 return
             except (GameNotRunningError, GameStuckError, GameTooManyClickError) as e:
-                logger.warning(f'桌面客户端启动后仍未就绪（第 {attempt}/{DESKTOP_RESTART_ATTEMPTS} 轮）: {e}')
+                logger.warning(f'桌面客户端启动后仍未就绪（第 {attempt}/{attempts} 轮）: {e}')
                 # 每轮失败都必须清掉本轮客户端，最后一轮也不例外：原来最后一轮直接 break
                 # 跳过清理，紧接着 RequestHumanTakeover 让进程退出，那个客户端就成了无主
                 # 残留（实测泄漏过一个 PID）；守护进程重启实例后又会新起一个，越积越多。
@@ -115,7 +176,7 @@ class ScriptTask(LoginHandler):
                     # 越试越乱，不如立刻停下交人工处理
                     logger.critical('桌面客户端无法关闭，残留进程会干扰重建，请手动结束该进程')
                     raise RequestHumanTakeover
-        logger.critical(f'桌面客户端连续 {DESKTOP_RESTART_ATTEMPTS} 轮启动失败，请检查客户端与机器状态')
+        logger.critical(f'桌面客户端连续 {attempts} 轮启动失败，请检查客户端与机器状态')
         raise RequestHumanTakeover
 
     def delay_pending_tasks(self) -> bool:

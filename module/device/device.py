@@ -359,7 +359,13 @@ class Device(Platform, Screenshot, Control, AppControl):
         # 结算画面关闭）时识别自然失败，不再产生按旧目标点击的过期点击
         if self._humanizer_enabled():
             self.humanizer.pace_view()
-        self.stuck_record_check()
+        gate = getattr(self, '_reconnect_gate', None)
+        takeover_check = bool(gate and gate.enabled() and gate.eligible()
+                              and gate.state in {'NORMAL', 'RECOVERED', 'SUSPECTED'})
+        reconnect_waiting = bool(gate and gate.pending and (gate.desktop_staged or gate.android_staged)
+                                 and gate.state in {'PREPARE_LOGIN', 'WAIT_AT_GAME_LOGIN'})
+        if not takeover_check and not reconnect_waiting:
+            self.stuck_record_check()
 
         # 桌面模式：窗口缺失说明客户端没在运行（空闲期被「Close emulator during wait」
         # 关掉，或客户端自己崩了）。这里只报告事实，不自己拉客户端——启动客户端、等登录
@@ -377,6 +383,12 @@ class Device(Platform, Screenshot, Control, AppControl):
         if self.handle_night_commission():
             super().screenshot()
 
+        if gate is not None:
+            gate.observe(self)
+        if takeover_check:
+            # A confirmed takeover must reach the wait gate before the legacy
+            # stuck handler can schedule an immediate Restart.
+            self.stuck_record_check()
         return self.image
 
     def release_during_wait(self):
@@ -526,7 +538,11 @@ class Device(Platform, Screenshot, Control, AppControl):
             # 不会再跑，所以校准不能只挂在初始化路径上
             self.desktop_window_set_size()
             return
-        if not self.config.script.error.handle_error:
+        gate = getattr(self, '_reconnect_gate', None)
+        reconnect = bool(gate and gate.pending and gate.enabled()
+                         and (gate.state == 'RECONNECTING'
+                              or (gate.android_staged and gate.state == 'PREPARE_LOGIN')))
+        if not self.config.script.error.handle_error and not reconnect:
             logger.critical('No app stop/start, because HandleError disabled')
             logger.critical('Please enable Alas.Error.HandleError or manually login to AzurLane')
             raise RequestHumanTakeover
@@ -541,7 +557,11 @@ class Device(Platform, Screenshot, Control, AppControl):
             if not self.desktop_stop_client():
                 logger.warning('Desktop client not released, residual process may remain')
             return
-        if not self.config.script.error.handle_error:
+        gate = getattr(self, '_reconnect_gate', None)
+        reconnect = bool(gate and gate.pending and gate.enabled()
+                         and (gate.state == 'RECONNECTING'
+                              or (gate.android_staged and gate.state == 'PREPARE_LOGIN')))
+        if not self.config.script.error.handle_error and not reconnect:
             logger.critical('No app stop/start, because HandleError disabled')
             logger.critical('Please enable Alas.Error.HandleError or manually login to AzurLane')
             raise RequestHumanTakeover

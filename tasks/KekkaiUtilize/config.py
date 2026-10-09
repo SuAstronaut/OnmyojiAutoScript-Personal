@@ -28,6 +28,9 @@ class UtilizeScheduler(Scheduler):
     failure_interval: TimeDelta = Field(default=TimeDelta(hours=6), description='failure_interval_help')
 
 class UtilizeConfig(BaseModel):
+    # WebUI uses scalar defaults; 0 represents an unset override.
+    foster_reconnect_delay_minutes: int = Field(default=0, ge=0, le=1440,
+                                               description='foster_reconnect_delay_minutes_help')
     utilize_rule: UtilizeRule = Field(default=UtilizeRule.TAIKO, description='utilize_rule_help')
     select_friend_list: SelectFriendList = Field(default=SelectFriendList.SAME_SERVER, description='select_friend_list_help')
     # 按配置顺序优先搜索指定好友，空字符串表示关闭该流程

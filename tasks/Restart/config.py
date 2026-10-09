@@ -43,6 +43,12 @@ class LoginHandoffConfig(BaseModel):
     login_handoff_tasks: MultiLine = Field(default="", description='login_handoff_tasks_help')
 
 
+class AutoReconnectConfig(BaseModel):
+    auto_reconnect_enable: bool = Field(default=False, description='auto_reconnect_enable_help')
+    auto_reconnect_delay_minutes: int = Field(default=30, ge=1, le=1440,
+                                             description='auto_reconnect_delay_minutes_help')
+
+
 class Restart(ConfigBase):
     scheduler: RestartScheduler = Field(default_factory=RestartScheduler)
     tasks_config_reset: TasksReset = Field(default_factory=TasksReset)
@@ -50,3 +56,4 @@ class Restart(ConfigBase):
     login_character_config: LoginCharacterConfig = Field(default_factory=LoginCharacterConfig)
     # 使用任务名配置，不依赖某个多账号任务的专属实现。
     login_handoff_config: LoginHandoffConfig = Field(default_factory=LoginHandoffConfig)
+    auto_reconnect_config: AutoReconnectConfig = Field(default_factory=AutoReconnectConfig)
