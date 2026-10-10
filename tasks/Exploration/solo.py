@@ -6,6 +6,7 @@ from cached_property import cached_property
 
 from module.logger import logger
 from module.base.timer import Timer
+from module.exception import GameStuckError
 from script import Script 
 from tasks.Component.GeneralInvite.config_invite import InviteConfig, InviteNumber, FindMode
 from tasks.Component.GeneralInvite.general_invite import find_cross_region_first
@@ -56,7 +57,28 @@ class SoloExploration(BaseExploration):
                 if self.check_exit():
                     break
 
-                self.ui_click(self.I_E_EXPLORATION_CLICK, stop=self.I_E_MAIN_FLAG)
+                entry_timer = Timer(15).start()
+                if not self.ui_click(self.I_E_EXPLORATION_CLICK, stop=self.I_E_MAIN_FLAG, timeout=15):
+                    elapsed = entry_timer.current()
+                    last_frame = {
+                        name: self.appear(rule) for name, rule in (
+                            ('main_flag', self.I_E_MAIN_FLAG),
+                            ('settings', self.I_E_SETTINGS_BUTTON),
+                            ('auto_rotate_on', self.I_E_AUTO_ROTATE_ON),
+                            ('auto_rotate_off', self.I_E_AUTO_ROTATE_OFF),
+                            ('entrance_button', self.I_E_EXPLORATION_CLICK),
+                            ('entrance_title', self.I_E_ENTRANCE),
+                            ('world', self.I_CHECK_EXPLORATION),
+                        )
+                    }
+                    current_scene = self.get_current_scene()
+                    logger.warning(
+                        f'Exploration entry timeout after {elapsed:.1f}s: '
+                        f'scene={current_scene.name}, last_frame={last_frame}, '
+                        f'main_flag_threshold={self.I_E_MAIN_FLAG.threshold}, '
+                        f'main_flag_roi={self.I_E_MAIN_FLAG.roi_back}'
+                    )
+                    raise GameStuckError('Exploration entry timed out before MAIN_FLAG confirmation')
                 explore_init = False
                 continue
             #

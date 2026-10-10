@@ -126,7 +126,7 @@ class ExplorationAssets:
 	# description 
 	I_E_CLICK_ANY = RuleImage(roi_front=(540,508,213,27), roi_back=(0,0,1280,720), threshold=0.8, method="Template matching", file="./tasks/Exploration/res/e_click_any.png")
 	# description 
-	I_E_MAIN_FLAG = RuleImage(roi_front=(992,599,181,23), roi_back=(747,545,527,95), threshold=0.7, method="Template matching", file="./tasks/Exploration/res/e_main_flag.png")
+	I_E_MAIN_FLAG = RuleImage(roi_front=(992,596,85,22), roi_back=(747,545,527,95), threshold=0.7, method="Template matching", file="./tasks/Exploration/res/e_main_flag.png")
 	# description 
 	I_E_MAIN_SUSHI = RuleImage(roi_front=(567,204,150,34), roi_back=(256,94,797,494), threshold=0.7, method="Template matching", file="./tasks/Exploration/res/e_main_sushi.png")
 	# description 

@@ -244,7 +244,7 @@
   },
   {
     "itemName": "e_main_flag",
-    "roiFront": "992,599,181,23",
+    "roiFront": "992,596,85,22",
     "roiBack": "747,545,527,95",
     "description": "description",
     "imageName": "e_main_flag.png",
