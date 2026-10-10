@@ -72,6 +72,8 @@ class ImageExtractor:
                     f'threshold={item["threshold"]}, ' \
                     f'method="{item["method"]}", ' \
                     f'file="./{self.image_path}/{item["imageName"]}")\n'
+        if item.get('guard'):
+            name = name.rstrip('\n')[:-1] + f', guard={item["guard"]!r})\n'
         return description + name
 
 

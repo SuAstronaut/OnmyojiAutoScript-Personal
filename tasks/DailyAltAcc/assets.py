@@ -191,10 +191,10 @@ class DailyAltAccAssets:
 	I_M_MAIN_TO_MAIL = RuleImage(roi_front=(1135,31,41,31), roi_back=(1114,3,82,89), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/mail/mail_m_main_to_mail.png")
 	# 领取邮件 
 	I_M_GET_MAIL = RuleImage(roi_front=(65,575,87,66), roi_back=(61,563,98,92), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/mail/mail_m_get_mail.png")
-	# description 
-	I_M_PAGE_GET = RuleImage(roi_front=(554,48,195,51), roi_back=(539,33,225,88), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/mail/mail_m_page_get.png")
-	# description 
-	I_M_ENSURE_GET = RuleImage(roi_front=(737,553,76,40), roi_back=(698,550,151,52), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/mail/mail_m_ensure_get.png")
+	# 邮件全部领取标题，仅截取固定文字
+	I_M_PAGE_GET = RuleImage(roi_front=(544,58,167,46), roi_back=(539,33,225,88), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/mail/mail_m_page_get.png")
+	# 邮件全部领取专属标题与原有确定按钮
+	I_M_ENSURE_GET = RuleImage(roi_front=(737,553,76,40), roi_back=(698,550,151,52), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/mail/mail_m_ensure_get.png", guard={'roi_front': [544, 58, 167, 46], 'roi_back': [539, 33, 225, 88], 'threshold': 0.9, 'method': 'Template matching', 'file': './tasks/DailyAltAcc/mail/mail_m_page_get.png'})
 	# 奖励 
 	I_M_AWARD = RuleImage(roi_front=(476,193,328,42), roi_back=(381,100,551,178), threshold=0.7, method="Template matching", file="./tasks/DailyAltAcc/mail/mail_m_award.png")
 	# description 
@@ -217,8 +217,8 @@ class DailyAltAccAssets:
 	# Image Rule Assets
 	# description 
 	I_MS_REFRESH = RuleImage(roi_front=(1172,589,103,31), roi_back=(1135,501,144,135), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/mshop/mshop_ms_refresh.png")
-	# description 
-	I_MS_ENSURE = RuleImage(roi_front=(718,408,81,43), roi_back=(684,404,155,56), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/mshop/mshop_ms_ensure.png")
+	# 神秘商店刷新消耗5勾玉专属正文与原有确定按钮
+	I_MS_ENSURE = RuleImage(roi_front=(718,408,81,43), roi_back=(684,404,155,56), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/mshop/mshop_ms_ensure.png", guard={'roi_front': [450, 295, 380, 45], 'roi_back': [446, 291, 388, 53], 'threshold': 0.9, 'method': 'Template matching', 'file': './tasks/DailyAltAcc/mshop/mshop_ms_refresh_dialog.png'})
 	# 大蛇的逆鳞。搜索区为货架总区域，只允许 match_all_any 多点匹配 
 	I_MS_OROCHI_SCALE = RuleImage(roi_front=(884,143,50,59), roi_back=(139,107,886,454), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/mshop/mshop_ms_orochi_scale.png")
 	# 逢魔之魂。搜索区为货架总区域，只允许 match_all_any 多点匹配 
@@ -386,4 +386,6 @@ class DailyAltAccAssets:
 	# description 
 	O_CLICK_SKILL = RuleOcr(roi=(998,617,251,26), area=(0,0,100,100), mode="Single", method="Default", keyword="", name="click_skill")
 
+	# 新版邮件批量奖励固定标题，保留其他奖励模板
+	I_M_BATCH_AWARD = RuleImage(roi_front=(519,116,239,65), roi_back=(511,108,255,81), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/mail/mail_m_batch_award.png")
 

@@ -20,11 +20,11 @@
   {
     "itemName": "m_page_get",
     "imageName": "mail_m_page_get.png",
-    "roiFront": "554,48,195,51",
+    "roiFront": "544,58,167,46",
     "roiBack": "539,33,225,88",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
+    "description": "邮件全部领取标题，仅截取固定文字"
   },
   {
     "itemName": "m_ensure_get",
@@ -33,7 +33,24 @@
     "roiBack": "698,550,151,52",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
+    "description": "邮件全部领取专属标题与原有确定按钮",
+    "guard": {
+      "roi_front": [
+        544,
+        58,
+        167,
+        46
+      ],
+      "roi_back": [
+        539,
+        33,
+        225,
+        88
+      ],
+      "threshold": 0.9,
+      "method": "Template matching",
+      "file": "./tasks/DailyAltAcc/mail/mail_m_page_get.png"
+    }
   },
   {
     "itemName": "m_award",
@@ -88,5 +105,14 @@
     "imageName": "mail_m_back_red.png",
     "method": "Template matching",
     "threshold": "0.7"
+  },
+  {
+    "itemName": "m_batch_award",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "新版邮件批量奖励固定标题，保留其他奖励模板",
+    "imageName": "mail_m_batch_award.png",
+    "roiFront": "519,116,239,65",
+    "roiBack": "511,108,255,81"
   }
 ]

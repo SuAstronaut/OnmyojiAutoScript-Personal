@@ -17,7 +17,7 @@ from module.device.humanize import get_current_humanizer
 class RuleImage(RuleImageMallResourceMixin):
     debug_mode: bool = False
 
-    def __init__(self, roi_front: tuple, roi_back: tuple, method: str, threshold: float, file: str) -> None:
+    def __init__(self, roi_front: tuple, roi_back: tuple, method: str, threshold: float, file: str, guard: dict = None) -> None:
         """
         初始化
         :param roi_front: 前置roi
@@ -36,6 +36,9 @@ class RuleImage(RuleImageMallResourceMixin):
         self.roi_back = roi_back
         self.threshold = threshold
         self.file = file
+        # Only opt-in dialog assets require a separate, specific title match.
+        # The guard never changes the button ROI used by coord().
+        self.guard = RuleImage(**guard) if guard else None
 
 
 
@@ -144,6 +147,8 @@ class RuleImage(RuleImageMallResourceMixin):
         :param image:
         :return:
         """
+        if self.guard is not None and not self.guard.match(image):
+            return False
         if threshold is None:
             threshold = self.threshold
 

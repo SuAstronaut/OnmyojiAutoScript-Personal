@@ -103,8 +103,8 @@ class GeneralBattleAssets:
 	I_STATISTICS = RuleImage(roi_front=(70,630,33,28), roi_back=(35,28,411,661), threshold=0.8, method="Template matching", file="./tasks/Component/GeneralBattle/gb/gb_statistics.png")
 	# 左上角的退出 
 	I_EXIT = RuleImage(roi_front=(14,12,43,41), roi_back=(14,12,43,41), threshold=0.8, method="Template matching", file="./tasks/Component/GeneralBattle/gb/gb_exit.png")
-	# 退出确认 
-	I_EXIT_ENSURE = RuleImage(roi_front=(713,410,60,29), roi_back=(661,371,155,100), threshold=0.8, method="Template matching", file="./tasks/Component/GeneralBattle/gb/exit_ensure.png")
+	# 退出战斗专属标题与确定按钮，1280x720双端截图
+	I_EXIT_ENSURE = RuleImage(roi_front=(720,418,70,39), roi_back=(661,371,155,100), threshold=0.8, method="Template matching", file="./tasks/Component/GeneralBattle/gb/exit_ensure.png", guard={'roi_front': [537, 302, 209, 31], 'roi_back': [533, 298, 217, 39], 'threshold': 0.9, 'method': 'Template matching', 'file': './tasks/Component/GeneralBattle/gb/exit_dialog.png'})
 	# 左上角好友图标 
 	I_FRIENDS = RuleImage(roi_front=(89,14,36,36), roi_back=(89,14,36,36), threshold=0.8, method="Template matching", file="./tasks/Component/GeneralBattle/gb/gb_friends.png")
 	# 结算时左下角统计图标 

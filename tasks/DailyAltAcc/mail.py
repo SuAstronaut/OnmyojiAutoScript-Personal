@@ -1,6 +1,7 @@
 # This Python file uses the following encoding: utf-8
 import time
 from module.logger import logger
+from module.atom.click import RuleClick
 from tasks.GameUi.assets import GameUiAssets
 from tasks.Restart.assets import RestartAssets
 from tasks.GameUi.page import page_main
@@ -46,6 +47,10 @@ class Mail(DailyAltAccBase):
             self.screenshot()
             if self.appear(GameUiAssets.I_CHECK_MAIN) or self.appear(self.I_M_MAIN_TO_MAIL):
                 break
+            if self.appear_then_click(self.I_M_BATCH_AWARD,
+                                      action=RuleClick((940,560,120,40), (940,560,120,40),
+                                                       name="mail_batch_award_close"), interval=1):
+                continue
             if self.get_award_daliy():
                 continue
             if self.appear_then_click(self.I_M_ENSURE_GET, interval=1):

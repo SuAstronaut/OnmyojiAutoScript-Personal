@@ -22,6 +22,7 @@ from module.base.timer import Timer
 from module.exception import (GameNotRunningError, GamePageUnknownError)
 from module.logger import logger
 from tasks.Component.GeneralBattle.assets import GeneralBattleAssets
+from tasks.Component.GeneralInvite.assets import GeneralInviteAssets
 from tasks.GameUi.assets import GameUiAssets
 from tasks.GameUi.page import Page, PageRegistry, page_login, page_main, random_click,page_mall,page_shikigami_records,page_onmyodo,page_friends,page_guild,page_team,page_collection,page_travel,page_daily,page_theme
 from tasks.Restart.assets import RestartAssets
@@ -48,7 +49,8 @@ class _NavigationPageChanged(Exception):
 
 class GameUi(BaseTask, GameUiAssets):
     ui_current: Page = None
-    ui_close = [GameUiAssets.I_BACK_MALL, GeneralBattleAssets.I_CONFIRM,
+    ui_close = [GeneralInviteAssets.I_GI_EXIT_ENSURE,
+                GameUiAssets.I_BACK_MALL, GeneralBattleAssets.I_CONFIRM,
                 BaseTask.I_UI_BACK_RED, BaseTask.I_UI_BACK_YELLOW,
                 GameUiAssets.I_BACK_FRIENDS, GameUiAssets.I_BACK_DAILY,
                 GameUiAssets.I_REALM_RAID_GOTO_EXPLORATION,

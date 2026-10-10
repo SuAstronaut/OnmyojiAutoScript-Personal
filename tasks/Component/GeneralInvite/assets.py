@@ -132,4 +132,6 @@ class GeneralInviteAssets:
 	# Ocr-description 
 	O_ONLINE = RuleOcr(roi=(790,102,124,42), area=(0,0,100,100), mode="Single", method="Default", keyword="", name="online")
 
+	# 退出组队面板专属标题，复用战斗确定字样
+	I_GI_EXIT_ENSURE = RuleImage(roi_front=(720,418,70,39), roi_back=(661,371,155,100), threshold=0.8, method="Template matching", file="./tasks/Component/GeneralInvite/gi/../../GeneralBattle/gb/exit_ensure.png", guard={'roi_front': [510, 302, 260, 31], 'roi_back': [506, 298, 268, 39], 'threshold': 0.9, 'method': 'Template matching', 'file': './tasks/Component/GeneralInvite/gi/gi_exit_dialog.png'})
 

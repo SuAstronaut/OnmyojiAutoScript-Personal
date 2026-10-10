@@ -394,5 +394,31 @@
     "method": "Template matching",
     "threshold": 0.7,
     "description": "description"
+  },
+  {
+    "itemName": "gi_exit_ensure",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "退出组队面板专属标题，复用战斗确定字样",
+    "imageName": "../../GeneralBattle/gb/exit_ensure.png",
+    "roiFront": "720,418,70,39",
+    "roiBack": "661,371,155,100",
+    "guard": {
+      "roi_front": [
+        510,
+        302,
+        260,
+        31
+      ],
+      "roi_back": [
+        506,
+        298,
+        268,
+        39
+      ],
+      "threshold": 0.9,
+      "method": "Template matching",
+      "file": "./tasks/Component/GeneralInvite/gi/gi_exit_dialog.png"
+    }
   }
 ]

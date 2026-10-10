@@ -13,6 +13,7 @@ from module.atom.ocr import RuleOcr
 from module.atom.image import RuleImage
 from tasks.base_task import BaseTask
 from module.logger import logger
+from tasks.Component.GeneralInvite.assets import GeneralInviteAssets
 from module.base.timer import Timer
 
 
@@ -105,10 +106,12 @@ class GeneralRoom(BaseTask, GeneralRoomAssets):
         在组队界面 退出组队的界面， 返回到庭院或者是你一开始进入的入口
         :return:
         """
-        if self.appear(self.I_CHECK_TEAM):
+        if self.appear(self.I_CHECK_TEAM) or self.appear(GeneralInviteAssets.I_GI_EXIT_ENSURE):
             logger.info('Exit team ui')
             while 1:
                 self.screenshot()
+                if self.appear_then_click(GeneralInviteAssets.I_GI_EXIT_ENSURE, interval=0.8):
+                    continue
                 if not self.appear(self.I_CHECK_TEAM):
                     return True
                 if self.appear_then_click(self.I_GR_BACK_YELLOW, interval=0.5):

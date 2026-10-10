@@ -15,7 +15,24 @@
     "roiBack": "684,404,155,56",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "description"
+    "description": "神秘商店刷新消耗5勾玉专属正文与原有确定按钮",
+    "guard": {
+      "roi_front": [
+        450,
+        295,
+        380,
+        45
+      ],
+      "roi_back": [
+        446,
+        291,
+        388,
+        53
+      ],
+      "threshold": 0.9,
+      "method": "Template matching",
+      "file": "./tasks/DailyAltAcc/mshop/mshop_ms_refresh_dialog.png"
+    }
   },
   {
     "itemName": "ms_orochi_scale",

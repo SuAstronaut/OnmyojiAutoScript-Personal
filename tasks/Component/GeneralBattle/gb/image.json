@@ -155,11 +155,28 @@
   {
     "itemName": "exit_ensure",
     "imageName": "exit_ensure.png",
-    "roiFront": "713,410,60,29",
+    "roiFront": "720,418,70,39",
     "roiBack": "661,371,155,100",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "退出确认"
+    "description": "退出战斗专属标题与确定按钮，1280x720双端截图",
+    "guard": {
+      "roi_front": [
+        537,
+        302,
+        209,
+        31
+      ],
+      "roi_back": [
+        533,
+        298,
+        217,
+        39
+      ],
+      "threshold": 0.9,
+      "method": "Template matching",
+      "file": "./tasks/Component/GeneralBattle/gb/exit_dialog.png"
+    }
   },
   {
     "itemName": "friends",
