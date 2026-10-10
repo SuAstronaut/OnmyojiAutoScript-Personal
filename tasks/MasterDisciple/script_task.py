@@ -17,7 +17,9 @@ from tasks.BondlingFairyland.assets import BondlingFairylandAssets
 from tasks.Component.GeneralRoom.general_room import GeneralRoom
 from tasks.Component.SwitchSoul.switch_soul import SwitchSoul
 # 探索协战存证共用次数加载校验和庭院重试，避免单独入口仍保存未加载界面。
-from tasks.Component.SwitchHelpShikigami.switch_help_shikigami import capture_friend_help_image
+from tasks.Component.SwitchHelpShikigami.switch_help_shikigami import (
+    capture_friend_help_image, locate_help_shikigami_anchor,
+)
 from tasks.GameUi.game_ui import GameUi
 from tasks.GameUi.page import page_main, page_team, page_shikigami_records, page_exploration,page_youki, page_mall
 from tasks.MasterDisciple.assets import MasterDiscipleAssets
@@ -1769,24 +1771,14 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralRoom, SwitchSoul, GameUi, 
         没有该标签时（09-01 师徒日志实测出现过两帧缺失），单字降级会误中
         "9999991" 等垃圾串，锚点偏移导致援助式神未上场、好友协战不计数
         （同心场景 09-01 角色A / 09-06 角色B 两次事故同因）。
-        这里改为直接遍历 OCR 候选，严格按 \\d+/15 匹配协战标签（坐标换算
-        与 Full.ocr_full 保持一致），匹配不到返回 [0,0,0,0] 交给调用方
-        按锚点丢失处理，不再有降级误匹配面。与 DailyAltAcc/alliedteam.py
-        的同名方法同源同步。
+        这里先在 find_shikigami_help 自身 ROI 内找到 15，再按每个候选坐标
+        分别复核完整 N/15；匹配不到返回 [0,0,0,0] 交给调用方按锚点丢失
+        处理，不使用固定备用扫描区。与 DailyAltAcc/alliedteam.py 的同名
+        方法同源同步。
         """
-        ocr_obj = self.O_FIND_SHIKIGAMI_HELP
-        try:
-            boxed_results = ocr_obj.detect_and_ocr(self.device.image)
-        except Exception:
-            logger.exception('援助式神锚点 OCR 失败，按未识别处理')
-            return [0, 0, 0, 0]
-        for result in boxed_results:
-            if re.search(r'\d+/15', result.ocr_text):
-                # detect_and_ocr 的 box 坐标相对 roi 裁剪图，需加回 roi 偏移
-                box = result.box
-                return [box[0][0] + ocr_obj.roi[0], box[0][1] + ocr_obj.roi[1],
-                        box[1][0] - box[0][0], box[2][1] - box[0][1]]
-        return [0, 0, 0, 0]
+        roi, _count = locate_help_shikigami_anchor(
+            self.O_FIND_SHIKIGAMI_HELP, self.device.image)
+        return roi
 
     def _disciple_exploration_battle_before(self, buff: BuffClass | list[BuffClass],
                                               config: GeneralBattleConfig, timeout: float = 10) -> bool:

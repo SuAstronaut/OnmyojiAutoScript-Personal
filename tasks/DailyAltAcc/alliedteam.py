@@ -21,6 +21,7 @@ from tasks.Component.GeneralRoom.general_room import GeneralRoom
 from tasks.Component.SwitchHelpShikigami.switch_help_shikigami import (
     build_help_screenshot_name, capture_friend_help_image, capture_completed_help_image,
     parse_help_count, sync_help_battle_target, HelpTargetReached,
+    locate_help_shikigami_anchor,
 )
 from tasks.DailyAltAcc.stat_log import StatEvent
 from tasks.Plotline.assets import PlotlineAssets
@@ -458,26 +459,16 @@ class Alliedteam(GeneralBattle, GeneralRoom, DailyAltAccBase):
         正确所以平时能用。但候选列表里没有该标签时（09-01 角色A、09-06 角色B
         两次事故），单字降级会误中 "9999991" 等垃圾串，锚点偏移 500+px，
         从错误位置滑动导致援助式神未上场、全天 13 场好友协战 0 计数。
-        这里改为直接遍历 OCR 候选，严格按 \\d+/15 匹配协战标签（坐标换算
-        与 Full.ocr_full 保持一致），匹配不到返回 [0,0,0,0] 交给调用方
-        按锚点丢失处理，不再有降级误匹配面。
+        这里先在 find_shikigami_help 自身 ROI 内找到 15，再按每个候选坐标
+        分别复核完整 N/15；匹配不到返回 [0,0,0,0] 交给调用方按锚点
+        丢失处理，不使用固定备用扫描区。
         """
-        ocr_obj = MasterDiscipleAssets.O_FIND_SHIKIGAMI_HELP
-        try:
-            boxed_results = ocr_obj.detect_and_ocr(self.device.image)
-        except Exception:
-            logger.exception('同心援助式神锚点 OCR 失败，按未识别处理')
-            return [0, 0, 0, 0]
-        for result in boxed_results:
-            count = parse_help_count(result.ocr_text)
-            if count is not None:
-                # 读取锚点时同步剩余场数；非协战分支不会改动场次目标。
-                sync_help_battle_target(self, count)
-                # detect_and_ocr 的 box 坐标相对 roi 裁剪图，需加回 roi 偏移
-                box = result.box
-                return [box[0][0] + ocr_obj.roi[0], box[0][1] + ocr_obj.roi[1],
-                        box[1][0] - box[0][0], box[2][1] - box[0][1]]
-        return [0, 0, 0, 0]
+        roi, count = locate_help_shikigami_anchor(
+            MasterDiscipleAssets.O_FIND_SHIKIGAMI_HELP, self.device.image)
+        if count is not None:
+            # 读取锚点时同步剩余场数；非协战分支不会改动场次目标。
+            sync_help_battle_target(self, count)
+        return roi
 
     def battle_before(self, buff: BuffClass | list[BuffClass], config: GeneralBattleConfig, timeout: float = 5) -> bool:
         """战斗前设置

@@ -15,9 +15,12 @@
 """
 import random
 import re
+import math
+import cv2
 from datetime import datetime
 from pathlib import Path
 from time import sleep
+from types import SimpleNamespace
 
 from module.atom.ocr import RuleOcr
 from module.base.timer import Timer
@@ -45,8 +48,167 @@ class HelpTargetReached(Exception):
 
 def parse_help_count(text: str) -> int | None:
     """只接受完整的 0~15/15，避免孤立数字及 13/150 被当作有效读数。"""
-    match = re.search(r'(?<!\d)([0-9]|1[0-5])\s*[/／]\s*15(?!\d)', text)
-    return int(match.group(1)) if match else None
+    matches = list(re.finditer(r'(?<![\d/+-])([0-9]|1[0-5])/15(?![\d/])',
+                               _normalize_help_text(text)))
+    # 多个标签不能替调用方选第一个；缺斜杠只能进入候选复核。
+    return int(matches[0].group(1)) if len(matches) == 1 else None
+
+
+def _normalize_help_text(text: str, compact: bool = True) -> str:
+    normalized = str(text or '').translate(str.maketrans({
+        'I': '1', 'l': '1', 'S': '5', 's': '5', 'O': '0', 'o': '0', '／': '/',
+    }))
+    return re.sub(r'\s+', '', normalized) if compact else normalized
+
+
+def _help_text_has_total_15(text: str) -> bool:
+    normalized = _normalize_help_text(text)
+    if normalized in ('15', '/15') or re.fullmatch(r'(?:[0-9]|1[0-5])/15', normalized):
+        return True
+    prefix = normalized[:-2] if normalized.endswith('15') else ''
+    return bool(prefix and len(prefix) <= 2 and prefix.isdigit() and int(prefix) <= 15)
+
+
+def _result_xywh(result, roi) -> list[int] | None:
+    try:
+        points = [(float(point[0]), float(point[1])) for point in result.box]
+        if len(points) < 4 or not all(math.isfinite(value) for point in points for value in point):
+            return None
+        x0, y0 = min(p[0] for p in points), min(p[1] for p in points)
+        x1, y1 = max(p[0] for p in points), max(p[1] for p in points)
+        box = [round(x0 + roi[0]), round(y0 + roi[1]), round(x1 - x0), round(y1 - y0)]
+        return box if box[2] > 0 and box[3] > 0 else None
+    except (AttributeError, TypeError, IndexError, ValueError):
+        return None
+
+
+def _iter_help_candidates(result):
+    """单标签直接定位；合并行拆成候选，但不从合并文本采信次数。"""
+    normalized = _normalize_help_text(result.ocr_text)
+    if _help_text_has_total_15(normalized):
+        yield result, parse_help_count(normalized)
+        return
+    box = _result_xywh(result, (0, 0))
+    if box is None or not normalized:
+        return
+    normalized = _normalize_help_text(result.ocr_text, compact=False)
+    for match in re.finditer(r'(?:1[0-5]|[0-9])\s*/\s*15(?![0-9/])', normalized):
+        x, y, width, height = box
+        left = x + width * match.start() / len(normalized)
+        right = x + width * match.end() / len(normalized)
+        yield SimpleNamespace(ocr_text=match.group(),
+                              box=[[left, y], [right, y], [right, y + height], [left, y + height]]), parse_help_count(match.group())
+
+
+def _confirmed_probe_result(results, probe):
+    """只合并同一行相邻的数字碎片，拒绝跨行、跨卡片或多个完整标签。"""
+    tokens = []
+    for result in results:
+        text = _normalize_help_text(result.ocr_text)
+        box = _result_xywh(result, (0, 0))
+        try:
+            score = float(getattr(result, 'score', 1))
+        except (TypeError, ValueError):
+            continue
+        if (box is None or not math.isfinite(score) or score < 0.8
+                or not re.fullmatch(r'[0-9/]{1,6}', text)):
+            continue
+        x, y, width, height = box
+        if x < 0 or y < 0 or x + width > probe[2] or y + height > probe[3]:
+            continue
+        tokens.append((box, text))
+    tokens.sort(key=lambda item: (item[0][0], item[0][1]))
+    groups = []
+    for box, text in tokens:
+        for group in groups:
+            previous = group[-1][0]
+            overlap = min(previous[1] + previous[3], box[1] + box[3]) - max(previous[1], box[1])
+            gap = box[0] - previous[0] - previous[2]
+            if overlap >= min(previous[3], box[3]) * 0.5 and 0 <= gap <= max(8, box[3] * 0.5):
+                group.append((box, text))
+                break
+        else:
+            groups.append([(box, text)])
+    confirmed = []
+    for group in groups:
+        text = ''.join(item[1] for item in group)
+        if not re.fullmatch(r'(?:[0-9]|1[0-5])/15', text):
+            continue
+        x0, y0 = min(item[0][0] for item in group), min(item[0][1] for item in group)
+        x1 = max(item[0][0] + item[0][2] for item in group)
+        y1 = max(item[0][1] + item[0][3] for item in group)
+        confirmed.append((parse_help_count(text), [probe[0] + x0, probe[1] + y0, x1 - x0, y1 - y0]))
+    return confirmed[0] if len(confirmed) == 1 else (None, None)
+
+
+def _probe_help_count(image, anchor, anchor_roi):
+    box = _result_xywh(anchor, anchor_roi)
+    if box is None:
+        return None, None
+    text = _normalize_help_text(anchor.ocr_text)
+    suffix = text.rfind('15')
+    if suffix < 0:
+        return None, None
+    x, y, width, height = box
+    # 沿用上游的窄窗口和垂直微调；不得返回超出窗口的检测框。
+    x += round(width * suffix / max(1, len(text)))
+    frame_height, frame_width = image.shape[:2]
+    for offset in (0, -4, 4):
+        px, py = max(0, x - 44), max(0, y + offset)
+        probe = (px, py, min(104, frame_width - px), min(36, frame_height - py))
+        if probe[2] <= 0 or probe[3] <= 0:
+            continue
+        rule = RuleOcr(roi=probe, area=probe, mode='Full', method='Default',
+                       keyword='', name='find_shikigami_help_probe')
+        try:
+            count, roi = _confirmed_probe_result(rule.detect_and_ocr(image), probe)
+        except Exception:
+            logger.exception('协战次数候选二次 OCR 失败，等待新截图')
+            continue
+        if count is not None:
+            return count, roi
+    return None, None
+
+
+def _detect_help_results(ocr_obj, image):
+    results = ocr_obj.detect_and_ocr(image)
+    if any(list(_iter_help_candidates(result)) for result in results):
+        return results
+    x, y, width, height = map(int, ocr_obj.roi)
+    crop = image[y:y + height, x:x + width]
+    if crop.size == 0:
+        return results
+    scale = 4
+    enlarged = cv2.resize(crop, (width * scale, height * scale), interpolation=cv2.INTER_NEAREST)
+    gray = cv2.cvtColor(enlarged, cv2.COLOR_RGB2GRAY)
+    binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+    enhanced = cv2.cvtColor(binary, cv2.COLOR_GRAY2RGB)
+    rule = RuleOcr(roi=(0, 0, width * scale, height * scale),
+                   area=(0, 0, width * scale, height * scale), mode='Full',
+                   method='Default', keyword='', name='find_shikigami_help_enhanced')
+    mapped = []
+    for result in rule.detect_and_ocr(enhanced):
+        if _result_xywh(result, (0, 0)) is not None:
+            mapped.append(SimpleNamespace(ocr_text=result.ocr_text, score=getattr(result, 'score', 1),
+                                          box=[[float(p[0]) / scale, float(p[1]) / scale] for p in result.box]))
+    return mapped
+
+
+def locate_help_shikigami_anchor(ocr_obj, image) -> tuple[list[int], int | None]:
+    """只有局部复核通过才返回读数；失败或冲突不退回首轮猜测。"""
+    try:
+        results = _detect_help_results(ocr_obj, image)
+        confirmed = {}
+        for result in results:
+            for candidate, initial in _iter_help_candidates(result):
+                count, roi = _probe_help_count(image, candidate, ocr_obj.roi)
+                if count is not None and (initial is None or initial == count or (initial == 10 and count == 0)):
+                    confirmed[(tuple(roi), count)] = (roi, count)
+        if len(confirmed) == 1:
+            return next(iter(confirmed.values()))
+    except Exception:
+        logger.exception('援助式神锚点 OCR 失败，等待新截图')
+    return [0, 0, 0, 0], None
 
 
 def sync_help_battle_target(task, count: int) -> None:
@@ -191,26 +353,16 @@ class SwitchHelpShikigami(SwitchHelpShikigamiAssets):
         "N/15" 标签——位置碰巧正确所以平时能用。但候选列表里没有该标签时
         （09-01 角色A、09-06 角色B 两次事故），单字降级会误中 "9999991" 等垃圾串，
         锚点偏移 500+px，从错误位置滑动导致援助式神未上场、全天场次好友协战 0 计数。
-        这里改为直接遍历 OCR 候选，严格按 \\d+/15 匹配协战标签（坐标换算
-        与 Full.ocr_full 保持一致，见 module/ocr/sub_ocr.py），匹配不到返回
-        [0,0,0,0] 交给调用方按锚点丢失处理，不再有降级误匹配面。
+        这里先在 find_shikigami_help 自身 ROI 内遍历包含 15 的 OCR 候选，
+        再以每个候选的 15 坐标逐个缩小区域复核完整 N/15；匹配不到返回
+        [0,0,0,0] 交给调用方按锚点丢失处理，不再使用固定备用扫描区。
         """
-        ocr_obj = self.O_FIND_SHIKIGAMI_HELP
-        try:
-            boxed_results = ocr_obj.detect_and_ocr(self.device.image)
-        except Exception:
-            logger.exception('援助式神锚点 OCR 失败，按未识别处理')
-            return [0, 0, 0, 0]
-        for result in boxed_results:
-            count = parse_help_count(result.ocr_text)
-            if count is not None:
-                # 只在启用 13 次协战目标的任务中调整本轮剩余场数。
-                sync_help_battle_target(self, count)
-                # detect_and_ocr 的 box 坐标相对 roi 裁剪图，需加回 roi 偏移
-                box = result.box
-                return [box[0][0] + ocr_obj.roi[0], box[0][1] + ocr_obj.roi[1],
-                        box[1][0] - box[0][0], box[2][1] - box[0][1]]
-        return [0, 0, 0, 0]
+        roi, count = locate_help_shikigami_anchor(
+            self.O_FIND_SHIKIGAMI_HELP, self.device.image)
+        if count is not None:
+            # 只在启用 13 次协战目标的任务中调整本轮剩余场数。
+            sync_help_battle_target(self, count)
+        return roi
 
     def battle_before_switch_help(self, buff, config, timeout: float = 5) -> bool:
         """战斗前设置（协战版）：在准备界面切换援助式神后再点准备。

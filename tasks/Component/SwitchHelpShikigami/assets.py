@@ -30,7 +30,7 @@ class SwitchHelpShikigamiAssets:
 
 	# Ocr Rule Assets
 	# 助战列表区域，OCR 定位援助式神卡的 N/15 协战次数标签 
-	O_FIND_SHIKIGAMI_HELP = RuleOcr(roi=(228,605,874,87), area=(0,0,100,100), mode="Full", method="Default", keyword="15", name="find_shikigami_help")
+	O_FIND_SHIKIGAMI_HELP = RuleOcr(roi=(244,631,846,42), area=(0,0,100,100), mode="Full", method="Default", keyword="15", name="find_shikigami_help")
 
 
 	# Swipe Rule Assets
