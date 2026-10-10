@@ -148,7 +148,9 @@ class ScriptTask(GameUi, PlotlineAssets,GeneralBattle):
                 return PlotlineScene.PLOTLINE_SCENE_EXPLORATION
             elif self.appear(self.I_PAGE_PRIVILEGES, interval=1):
                 return PlotlineScene.PLOTLINE_SCENE_PRIVILEGES
-            elif self.appear_rgb(self.I_PAGE_SUMMON)or  self.appear_rgb(self.I_PAGE_SUMMON2)or self.appear(self.I_PAGE_SUMMON_2):
+            # 补充底部画符提示，兼容绘符边框因背景变色而未通过颜色校验的召唤页。
+            elif (self.appear_rgb(self.I_PAGE_SUMMON) or self.appear_rgb(self.I_PAGE_SUMMON2)
+                  or self.appear(self.I_PAGE_SUMMON_2) or self.appear(self.I_PAGE_SUMMON_DRAW)):
                 return PlotlineScene.PLOTLINE_SCENE_SUMMON
             elif self.click_dialogue_low():
                 start_time=time.time()

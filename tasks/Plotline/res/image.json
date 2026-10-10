@@ -432,6 +432,15 @@
     "description": ""
   },
   {
+    "itemName": "page_summon_draw",
+    "imageName": "page_summon_draw.png",
+    "roiFront": "521,600,250,30",
+    "roiBack": "480,580,320,70",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "召唤页底部画符或语音召唤式神提示"
+  },
+  {
     "itemName": "page_click_any3",
     "imageName": "res_page_click_any3.png",
     "roiFront": "562,666,152,30",

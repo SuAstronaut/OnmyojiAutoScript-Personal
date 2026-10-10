@@ -126,6 +126,8 @@ class PlotlineAssets:
 	I_PLOTLINE_OLD_MAIN_CHECK = RuleImage(roi_front=(839,176,73,51), roi_back=(204,68,1007,482), threshold=0.7, method="Template matching", file="./tasks/Plotline/res/res_plotline_old_main_check.png")
 	#  
 	I_PAGE_SUMMON2 = RuleImage(roi_front=(381,89,77,85), roi_back=(255,66,834,556), threshold=0.8, method="Template matching", file="./tasks/Plotline/res/res_page_summon2.png")
+	# 召唤页底部画符或语音召唤式神提示
+	I_PAGE_SUMMON_DRAW = RuleImage(roi_front=(521,600,250,30), roi_back=(480,580,320,70), threshold=0.8, method="Template matching", file="./tasks/Plotline/res/page_summon_draw.png")
 	#  
 	I_PAGE_CLICK_ANY3 = RuleImage(roi_front=(562,666,152,30), roi_back=(242,604,771,111), threshold=0.7, method="Template matching", file="./tasks/Plotline/res/res_page_click_any3.png")
 	#  
