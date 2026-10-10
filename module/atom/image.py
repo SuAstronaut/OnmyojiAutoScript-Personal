@@ -16,6 +16,8 @@ from module.device.humanize import get_current_humanizer
 
 class RuleImage(RuleImageMallResourceMixin):
     debug_mode: bool = False
+    # Diagnostic observation only; never used to decide a match or click.
+    last_match_score: float | None = None
 
     def __init__(self, roi_front: tuple, roi_back: tuple, method: str, threshold: float, file: str, guard: dict = None) -> None:
         """
@@ -147,6 +149,7 @@ class RuleImage(RuleImageMallResourceMixin):
         :param image:
         :return:
         """
+        self.last_match_score = None
         if self.guard is not None and not self.guard.match(image):
             return False
         if threshold is None:
@@ -165,6 +168,7 @@ class RuleImage(RuleImageMallResourceMixin):
 
         res = cv2.matchTemplate(source, mat, cv2.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)  # 最小匹配度，最大匹配度，最小匹配度的坐标，最大匹配度的坐标
+        self.last_match_score = max_val
         if self.debug_mode:
             logger.attr(self.name, f'matching score {max_val:.5f}')
 

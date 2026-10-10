@@ -20,7 +20,7 @@
   {
     "itemName": "orochi_lock",
     "imageName": "orochi_lock.png",
-    "roiFront": "683,660,30,22",
+    "roiFront": "700,658,30,22",
     "roiBack": "613,643,293,73",
     "method": "Template matching",
     "threshold": 0.7,
@@ -29,7 +29,7 @@
   {
     "itemName": "orochi_unlock",
     "imageName": "orochi_unlock.png",
-    "roiFront": "683,660,30,22",
+    "roiFront": "700,658,30,22",
     "roiBack": "628,639,178,73",
     "method": "Template matching",
     "threshold": 0.7,
@@ -61,5 +61,32 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "小小宠物，发现宝藏"
+  },
+  {
+    "itemName": "i_no_default",
+    "imageName": "gi_i_no_default.png",
+    "roiFront": "546,346,30,30",
+    "roiBack": "542,343,36,35",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "御魂默认邀请未勾选"
+  },
+  {
+    "itemName": "i_default",
+    "imageName": "gi_i_default.png",
+    "roiFront": "546,346,30,30",
+    "roiBack": "541,342,41,39",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "御魂默认邀请已勾选"
+  },
+  {
+    "itemName": "gi_sure",
+    "imageName": "gi_gi_sure.png",
+    "roiFront": "670,402,175,60",
+    "roiBack": "670,402,175,60",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "御魂继续邀请确定"
   }
 ]

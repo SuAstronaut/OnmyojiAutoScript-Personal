@@ -1,0 +1,34 @@
+{
+  "roi": [
+    613,
+    639,
+    293,
+    77
+  ],
+  "source_crop": [
+    700,
+    658,
+    30,
+    22
+  ],
+  "sources": {
+    "mumu_A": {
+      "sha256": "7b388670a5dc8a7a212cad5eda6c5a3f227c093d98e219ec293e135c56d9efa4",
+      "fixture_sha256": "ad5b4f04222cbf50d77d16c39c0fb85d511ce6ccee2110f58e22fd9503e93d67",
+      "state": "lock",
+      "original_name": "MuMu-20261011-000023-009.png"
+    },
+    "mumu_B": {
+      "sha256": "85ed962ae70c737907c7038036dd8e81be1dc0491b17403940186927073812ad",
+      "fixture_sha256": "45826b0afdcc1f3dc0ee3e50643f9d0c3ec7645a813564e0ed2e5effec00c74f",
+      "state": "unlock",
+      "original_name": "MuMu-20261011-000024-154.png"
+    },
+    "desktop_lock": {
+      "sha256": "d14570cb010c70e6126539849db11656c730ecb4c1c841c7691e3a5869fc02dd",
+      "fixture_sha256": "d54f342d9bff597677028120a60c7aef7e6fc35aa97075e4825d99f4e6b6288d",
+      "state": "lock",
+      "original_name": "desktop_client_20261010_222913_207064.png"
+    }
+  }
+}
