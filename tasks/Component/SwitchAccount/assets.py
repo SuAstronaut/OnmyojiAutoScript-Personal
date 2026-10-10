@@ -53,7 +53,7 @@ class SwitchAccountAssets:
 	# 登录界面-选取账号界面-账号下拉菜单-关闭标志. 
 	I_SA_ACCOUNT_DROP_DOWN_CLOSED = RuleImage(roi_front=(850,320,30,25), roi_back=(850,320,30,25), threshold=0.8, method="Template matching", file="./tasks/Component/SwitchAccount/res/sa_account_drop_down_closed.png")
 	# 登录界面-选取账号界面-账号下拉菜单-添加新账号. 
-	I_SA_ACCOUNT_DROP_DOWN_ADD_ACCOUNT = RuleImage(roi_front=(427,552,163,39), roi_back=(400,540,220,60), threshold=0.7, method="Template matching", file="./tasks/Component/SwitchAccount/res/sa_account_drop_down_add_account.png")
+	I_SA_ACCOUNT_DROP_DOWN_ADD_ACCOUNT = RuleImage(roi_front=(427,552,163,39), roi_back=(400,280,220,320), threshold=0.7, method="Template matching", file="./tasks/Component/SwitchAccount/res/sa_account_drop_down_add_account.png")
 	# 登录界面-选取账号界面-账号下拉菜单-已经打开标志. 
 	I_SA_ACCOUNT_LOGIN_BTN = RuleImage(roi_front=(569,424,129,38), roi_back=(416,417,451,55), threshold=0.8, method="Template matching", file="./tasks/Component/SwitchAccount/res/sa_account_login_btn.png")
 	# 登录界面-选择手机类型为苹果. 

@@ -66,7 +66,7 @@
     "itemName": "sa_account_drop_down_add_account",
     "imageName": "sa_account_drop_down_add_account.png",
     "roiFront": "427,552,163,39",
-    "roiBack": "400,540,220,60",
+    "roiBack": "400,280,220,320",
     "method": "Template matching",
     "threshold": 0.7,
     "description": "登录界面-选取账号界面-账号下拉菜单-添加新账号."
