@@ -204,7 +204,7 @@ class SamplingTests(unittest.TestCase):
         points = [safe.get_settlement_safe_point(rng) for _ in range(10000)]
         hits = [sum(safe.point_in_rect(x, y, rect) for x, y in points)
                 for rect in safe.EXCLUDED_AREAS]
-        self.assertEqual(hits, [0, 0, 0])
+        self.assertEqual(hits, [0] * len(safe.EXCLUDED_AREAS))
         self.assertTrue(all(safe.point_in_rect(x, y, safe.BASE_SAFE_AREA) for x, y in points))
         grid = [[0] * 20 for _ in range(20)]
         for x, y in points:
@@ -248,6 +248,18 @@ class SamplingTests(unittest.TestCase):
             safe.get_settlement_safe_point(rng)
         self.assertEqual(rng.randint.call_count,128)
 
+    def test_new_ui_boundaries_rejected(self):
+        safe = safe_for_task(self.TASK)
+        # Newly forbidden edges that were accepted by the previous mask.
+        rejected = [(150, 620), (430, 620), (430, 689),
+                    (20, 690), (1260, 690), (1260, 700)]
+        for point in rejected:
+            with self.subTest(point=point):
+                rng = SimpleNamespace(randint=unittest.mock.Mock(
+                    side_effect=[*point, 431, 689]))
+                self.assertEqual(safe.get_settlement_safe_point(rng), (431, 689))
+                self.assertEqual(rng.randint.call_count, 4)
+
 
 class IntegrationTests(unittest.TestCase):
     TASK = 'RyouToppa'
@@ -264,6 +276,34 @@ class IntegrationTests(unittest.TestCase):
         for x,y,_ in task.events:
             self.assertTrue(safe.point_in_rect(x,y,safe.BASE_SAFE_AREA))
             self.assertFalse(any(safe.point_in_rect(x,y,r) for r in safe.EXCLUDED_AREAS))
+
+    def test_10000_points_per_win_reward_state_avoid_new_ui(self):
+        safe = safe_for_task(self.TASK)
+        seed = 20261003 if self.TASK == 'RyouToppa' else 20261004
+        for state in ('win', 'reward'):
+            with self.subTest(state=state):
+                task, _, log = self.make()
+                setattr(task, '_ryou_settlement_state' if self.TASK == 'RyouToppa'
+                        else '_realm_settlement_state', state)
+                rng = random.Random(seed)
+                # Use the actual task point-routing method with an offline RNG.
+                sample = safe.sample_safe_point
+                with patch.object(safe, 'sample_safe_point',
+                                  side_effect=lambda base, excluded, unused_rng=None,
+                                  **kwargs: sample(base, excluded, rng, **kwargs)):
+                    points = [task._settlement_point(None)[:2] for _ in range(10000)]
+                for x, y in points:
+                    # Explicit coordinates keep this regression independent of
+                    # the configured exclusion list and constant names.
+                    self.assertFalse(150 <= x <= 430 and 620 <= y <= 720)
+                    self.assertFalse(0 <= x <= 1280 and 690 <= y <= 720)
+                    self.assertTrue(safe.point_in_rect(x, y, safe.BASE_SAFE_AREA))
+                    self.assertFalse(any(safe.point_in_rect(x, y, rect)
+                                         for rect in safe.EXCLUDED_AREAS))
+                self.assertTrue(any(y < 125 for _, y in points))
+                self.assertTrue(any(y > 325 for _, y in points))
+                self.assertEqual(len(log.messages), 10000)
+                self.assertTrue(all(f'state={state} ' in m for m in log.messages))
 
     def test_actual_win_reward_state_machine(self):
         task,_,log = self.make([{'I_WIN'}, {'I_WIN'}, {'I_REWARD'},
