@@ -427,6 +427,15 @@ class ScriptTask(SwitchHelpShikigami, GeneralBattle, GeneralInvite, GeneralBuff,
             if self.appear_then_click(self.I_PET_PRESENT, action=self.C_WIN_3, interval=1):
                 continue
 
+            # 主动退出可能在过渡帧提前返回，失败结算随后才出现；先清页再等挑战。
+            # 点击被节流时仍留在清页分支，避免误认弹窗背后的挑战按钮。
+            if self.appear(self.I_EXIT_ENSURE):
+                self.appear_then_click(self.I_EXIT_ENSURE, interval=1)
+                continue
+            if self.appear(self.I_FALSE, threshold=0.6):
+                self.appear_then_click(self.I_FALSE, threshold=0.6, interval=1)
+                continue
+
             if not is_in_evozone():
                 continue
 
