@@ -1,0 +1,191 @@
+[
+  {
+    "itemName": "ap_guji_entry",
+    "imageName": "ap_guji_entry.png",
+    "roiFront": "1188,222,38,39",
+    "roiBack": "1120,135,150,500",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "古迹演武 ap entry; 来源图1 crop=(1188, 222, 38, 39)"
+  },
+  {
+    "itemName": "ap_guji_home",
+    "imageName": "ap_guji_home.png",
+    "roiFront": "151,20,128,37",
+    "roiBack": "140,12,155,53",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "古迹演武 ap home; 来源图2 crop=(151, 20, 128, 37)"
+  },
+  {
+    "itemName": "ap_guji_route",
+    "imageName": "ap_guji_route.png",
+    "roiFront": "222,256,97,49",
+    "roiBack": "210,246,125,69",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "古迹演武 ap route; 来源图2 crop=(222, 256, 97, 49)"
+  },
+  {
+    "itemName": "ap_guji_challenge",
+    "imageName": "ap_guji_challenge.png",
+    "roiFront": "151,20,125,37",
+    "roiBack": "140,12,155,53",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "古迹演武 ap challenge; 来源图3 crop=(151, 20, 125, 37)"
+  },
+  {
+    "itemName": "ap_guji_fire",
+    "imageName": "ap_guji_fire.png",
+    "roiFront": "1129,597,88,49",
+    "roiBack": "1110,576,123,80",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "古迹演武 ap fire; 来源图3 crop=(1129, 597, 88, 49)"
+  },
+  {
+    "itemName": "ap_guji_activity_top",
+    "imageName": "ap_guji_activity_top.png",
+    "roiFront": "706,17,33,31",
+    "roiBack": "695,5,55,53",
+    "method": "Template matching",
+    "threshold": 0.88,
+    "description": "古迹演武 ap activity_top; 来源图3 crop=(706, 17, 33, 31)"
+  },
+  {
+    "itemName": "ap_guji_activity_cost",
+    "imageName": "ap_guji_activity_cost.png",
+    "roiFront": "1160,666,27,25",
+    "roiBack": "1154,660,37,36",
+    "method": "Template matching",
+    "threshold": 0.88,
+    "description": "古迹演武 ap activity_cost; 来源图3 crop=(1160, 666, 27, 25)"
+  },
+  {
+    "itemName": "ap_guji_ap_cost",
+    "imageName": "ap_guji_ap_cost.png",
+    "roiFront": "1090,664,25,25",
+    "roiBack": "1084,658,34,39",
+    "method": "Template matching",
+    "threshold": 0.88,
+    "description": "古迹演武 ap ap_cost; 来源图3 crop=(1090, 664, 25, 25)"
+  },
+  {
+    "itemName": "ap_guji_auto_idle",
+    "imageName": "ap_guji_auto_idle.png",
+    "roiFront": "940,645,40,50",
+    "roiBack": "934,638,53,65",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "古迹演武 ap auto_idle; 来源图3 crop=(940, 645, 40, 50)"
+  },
+  {
+    "itemName": "ap_guji_victory",
+    "imageName": "ap_guji_victory.png",
+    "roiFront": "716,110,285,146",
+    "roiBack": "695,85,333,188",
+    "method": "Template matching",
+    "threshold": 0.88,
+    "description": "古迹演武 ap victory; 来源图4 crop=(716, 110, 285, 146)"
+  },
+  {
+    "itemName": "ap_guji_reward",
+    "imageName": "ap_guji_reward.png",
+    "roiFront": "574,510,109,75",
+    "roiBack": "540,474,162,147",
+    "method": "Template matching",
+    "threshold": 0.88,
+    "description": "古迹演武 ap reward; 来源图5 crop=(574, 510, 109, 75)"
+  },
+  {
+    "itemName": "ap_guji_continue",
+    "imageName": "ap_guji_continue.png",
+    "roiFront": "557,681,167,28",
+    "roiBack": "533,670,217,45",
+    "method": "Template matching",
+    "threshold": 0.88,
+    "description": "古迹演武 ap continue; 来源图4 crop=(557, 681, 167, 28)"
+  },
+  {
+    "itemName": "ap_guji_back",
+    "imageName": "ap_guji_back.png",
+    "roiFront": "22,19,38,38",
+    "roiBack": "10,8,70,60",
+    "method": "Template matching",
+    "threshold": 0.88,
+    "description": "古迹演武 ap back; 来源图3 crop=(22, 19, 38, 38)"
+  },
+  {
+    "itemName": "ap_guji_ap_top",
+    "imageName": "../..//RichMan/mall/navbar/navbar_mall_resource_ap.png",
+    "roiFront": "1060,0,45,43",
+    "roiBack": "1060,0,220,80",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "古迹演武 ap 复用现有素材，独立 ROI: ap_top"
+  },
+  {
+    "itemName": "ap_guji_refresh",
+    "imageName": "../../Component/RightActivity/ra/as_toggle_button.png",
+    "roiFront": "1120,120,21,23",
+    "roiBack": "1120,120,160,585",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "古迹演武 ap 复用现有素材，独立 ROI: refresh"
+  },
+  {
+    "itemName": "ap_guji_x5_off",
+    "imageName": "as_off_x5.png",
+    "roiFront": "852,640,25,21",
+    "roiBack": "852,640,75,60",
+    "method": "Template matching",
+    "threshold": 0.88,
+    "description": "古迹演武 ap 复用现有素材，独立 ROI: x5_off"
+  },
+  {
+    "itemName": "ap_guji_x5_on",
+    "imageName": "as_on_x5.png",
+    "roiFront": "852,640,25,21",
+    "roiBack": "852,640,75,60",
+    "method": "Template matching",
+    "threshold": 0.88,
+    "description": "古迹演武 ap 复用现有素材，独立 ROI: x5_on"
+  },
+  {
+    "itemName": "ap_guji_lock",
+    "imageName": "as_lock.png",
+    "roiFront": "782,636,28,25",
+    "roiBack": "782,636,68,66",
+    "method": "Template matching",
+    "threshold": 0.88,
+    "description": "古迹演武 ap 复用现有素材，独立 ROI: lock"
+  },
+  {
+    "itemName": "ap_guji_unlock",
+    "imageName": "as_unlock.png",
+    "roiFront": "782,636,28,25",
+    "roiBack": "782,636,68,66",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "古迹演武 ap 复用现有素材，独立 ROI: unlock"
+  },
+  {
+    "itemName": "ap_guji_continue_reward",
+    "imageName": "ap_guji_continue_reward.png",
+    "roiFront": "557,681,167,28",
+    "roiBack": "533,670,217,45",
+    "method": "Template matching",
+    "threshold": 0.88,
+    "description": "古迹演武奖励页继续; 来源图5 crop=(557,681,167,28)"
+  },
+  {
+    "itemName": "ap_guji_insufficient",
+    "imageName": "ap_guji_insufficient.png",
+    "roiFront": "553,225,176,31",
+    "roiBack": "410,190,460,120",
+    "method": "Template matching",
+    "threshold": 0.92,
+    "description": "古迹演武琥珀卷轴不足; 原图184954_677576 crop=(553,225,176,31); 模板候选后同帧精确OCR确认"
+  }
+]

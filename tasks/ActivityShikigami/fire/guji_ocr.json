@@ -1,0 +1,56 @@
+[
+  {
+    "itemName": "ap_guji_ap",
+    "roiFront": "1136,12,104,35",
+    "roiBack": "1136,12,104,35",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "古迹演武原始文本，严格解析: ap"
+  },
+  {
+    "itemName": "ap_guji_activity",
+    "roiFront": "772,12,86,35",
+    "roiBack": "772,12,86,35",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "古迹演武原始文本，严格解析: activity"
+  },
+  {
+    "itemName": "ap_guji_x5",
+    "roiFront": "968,12,70,35",
+    "roiBack": "968,12,70,35",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "古迹演武原始文本，严格解析: x5"
+  },
+  {
+    "itemName": "ap_guji_ap_cost",
+    "roiFront": "1118,663,42,30",
+    "roiBack": "1118,663,42,30",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "古迹演武原始文本，严格解析: ap_cost"
+  },
+  {
+    "itemName": "ap_guji_activity_cost",
+    "roiFront": "1190,663,40,30",
+    "roiBack": "1190,663,40,30",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "古迹演武原始文本，严格解析: activity_cost"
+  },
+  {
+    "itemName": "ap_guji_insufficient",
+    "roiFront": "553,225,176,31",
+    "roiBack": "553,225,176,31",
+    "mode": "Single",
+    "method": "Default",
+    "keyword": "",
+    "description": "琥珀卷轴不足候选的同帧原始文本，必须完整精确相等"
+  }
+]
