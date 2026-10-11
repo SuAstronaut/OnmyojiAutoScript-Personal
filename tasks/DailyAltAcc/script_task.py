@@ -95,7 +95,7 @@ class ScriptTask(StatLogMixin, Courtyard, Mail, Donatejade, Cooperation,
             logger.exception('写子任务进度失败')
             return False
 
-    def _mark_progress_false(self, task_key: str) -> None:
+    def _mark_progress_false(self, task_key: str, **extra) -> None:
         """记录一次显式返回 False；达到上限迁移 skipped 时记一条 warning。
 
         skipped 不发通知——它不是异常，而是「多次尝试后判定本阶段无事可做」，
@@ -106,6 +106,13 @@ class ScriptTask(StatLogMixin, Courtyard, Mail, Donatejade, Cooperation,
         try:
             if self._progress.mark_task_false(self._progress_key, task_key):
                 logger.warning(f'子任务 {task_key} 连续多次未完成，本阶段不再重试（skipped）')
+                if task_key == 'summon_up':
+                    logger.warning('[summon_up] skipped 不代表成功领取；请查看最终状态和原因')
+            if extra:
+                # Keep the existing pending/skipped status and false_count.
+                status = self._progress.get_task(self._progress_key, task_key).get('status')
+                if status:
+                    self._mark_progress(task_key, status, **extra)
         except Exception:
             logger.exception('写子任务 False 计数失败')
 
@@ -191,18 +198,26 @@ class ScriptTask(StatLogMixin, Courtyard, Mail, Donatejade, Cooperation,
         # 同心战斗进入前的场次基线，异常时用来判断本轮有无实质进展
         battle_before = self._battle_count_now() if task_key == 'alliedteam' else 0
         self.emit_stat(StatEvent.TASK_START, task=task_key)
+        if task_key == 'summon_up':
+            # The instance is reused across accounts; never retain old evidence.
+            self._summon_up_result = dict(outcome='FAILED', reason='NO_RESULT_EVIDENCE')
         try:
             result = func(*args, **kwargs)
         except TaskEnd:
-            # TaskEnd 是部分子任务的正常结束信号，算完成，交给原有外层逻辑处理。
-            self._mark_progress(task_key, STATUS_DONE)
-            self.emit_stat(
-                StatEvent.TASK_END,
-                task=task_key,
-                ok=True,
-                dur=round(time.time() - start_time, 3),
-            )
-            raise
+            if task_key == 'summon_up':
+                self._summon_up_result.update(outcome='FAILED', reason='TASK_END_WITHOUT_EVIDENCE')
+                logger.warning('[summon_up] FAILED reason=TASK_END_WITHOUT_EVIDENCE')
+                result = False
+            else:
+                # Preserve other tasks' normal termination contract.
+                self._mark_progress(task_key, STATUS_DONE)
+                self.emit_stat(
+                    StatEvent.TASK_END,
+                    task=task_key,
+                    ok=True,
+                    dur=round(time.time() - start_time, 3),
+                )
+                raise
         except self._DEVICE_LEVEL_ERRORS as e:
             # 异常标记只在新一轮 run 开始时重置，后续子任务成功不能覆盖它。
             self._subtask_error_occurred = True
@@ -276,15 +291,26 @@ class ScriptTask(StatLogMixin, Courtyard, Mail, Donatejade, Cooperation,
         # 显式返回 False 表示业务上未完成（如 courtyard 进入超时）：不标 done
         # （否则接续时被跳过导致漏领奖励），交给 False 计数决定保持 pending
         # 重跑一次，还是达到上限迁移 skipped（避免无奖可领时账号永远无法收尾）。
+        summon_result = {}
+        if task_key == 'summon_up':
+            # Defensive adapter: legacy None must never turn into a successful claim.
+            summon_result = dict(getattr(self, '_summon_up_result', {}))
+            verified = summon_result.get('outcome') in ('SUCCESS', 'ALREADY_CLAIMED') and \
+                summon_result.get('return_main') is True
+            if result is True and not verified:
+                summon_result.update(outcome='FAILED', reason='TRUE_WITHOUT_RESULT_EVIDENCE')
+                logger.warning('[summon_up] FAILED reason=TRUE_WITHOUT_RESULT_EVIDENCE')
+            result = result is True and verified
         if result is not False:
-            self._mark_progress(task_key, STATUS_DONE)
+            self._mark_progress(task_key, STATUS_DONE, **summon_result)
         else:
-            self._mark_progress_false(task_key)
+            self._mark_progress_false(task_key, **summon_result)
         self.emit_stat(
             StatEvent.TASK_END,
             task=task_key,
             ok=result is not False,
             dur=round(time.time() - start_time, 3),
+            **summon_result,
         )
         return result
 
