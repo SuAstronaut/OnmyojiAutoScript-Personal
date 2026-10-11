@@ -536,16 +536,85 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
             
         return None
 
+    def _log_realm_raid_skip(self, scene: Scene, reason: str) -> None:
+        key = (scene, reason)
+        if getattr(self, '_realm_raid_skip_reason', None) != key:
+            logger.info(f'RealmRaid ticket check skipped: scene={scene.name}, reason={reason}')
+            self._realm_raid_skip_reason = key
+
+    def _realm_raid_ticket_rule(self, scene: Scene):
+        """Select a visible ticket layout; never read the map's mochi counter."""
+        if scene not in (Scene.WORLD, Scene.ENTRANCE):
+            self._log_realm_raid_skip(scene, 'tickets are not visible in this scene')
+            return None
+        # Settlement/overlays can coexist with underlying scene anchors.
+        if (self.is_in_prepare(False) or self.is_in_battle(False)
+                or self.win_appear() or self.reward_grid_appear()
+                or any(self.appear(rule) for rule in (
+                    self.I_FALSE, self.I_REWARD, self.I_REWARD_GOLD,
+                    self.I_EXTRA_INFO, self.I_STATISTICS, self.I_E_EXIT_CONFIRM))
+                or any(self.appear(rule) for rule in (
+                    self.I_E_SETTINGS_BUTTON, self.I_E_AUTO_ROTATE_ON,
+                    self.I_E_AUTO_ROTATE_OFF, self.I_E_MAIN_FLAG))):
+            self._log_realm_raid_skip(scene, 'battle, settlement or map overlay is visible')
+            return None
+        if scene == Scene.WORLD:
+            visible = self.appear(self.I_CHECK_EXPLORATION)
+            icon = self.I_E_REALM_RAID_TICKET_WORLD
+            rule = self.O_REALM_RAID_NUMBER
+        else:
+            visible = (self.appear(self.I_E_ENTRANCE)
+                       and self.appear(self.I_E_EXPLORATION_CLICK)
+                       and self.appear(self.I_EXP_CREATE_TEAM))
+            icon = self.I_E_REALM_RAID_TICKET_ENTRANCE
+            rule = self.O_REALM_RAID_NUMBER1
+        if not visible or not self.appear(icon):
+            self._log_realm_raid_skip(scene, 'ticket layout or blue ticket icon is unconfirmed')
+            return None
+        return rule
+
     def activate_realm_raid(self, con_scrolls, con) -> None:
         # 判断是否开启突破票检测
         if not con_scrolls.scrolls_enable:
             return
-        if self.appear(self.I_E_EXPLORATION_CLICK) and self.appear(self.I_EXP_CREATE_TEAM):
-            cu, res, total = self.O_REALM_RAID_NUMBER1.ocr(self.device.image)
-        else:
-            cu, res, total = self.O_REALM_RAID_NUMBER.ocr(self.device.image)
+        scene = self.get_current_scene()
+        rule = self._realm_raid_ticket_rule(scene)
+        if rule is None:
+            return
+        # Confirm on a fresh frame without navigating or forcing a chapter exit.
+        self.screenshot()
+        confirmed_scene = self.get_current_scene()
+        if confirmed_scene != scene:
+            self._log_realm_raid_skip(confirmed_scene, 'scene changed before ticket OCR')
+            return
+        rule = self._realm_raid_ticket_rule(confirmed_scene)
+        if rule is None:
+            return
+        if not con_scrolls.scrolls_enable:
+            return  # Existing HOT config refresh may have disabled it during screenshot.
+        try:
+            result = rule.ocr(self.device.image)
+        except (RequestHumanTakeover, TaskEnd, GameStuckError):
+            raise
+        except Exception as exc:
+            self._log_realm_raid_skip(scene, f'OCR failed ({type(exc).__name__})')
+            return
+        if (not isinstance(result, (tuple, list)) or len(result) != 3
+                or any(type(value) is not int for value in result)):
+            self._log_realm_raid_skip(scene, f'invalid OCR result {result!r}')
+            return
+        cu, res, total = result
+        if (total != 30 or not 0 <= cu <= 30 or not 0 <= res <= 30
+                or cu + res != 30):
+            self._log_realm_raid_skip(scene, f'invalid ticket count {result!r}; expected capacity 30')
+            return
+        threshold = getattr(con_scrolls, 'scrolls_threshold', None)
+        if type(threshold) is not int:
+            self._log_realm_raid_skip(scene, f'invalid configured scrolls_threshold {threshold!r}')
+            return
+        self._realm_raid_skip_reason = None
         # 判断突破票数量
-        if cu < con_scrolls.scrolls_threshold:
+        if cu < threshold:
             return
 
         # 关闭加成
@@ -555,7 +624,8 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
             self.ui_click_until_disappear(self.I_UI_CANCEL)
         if self.appear(self.I_UI_CANCEL_SAMLL):
             self.ui_click_until_disappear(self.I_UI_CANCEL_SAMLL)
-        self.ui_goto(page_main)
+        if not self.ui_goto(page_main):
+            raise GameStuckError('Exploration ticket linkage could not reach page_main; scheduling aborted')
         if con.buff_gold_50_click or con.buff_gold_100_click or con.buff_exp_50_click or con.buff_exp_100_click:
             self.open_buff()
             self.gold_50(is_open=False)
