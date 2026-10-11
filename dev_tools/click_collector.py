@@ -25,6 +25,8 @@
     toolkit/python.exe -m dev_tools.click_collector --index 4          # 按序号绑定
     toolkit/python.exe -m dev_tools.click_collector --title 大号       # 按标题绑定
     toolkit/python.exe -m dev_tools.click_collector --hwnd 0x60AF8     # 按句柄绑定
+    toolkit/python.exe -m dev_tools.click_collector --index 4 --capture-key F8 --once
+    # 悬停后按 F8：仅记录坐标，不发送点击，不修改 OAS 配置。
 
 停止：Ctrl+C。输出：log/click_monitor/<YYYYmmdd_HHMMSS>_manual.jsonl
 """
@@ -33,6 +35,7 @@ import ctypes
 import json
 import sys
 import time
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 import ctypes.wintypes as wintypes
@@ -285,12 +288,89 @@ def run_collect(target_hwnd, target_title, out_path):
     return clicks, time.time() - start
 
 
+def screen_to_game(point, rect):
+    """Same authoring-space normalization as run_collect; reject bars/outside."""
+    sx, sy = point
+    fx, fy, fw, fh = rect
+    if fw <= 0 or fh <= 0 or abs(fw / fh - BASE_RATIO) > RATIO_TOLERANCE:
+        raise ValueError('无法确认16:9游戏画面矩形，拒绝生成坐标')
+    if not (fx <= sx < fx + fw and fy <= sy < fy + fh):
+        raise ValueError('鼠标位于游戏画面外')
+    return (min(BASE_W - 1, round((sx - fx) * BASE_W / fw)),
+            min(BASE_H - 1, round((sy - fy) * BASE_H / fh)))
+
+
+@contextmanager
+def capture_dpi_awareness():
+    """Use the project's per-monitor-v2 thread context, without Device imports."""
+    setter = getattr(user32, 'SetThreadDpiAwarenessContext', None)
+    if setter is None:
+        raise RuntimeError('系统不支持精确DPI上下文，拒绝坐标校准')
+    setter.argtypes = [ctypes.c_void_p]
+    setter.restype = ctypes.c_void_p
+    previous = setter(ctypes.c_void_p(-4))
+    if not previous:
+        raise RuntimeError('设置DPI上下文失败，拒绝坐标校准')
+    try:
+        yield
+    finally:
+        setter(previous)
+
+
+def run_key_capture(target_hwnd, target_title, out_path, once=False):
+    """Read F8/cursor only. Reuse existing MuMu child-frame discovery each time."""
+    start = time.time()
+    count = 0
+    pressed_last = bool(GetAsyncKeyState(0x77) & KEY_PRESSED)  # VK_F8
+    print('绑定窗口: 0x%X %s' % (target_hwnd, target_title))
+    print('悬停在已人工验证的位置，按F8记录；无自动点击。Ctrl+C结束。')
+    print('输出文件: %s；记录不会启用P1或修改任务状态。' % out_path)
+    with open(out_path, 'a', encoding='utf-8') as output:
+        try:
+            while True:
+                pressed = bool(GetAsyncKeyState(0x77) & KEY_PRESSED)
+                if pressed and not pressed_last:
+                    with capture_dpi_awareness():
+                        pt = wintypes.POINT()
+                        if not GetCursorPos(ctypes.byref(pt)):
+                            raise RuntimeError('无法读取鼠标坐标')
+                        hit = WindowFromPoint(pt)
+                        if hit != target_hwnd and root_ancestor(hit) != target_hwnd:
+                            print('鼠标不在绑定窗口，忽略本次F8')
+                        else:
+                            rect = frame_rect(target_hwnd, find_frame_hwnd(target_hwnd))
+                            try:
+                                x, y = screen_to_game((pt.x, pt.y), rect)
+                            except ValueError as exc:
+                                print(str(exc))
+                            else:
+                                event = dict(ts=int(time.time() * 1000), x=x, y=y,
+                                             screen_x=pt.x, screen_y=pt.y, frame_rect=list(rect),
+                                             coordinate_space='OAS_1280x720',
+                                             source='cursor_F8', hit_verified=False,
+                                             window=target_title)
+                                output.write(json.dumps(event, ensure_ascii=False) + '\n')
+                                output.flush()
+                                count += 1
+                                print('屏幕(%d,%d)，画面矩形%s -> OAS(%d,%d)' %
+                                      (pt.x, pt.y, rect, x, y))
+                                if once:
+                                    return count, time.time() - start
+                pressed_last = pressed
+                time.sleep(POLL_INTERVAL)
+        except KeyboardInterrupt:
+            pass
+    return count, time.time() - start
+
+
 def main():
     parser = argparse.ArgumentParser(description='手动点击采集器（jsonl 输出）')
     parser.add_argument('--list', action='store_true', help='仅列出候选窗口')
     parser.add_argument('--hwnd', type=lambda s: int(s, 0), help='直接指定窗口句柄（支持 0x 前缀）')
     parser.add_argument('--index', type=int, help='按候选列表序号绑定')
     parser.add_argument('--title', help='按标题子串绑定')
+    parser.add_argument('--capture-key', choices=['F8'], help='仅悬停坐标校准，不发送点击')
+    parser.add_argument('--once', action='store_true', help='F8记录一次后结束')
     args = parser.parse_args()
 
     if args.list or (args.hwnd is None and args.index is None and args.title is None):
@@ -302,7 +382,12 @@ def main():
             print('\n用 --index <序号> / --title <子串> / --hwnd <句柄> 开始采集')
         return
 
-    target = resolve_target(args)
+    # Key mode resolves geometry in the same DPI context used during capture.
+    if args.capture_key:
+        with capture_dpi_awareness():
+            target = resolve_target(args)
+    else:
+        target = resolve_target(args)
     if not target:
         return
     target_hwnd, target_title = target
@@ -311,8 +396,12 @@ def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     out_path = OUTPUT_DIR / ('%s_manual.jsonl' % datetime.now().strftime('%Y%m%d_%H%M%S'))
 
-    clicks, duration = run_collect(target_hwnd, target_title, out_path)
-    print('\n摘要: %d 次点击, 时长 %.1fs, 文件 %s' % (clicks, duration, out_path))
+    if args.capture_key:
+        clicks, duration = run_key_capture(target_hwnd, target_title, out_path, once=args.once)
+    else:
+        clicks, duration = run_collect(target_hwnd, target_title, out_path)
+    label = '次坐标记录' if args.capture_key else '次点击'
+    print('\n摘要: %d %s, 时长 %.1fs, 文件 %s' % (clicks, label, duration, out_path))
 
 
 if __name__ == '__main__':
