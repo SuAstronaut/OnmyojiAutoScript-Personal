@@ -526,6 +526,8 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
                     self.I_NORMAL_BATTLE_BUTTON.roi_front = roi_front
                     logger.info(f"Target locked: sword at {roi_front} (aligned with UP icon)")
                     return self.I_NORMAL_BATTLE_BUTTON
+                # UP 已确认但攻击入口未确认，本帧交回外层搜索，不降级为普通匹配。
+                return None
             else:
                 # 没找到 UP 图标，返回 None 让外层逻辑去处理(滑动或退出)
                 return None

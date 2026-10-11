@@ -331,13 +331,12 @@ def _model_types(annotation: Any) -> tuple[type[BaseModel], ...]:
     """从任意常见 Pydantic 注解中提取嵌套 BaseModel 类型。"""
     models: list[type[BaseModel]] = []
     for item in _unwrap_annotation(annotation):
-        if isinstance(item, type) and issubclass(item, BaseModel):
+        origin = get_origin(item)
+        if origin is list:
+            for nested in _model_types(get_args(item)[0] if get_args(item) else Any):
+                models.append(nested)
+        elif origin is None and isinstance(item, type) and issubclass(item, BaseModel):
             models.append(item)
-        else:
-            origin = get_origin(item)
-            if origin is list:
-                for nested in _model_types(get_args(item)[0] if get_args(item) else Any):
-                    models.append(nested)
     return tuple(models)
 
 
