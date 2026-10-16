@@ -2,11 +2,16 @@
 import re
 import time
 from pathlib import Path
+from functools import cached_property
 
+import cv2
+import numpy as np
+
+from module.atom.image import RuleImage
 from module.base.timer import Timer
 from module.base.utils import save_image
 from module.logger import logger
-from module.exception import GameStuckError
+from module.exception import GameStuckError, GamePageUnknownError
 from tasks.GameUi.page import page_main, page_mall
 from tasks.DailyAltAcc.utils import DailyAltAccBase
 from tasks.RichMan.mall.mall import Mall
@@ -28,7 +33,34 @@ from tasks.DailyAltAcc.mshop_grid import (
 )
 
 
+class MshopRefreshError(RuntimeError):
+    """A bounded shop failure; the existing daily-task adapter records it failed."""
+
+
 class Mshop(Mall, DailyAltAccBase):
+    # Unguarded buttons are only overlay/layout probes. Never confirm from them alone.
+    _MS_CONFIRM = RuleImage(roi_front=(718,408,81,43), roi_back=(684,404,155,56),
+                            threshold=0.8, method="Template matching",
+                            file="./tasks/DailyAltAcc/mshop/mshop_ms_ensure.png")
+    _MS_TITLE_ROI = (446, 291, 310, 53)
+    _MS_COST_ROI = (798, 293, 39, 51)
+    _MS_OFFER_ROI = (1195, 589, 80, 31)
+    _MS_SHELF_ROI = (139, 107, 886, 454)
+    _MS_DIALOG_TIMEOUT = 10.0
+    _MS_RESULT_TIMEOUT = 12.0
+    _MS_EXIT_TIMEOUT = 6.0
+    _MS_BUTTON_TIMEOUT = 3.0
+    # Only the control itself; excludes the dynamic cost line and all account UI.
+    _MS_REFRESH_ENABLED = RuleImage(roi_front=(1195,525,74,64), roi_back=(1195,525,74,64),
+                                    threshold=0.98, method="Template matching",
+                                    file="./tasks/DailyAltAcc/mshop/mshop_ms_refresh_enabled.png")
+    _MS_REFRESH_DISABLED = RuleImage(roi_front=(1195,525,74,64), roi_back=(1195,525,74,64),
+                                     threshold=0.98, method="Template matching",
+                                     file="./tasks/DailyAltAcc/mshop/mshop_ms_refresh_disabled.png")
+    _MS_REFRESH_LIMIT = RuleImage(roi_front=(529,225,225,26), roi_back=(525,221,233,34),
+                                  threshold=0.95, method="Template matching",
+                                  file="./tasks/DailyAltAcc/mshop/mshop_ms_refresh_limit.png")
+
     def execute_mall(self):
             logger.hr('Mall', 1)
             self.screenshot()
@@ -99,49 +131,306 @@ class Mshop(Mall, DailyAltAccBase):
             logger.warning('勋章屋后回到商城根页面失败')
 
     def run_mysteryshop(self):
-        #self.account_info = self.get_account_info()
-        self.screenshot()
-        if self.ui_get_current_page()!=page_main:
-            self.ui_goto(page_main)
-        self.ui_goto(page_mall)
-        self.ui_click(MysteryShopAssets.I_ME_ENTER, MysteryShopAssets.I_MS_SHARE)
-        logger.info('Mysteryshop')
-        # 进入商店后保存初始货架截图（序号1）
-        self._save_mshop_page(1)
-
-        if not self.MsFind():
-            retry_count = 0
-            # 是否发生过刷新：只有刷新过才补序号2，否则只留序号1一张
-            refreshed = False
-            while 1:
-                self.screenshot()
-                if retry_count >= 3:
+        # Reset per-account evidence, including after a previous account failed.
+        self._mshop_result = dict(state='ENTER', requests=0, confirms=0, completed=0,
+                                  outcome='FAILED', reason='NOT_FINISHED',
+                                  refresh_outcome='NOT_ATTEMPTED', dialog_verified=False)
+        self._mshop_ocr_cache = {}
+        try:
+            self._mshop_capture()
+            if self.ui_get_current_page() != page_main:
+                if not self.ui_goto(page_main):
+                    raise MshopRefreshError('ENTER_MAIN_FAILED')
+            if not self.ui_goto(page_mall):
+                raise MshopRefreshError('ENTER_MALL_FAILED')
+            deadline, next_click = time.monotonic() + 10, 0.0
+            while True:
+                self._mshop_capture()
+                now = time.monotonic()
+                if now >= deadline:
+                    raise MshopRefreshError('ENTER_SHOP_TIMEOUT')
+                if self._mshop_overlay():
+                    raise MshopRefreshError('UNEXPECTED_ENTRY_DIALOG')
+                if self._mshop_shelf_visible():
                     break
-                if self.appear_then_click(self.I_MS_ENSURE,interval=1):
-                    self.screenshot()
-                    if not self.appear(self.I_MS_ENSURE):
-                        break
-                if self.appear_rgb(self.I_MS_REFRESH):
-                    refreshed = True
-                    self.screenshot()
-                    self.appear_then_click(self.I_MS_REFRESH,action=self.C_MS_REFRESH_ACTION,interval=1)
-                    continue
-                if self.appear(MysteryShopAssets.I_MS_SHARE,interval=2):
-                    # 刷新后货架稳定（分享按钮可见）才截图，多次刷新时序号2覆盖为最新货架
-                    if refreshed:
-                        self._save_mshop_page(2)
-                    retry_count += 1
-            self.MsFind()
-        retry_count = 0
-        while 1:
-            self.screenshot()
-            if retry_count >3:
+                if now >= next_click:
+                    self.appear_then_click(MysteryShopAssets.I_ME_ENTER)
+                    next_click = now + 2
+            logger.info('Mysteryshop')
+            self._save_mshop_page(1)
+            self._mshop_capture()
+            initial_button = self._mshop_button_state()
+            self._mshop_result['initial_button'] = initial_button
+            self._mshop_result['state'] = 'SCAN_ITEMS'
+            found = self.MsFind()  # Always keep the existing goods scan/notification path.
+            if initial_button == 'DISABLED':
+                self._mshop_result.update(reason='ALREADY_REFRESHED', refresh_outcome='ALREADY_REFRESHED')
+            elif found:
+                self._mshop_result.update(reason='ITEM_FOUND', refresh_outcome='SKIPPED_ITEM_FOUND')
+            elif self._mshop_refresh_once():
+                self._save_mshop_page(2)
+                self.MsFind()
+            if not self._mshop_exit():
+                raise GamePageUnknownError('MSHOP RETURN_MAIN_UNVERIFIED')
+            outcome = ('ALREADY_REFRESHED' if self._mshop_result['refresh_outcome'] == 'ALREADY_REFRESHED'
+                       else 'SUCCESS')
+            self._mshop_result.update(state='DONE', outcome=outcome, task_outcome='SUCCESS', return_main=True)
+        except MshopRefreshError as error:
+            self._mshop_result.update(outcome='FAILED', reason=str(error), refresh_outcome='UNKNOWN')
+            logger.warning(f'[MSHOP] {self._mshop_result}')
+            # Cancel only a positively identified shop dialog; never use generic
+            # navigation to auto-confirm an unknown consumption overlay.
+            try:
+                recovered = self._mshop_exit(cancel_refresh=True)
+            except Exception:
+                recovered = False
+            self._mshop_result['return_main'] = recovered
+            if not recovered:
+                # Preserve existing failed-progress + scheduler recovery semantics.
+                raise GamePageUnknownError(f'MSHOP {error}; RECOVERY_UNVERIFIED') from error
+            raise
+        except Exception as error:
+            self._mshop_result.update(outcome='FAILED', reason=type(error).__name__, refresh_outcome='UNKNOWN')
+            logger.warning(f'[MSHOP] {self._mshop_result}')
+            raise  # Real device errors keep their original recovery classification.
+        logger.info(f'[MSHOP] {self._mshop_result}')
+
+    @staticmethod
+    def _mshop_crop(image, roi):
+        x, y, w, h = roi
+        return image[y:y+h, x:x+w]
+
+    def _mshop_text(self, image, roi):
+        crop = self._mshop_crop(image, roi)
+        # Reuse only byte-identical local crops, never a result from different pixels.
+        cache = getattr(self, '_mshop_ocr_cache', None)
+        if cache is None:
+            cache = self._mshop_ocr_cache = {}
+        key = (crop.shape, crop.tobytes())
+        if key not in cache:
+            text, score = self.O_EXP_DAILOG.model.ocr_single_line(crop)
+            if len(cache) >= 16:
+                cache.clear()
+            cache[key] = (re.sub(r'\s+', '', text).replace('（', '(').replace('）', ')')
+                          if score >= 0.92 else '')
+        return cache[key]
+
+    def _mshop_offer(self, image, roi):
+        match = re.fullmatch(r'([1-9]\d*)\(仅(\d+)次\)', self._mshop_text(image, roi))
+        return tuple(map(int, match.groups())) if match else None
+
+    def _mshop_cost(self, image, roi):
+        match = re.fullmatch(r'[xX×]([1-9]\d*)', self._mshop_text(image, roi))
+        return int(match[1]) if match else None
+
+    def _mshop_overlay(self):
+        return self._mshop_cached('overlay', lambda:
+                                 self.appear(self._MS_CONFIRM) or self.appear(self.I_M_PICTURE_REFUSE))
+
+    def _mshop_shelf_visible(self):
+        return self._mshop_cached('shelf', lambda:
+                                 not self._mshop_overlay() and self.appear_rgb(MysteryShopAssets.I_MS_SHARE))
+
+    def _mshop_capture(self):
+        self.screenshot()
+        self._mshop_frame_cache = {}
+
+    def _mshop_cached(self, key, compute):
+        cache = getattr(self, '_mshop_frame_cache', None)
+        if cache is None:
+            return compute()
+        if key not in cache:
+            cache[key] = compute()
+        return cache[key]
+
+    @staticmethod
+    def _mshop_color_hist(image):
+        hist = cv2.calcHist([image], [0,1,2], None, [16,16,16], [0,256]*3)
+        return cv2.normalize(hist, hist).flatten()
+
+    @cached_property
+    def _mshop_button_references(self):
+        return [(state, rule.image[8:64, :70], self._mshop_color_hist(rule.image[8:64, :70]))
+                for state, rule in [('ENABLED', self._MS_REFRESH_ENABLED),
+                                    ('DISABLED', self._MS_REFRESH_DISABLED)]]
+
+    def _mshop_button_evidence(self):
+        def classify():
+            image = self.device.image
+            result = dict(state='UNKNOWN', enabled_ncc=None, disabled_ncc=None,
+                          enabled_hist=None, disabled_hist=None, border_score=None)
+            if image.shape != (720,1280,3) or not self._mshop_shelf_visible():
+                return result
+            # The arrow animates. Its NCC cannot distinguish dimming (cross-score
+            # ~0.994), so use a static border plus absolute RGB/histogram evidence.
+            border = self._MS_REFRESH_ENABLED.image[:9, 4:68]
+            region = self._mshop_crop(image, (1197,523,68,13))
+            result['border_score'] = cv2.minMaxLoc(cv2.matchTemplate(region, border, cv2.TM_CCOEFF_NORMED))[1]
+            crop = self._mshop_crop(image, (1195,533,70,56))
+            hist = self._mshop_color_hist(crop)
+            candidates = []
+            for state, reference, ref_hist in self._mshop_button_references:
+                name = state.lower()
+                result[name+'_ncc'] = float(cv2.matchTemplate(crop, reference, cv2.TM_CCOEFF_NORMED)[0,0])
+                distance = cv2.compareHist(hist, ref_hist, cv2.HISTCMP_BHATTACHARYYA)
+                delta = float(np.abs(crop.mean((0,1))-reference.mean((0,1))).max())
+                result[name+'_hist'] = distance
+                result[name+'_color_delta'] = delta
+                if result['border_score'] >= 0.98 and distance <= 0.15 and delta <= 8:
+                    candidates.append(state)
+            if len(candidates) == 1:
+                result['state'] = candidates[0]
+            return result
+        return self._mshop_cached('button', classify)
+
+    def _mshop_button_state(self):
+        return self._mshop_button_evidence()['state']
+
+    def _mshop_limit_reached(self):
+        return self._mshop_cached('limit', lambda: self.appear(self._MS_REFRESH_LIMIT))
+
+    def _mshop_completion_evidence(self, button, before_offer, current_offer):
+        evidence = self._mshop_result
+        chain = (evidence.get('initial_button') == 'ENABLED' and evidence.get('requests') == 1
+                 and evidence.get('confirms') == 1 and evidence.get('dialog_verified') is True)
+        if not chain or button == 'UNKNOWN':
+            return False
+        # DISABLED is a positively identified state, not a failed ENABLED match.
+        # Still-enabled success needs a positively read opportunity reduction.
+        return (button == 'DISABLED' or
+                (button == 'ENABLED' and current_offer is not None
+                 and current_offer[1] < before_offer[1]))
+
+    def _mshop_dialog(self):
+        # Keep the legacy guarded path. The fallback is local to this shop flow,
+        # and still requires the entire title, jade icon, cost and button layout.
+        legacy = self.appear(self.I_MS_ENSURE)
+        confirm = self.appear(self._MS_CONFIRM)
+        cancel = self.appear(self.I_M_PICTURE_REFUSE)
+        title = self._mshop_text(self.device.image, self._MS_TITLE_ROI)
+        cost = self._mshop_cost(self.device.image, self._MS_COST_ROI)
+        template = self.I_MS_ENSURE.guard.image[:, 302:346]
+        region = self._mshop_crop(self.device.image, (746, 289, 58, 57))
+        _, jade_score, _, _ = cv2.minMaxLoc(cv2.matchTemplate(region, template, cv2.TM_CCOEFF_NORMED))
+        cx, cy, cw, ch = self._MS_CONFIRM.roi_front
+        x, y, w, h = self.I_M_PICTURE_REFUSE.roi_front
+        layout = confirm and cancel and x+w < cx and abs((y+h/2)-(cy+ch/2)) <= 16
+        valid = bool(layout and title == '刷新神秘商店货物需消耗' and jade_score >= 0.95 and cost)
+        return dict(valid=valid, cost=cost, legacy=legacy, jade_score=jade_score)
+
+    def _mshop_refresh_once(self):
+        self._mshop_result['state'] = 'CHECK_REFRESH'
+        deadline = time.monotonic() + self._MS_BUTTON_TIMEOUT
+        while True:
+            self._mshop_capture()
+            if time.monotonic() >= deadline:
+                raise MshopRefreshError('REFRESH_BUTTON_UNKNOWN')
+            if self._mshop_overlay() or not self._mshop_shelf_visible():
+                raise MshopRefreshError('SHELF_NOT_VISIBLE')
+            button = self._mshop_button_state()
+            if button == 'DISABLED':
+                self._mshop_result.update(reason='ALREADY_REFRESHED', refresh_outcome='ALREADY_REFRESHED')
+                return False
+            if self._mshop_limit_reached():
+                self._mshop_result.update(reason='REFRESH_LIMIT_REACHED', refresh_outcome='LIMIT_REACHED')
+                return False
+            if button == 'ENABLED':
                 break
-            if self.appear_then_click(self.I_BACK_Y,interval=3):
-                retry_count +=1
+        # The deployed resources are the legacy policy, not the example screenshot.
+        # Read both independently; never broaden the accepted fee/opportunity.
+        resource = self.I_MS_REFRESH.image
+        allowed = self._mshop_offer(resource, (22, 0, resource.shape[1]-22, resource.shape[0]))
+        guard = self.I_MS_ENSURE.guard.image
+        legacy_cost = self._mshop_cost(guard, (347, 0, guard.shape[1]-347, guard.shape[0]))
+        offer = self._mshop_offer(self.device.image, self._MS_OFFER_ROI)
+        if not allowed or allowed[0] != legacy_cost or offer != allowed or offer[1] <= 0:
+            raise MshopRefreshError('OFFER_OUTSIDE_LEGACY_POLICY')
+        before = self._mshop_crop(self.device.image, self._MS_SHELF_ROI).copy()
+        self._mshop_result.update(state='WAIT_DIALOG', requests=1, initial_button='ENABLED',
+                                  refresh_outcome='PENDING')
+        deadline = time.monotonic() + self._MS_DIALOG_TIMEOUT
+        self.click(self.C_MS_REFRESH_ACTION)  # One request, even if delivery is uncertain.
+        seen, stable = False, 0
+        while True:
+            self._mshop_capture()
+            if time.monotonic() >= deadline:
+                raise MshopRefreshError('WAIT_DIALOG_TIMEOUT')
+            if self._mshop_overlay():
+                seen = True
+                evidence = self._mshop_dialog()
+                if not evidence['valid']:
+                    raise MshopRefreshError('UNRECOGNIZED_REFRESH_DIALOG')
+                if evidence['cost'] != offer[0]:
+                    raise MshopRefreshError('DIALOG_FEE_CHANGED')
+                stable += 1
+                if stable >= 2:
+                    # Recheck elapsed time after OCR, immediately before input.
+                    if time.monotonic() >= deadline:
+                        raise MshopRefreshError('VERIFY_DIALOG_TIMEOUT')
+                    self._mshop_result.update(state='WAIT_RESULT', confirms=1, dialog_verified=True)
+                    self.click(self._MS_CONFIRM)  # Never resend a consumption confirmation.
+                    break
+            elif seen:
+                raise MshopRefreshError('DIALOG_DISAPPEARED_BEFORE_CONFIRM')
+            elif self._mshop_limit_reached():
+                raise MshopRefreshError('LIMIT_REACHED_BEFORE_CONFIRM')
+        deadline = time.monotonic() + self._MS_RESULT_TIMEOUT
+        last, stable_since, frames = None, 0.0, 0
+        while True:
+            self._mshop_capture()
+            now = time.monotonic()
+            if now >= deadline:
+                raise MshopRefreshError('REFRESH_COMPLETION_UNVERIFIED')
+            if not self._mshop_shelf_visible():
+                last, frames = None, 0
                 continue
-            if not self.appear(self.I_BACK_Y):
-                break
+            shelf = self._mshop_crop(self.device.image, self._MS_SHELF_ROI).copy()
+            button = self._mshop_button_state()
+            current_offer = (self._mshop_offer(self.device.image, self._MS_OFFER_ROI)
+                             if button == 'ENABLED' else None)
+            if time.monotonic() >= deadline:
+                raise MshopRefreshError('REFRESH_COMPLETION_UNVERIFIED')
+            consumed = self._mshop_completion_evidence(button, offer, current_offer)
+            self._mshop_result['final_button'] = button
+            if not consumed and self._mshop_limit_reached():
+                raise MshopRefreshError('LIMIT_WITHOUT_COMPLETION_EVIDENCE')
+            changed = np.abs(shelf.astype(np.int16)-before.astype(np.int16)).mean() > 2
+            if not consumed or not changed:
+                last, frames = None, 0
+                continue
+            if last is None or np.abs(shelf.astype(np.int16)-last.astype(np.int16)).mean() > 1.5:
+                stable_since, frames = now, 1
+            else:
+                frames += 1
+            last = shelf
+            if frames >= 2 and now-stable_since >= 0.3:
+                self._mshop_result.update(state='SCAN_ITEMS', completed=1, reason='REFRESH_VERIFIED',
+                                          refresh_outcome='SUCCESS')
+                return True
+
+    def _mshop_exit(self, cancel_refresh=False):
+        deadline, next_click, backs, cancelled = time.monotonic()+self._MS_EXIT_TIMEOUT, 0.0, 0, False
+        while True:
+            self._mshop_capture()
+            now = time.monotonic()
+            if now >= deadline:
+                return False
+            if self._mshop_overlay():
+                if cancel_refresh and not cancelled and self._mshop_dialog()['valid']:
+                    cancelled = True
+                    self.click(self.I_M_PICTURE_REFUSE)
+                    continue
+                return False
+            if self.appear_rgb(self.I_CHECK_MAIN):
+                return True
+            if now >= next_click and backs < 3 and (
+                    self._mshop_shelf_visible() or self.appear_rgb(self.I_CHECK_MALL)):
+                if self.appear_rgb(self.I_BACK_MAIN):
+                    self.click(self.I_BACK_MAIN)
+                elif self.appear_rgb(self.I_BACK_Y):
+                    self.click(self.I_BACK_Y)
+                backs += 1
+                next_click = now + 1
 
     def _save_mshop_page(self, index: int):
         """保存神秘商店货架截图到 screenshots/mshop/，文件名 商店_角色名_{index}.png。
@@ -263,7 +552,8 @@ class Mshop(Mall, DailyAltAccBase):
         这个判定有两重作用，改规则时两边都会一起变：
         1. 推送：命中的货走 _notify_item 播报 / 汇总；
         2. 是否刷新商店：MsFind 全部未命中才返回 False，run_mysteryshop 据此
-           刷新货架（最多 3 次）；有任何一件命中就停止刷新，保住这件货。
+           刷新货架；有任何一件命中就停止刷新，保住这件货。
+           旧流程确认成功即结束，3 是分享按钮轮询计数，不是三笔消费授权。
 
         规则沿用原 InfoFilter，另外补上两类新货：
 
