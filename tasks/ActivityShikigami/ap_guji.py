@@ -233,8 +233,7 @@ class ApGujiMixin:
             self.ap_session_miss_trace(lock_reason, opposite, check='opposite_absent', actual=True, expected=False)
             return False
         for rule, reason in ((self.I_AP_GUJI_AP_COST, 'ap_icon_failed'),
-                             (self.I_AP_GUJI_ACTIVITY_COST, 'activity_icon_failed'),
-                             (self.I_AP_GUJI_AUTO_IDLE, 'auto_failed')):
+                             (self.I_AP_GUJI_ACTIVITY_COST, 'activity_icon_failed')):
             if not self.ap_match(rule):
                 self.ap_session_miss_trace(reason, rule, actual=False, expected=True)
                 return False
@@ -495,10 +494,9 @@ class ApGujiMixin:
     def ap_read_resources(self):
         if self.ap_state() != ApState.CHALLENGE:
             raise ApSafetyStop('Cannot read resources outside Guji challenge')
-        for rule in (self.I_AP_GUJI_AP_COST, self.I_AP_GUJI_ACTIVITY_COST,
-                     self.I_AP_GUJI_AUTO_IDLE):
+        for rule in (self.I_AP_GUJI_AP_COST, self.I_AP_GUJI_ACTIVITY_COST):
             if not self.ap_match(rule):
-                raise ApSafetyStop('Consumption identity/idle automatic control missing')
+                raise ApSafetyStop('AP/activity consumption icon identity missing')
         if self.ap_x5_state() != X5State.OFF:
             raise ApSafetyStop('Five-times OFF not positively confirmed')
         try:
@@ -576,7 +574,7 @@ class ApGujiMixin:
                      and self.ap_match(target) and not self.ap_match(opposite)
                      and all(self.ap_match(rule) for rule in (
                          self.I_AP_GUJI_FIRE, self.I_AP_GUJI_AP_COST,
-                         self.I_AP_GUJI_ACTIVITY_COST, self.I_AP_GUJI_AUTO_IDLE)))
+                         self.I_AP_GUJI_ACTIVITY_COST)))
             if ready:
                 roi = tuple(self.I_AP_GUJI_FIRE.roi_front)
                 x, y, w, h = roi
