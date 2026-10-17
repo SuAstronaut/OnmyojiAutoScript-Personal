@@ -37,5 +37,7 @@
   "auto_reconnect_delay_minutes": "Global reconnect delay (minutes)",
   "auto_reconnect_delay_minutes_help": "1–1440 minutes, default 30. Starts at confirmation; all game actions in this instance wait.",
   "foster_reconnect_delay_minutes": "Foster reconnect delay (minutes; 0 inherits)",
-  "foster_reconnect_delay_minutes_help": "0 inherits the global Restart delay; 1–1440 overrides it for single-account fostering."
+  "foster_reconnect_delay_minutes_help": "0 inherits the global Restart delay; 1–1440 overrides it for single-account fostering.",
+  "team_battle_midnight_schedule_enable": "Enable midnight return-gift and team battle",
+  "team_battle_midnight_schedule_enable_help": "Keep the automatic 00:20 return-gift round and its team battle continuation. Disable to cancel these phases, including delayed retries, and retain the next normal morning or evening round. Explicit manual calls are unaffected. Does not apply when task rotation is disabled."
 }

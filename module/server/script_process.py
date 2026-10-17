@@ -199,6 +199,7 @@ class ScriptProcess(ScriptWSManager):
                 loaded = self.store._load_unlocked(self.config_name)
                 if loaded.generation != self.generation:
                     raise ConfigGenerationMismatchError('Scheduler configuration changed')
+                loaded = self.store._load_normalized_locked(self.config_name)
                 actual = runtime.read_locked() if runtime is not None else ''
                 config = Config(self.config_name, store=self.store, loaded=loaded)
                 config.update_scheduler()
@@ -519,6 +520,7 @@ class ScriptProcess(ScriptWSManager):
                     raise ConfigGenerationMismatchError(
                         f'{self.config_name} generation changed before spawn'
                     )
+                final_loaded = self.store._load_normalized_locked(self.config_name)
                 self.scheduler_runtime = SchedulerRuntime(self.generation)
                 new_process = multiprocessing.Process(
                     target=func,

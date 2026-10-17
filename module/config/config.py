@@ -38,6 +38,7 @@ from module.notify.notify import Notifier
 
 from module.exception import RequestHumanTakeover, ScriptError
 from module.logger import logger
+from tasks.MultiDailyAltAcc.midnight_schedule import is_disabled_automatic_midnight
 
 
 class Function:
@@ -402,6 +403,11 @@ class Config(ConfigState, ConfigManual, ConfigWatcher, ConfigMenu):
 
     def _apply_save_result(self, result) -> None:
         self._base = result.base
+        for path, value in result.normalized_values.items():
+            target = self.model
+            for part in path[:-1]:
+                target = getattr(target, part)
+            setattr(target, path[-1], copy.deepcopy(value))
         # 原地推进账号对象，避免任务已持有的列表引用在下一次排序时仍是旧时间。
         apply_login_times(self.model, result.login_times, model=True)
         self.blocked_changes = result.blocked
@@ -911,6 +917,8 @@ class Config(ConfigState, ConfigManual, ConfigWatcher, ConfigMenu):
         error = []
         self.scheduler_update_dt = datetime.now()
         for key, value in self.model.dict().items():
+            if key == 'multi_daily_alt_acc' and is_disabled_automatic_midnight(value):
+                continue
             func = Function(key, value)
             if not func.enable:
                 continue
@@ -1067,6 +1075,8 @@ class Config(ConfigState, ConfigManual, ConfigWatcher, ConfigMenu):
         task_enable = self.model.deep_get(self.model, keys=f'{task}.scheduler.enable')
         if force_call or task_enable:
             logger.info(f"Task call: {task}")
+            if task == 'multi_daily_alt_acc':
+                self.model.multi_daily_alt_acc.multi_daily_alt_acc_config.single_purpose_schedule_manual = True
             next_run = datetime.now().replace(
                 microsecond=0
             )
@@ -1079,10 +1089,11 @@ class Config(ConfigState, ConfigManual, ConfigWatcher, ConfigMenu):
 
     def task_delay(self, task: str, start_time: datetime = None,
                    success: bool = None, server: bool = True, target: datetime = None,
-                   persist: bool = True) -> None:
+                   persist: bool = True, manual_call: bool = False) -> None:
         """
         设置下次运行时间  当然这个也是可以重写的
         :param persist: 是否立即保存；False 供同一事务继续修改其他配置后统一保存
+        :param manual_call: 显式 WebUI 调整时间；仅记录 MultiDaily 的手动来源
         :param target: 可以自定义的下次运行时间
         :param server: True
         :param success: 判断是成功的还是失败的时间间隔
@@ -1166,6 +1177,8 @@ class Config(ConfigState, ConfigManual, ConfigWatcher, ConfigMenu):
         self.lock_config.acquire()
         try:
             scheduler.next_run = next_run
+            if manual_call and task == 'multi_daily_alt_acc':
+                task_object.multi_daily_alt_acc_config.single_purpose_schedule_manual = True
             if persist:
                 self.save()
         finally:

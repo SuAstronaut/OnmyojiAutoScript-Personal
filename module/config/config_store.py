@@ -8,6 +8,7 @@
 # - 生命周期 create/import/delete/rename 全委托 GenerationManager
 import copy
 import hashlib
+import json
 import os
 import re
 import threading
@@ -47,6 +48,12 @@ from module.config.config_validation import (
     validate_persisted_config,
 )
 from module.config.utils import _write_file_unlocked, convert_to_underscore
+from tasks.MultiDailyAltAcc.midnight_schedule import (
+    MANUAL_SCHEDULE_FIELD, cancel_disabled_midnight_schedule,
+    is_disabled_automatic_midnight,
+)
+from tasks.MultiDailyAltAcc.task_plan import TASK_KEYS, TaskPlanError
+from module.logger import logger
 
 
 class ConfigNotFoundError(FileNotFoundError):
@@ -127,6 +134,8 @@ class SaveResult:
     base: dict = field(default_factory=dict)
     # 经提交校验确认的实际登录时间，用于同步运行模型及关联来源配置。
     login_times: dict = field(default_factory=dict)
+    # Only authoritative midnight phase fields; unrelated HOT/WARM state stays local.
+    normalized_values: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -241,7 +250,7 @@ class ConfigStore:
                     with self.generation._lifecycle_lock(name):
                         # creating 可能是崩溃残留：锁内恢复后才判定，避免漏掉可前滚为 active 的身份。
                         self.generation._recover_name_sidecar(name)
-                        loaded = self._load_unlocked(name)
+                        loaded = self._load_normalized_locked(name)
                 except (
                     ConfigNotFoundError,
                     ConfigGenerationError,
@@ -259,7 +268,7 @@ class ConfigStore:
     def load(self, config_name: str) -> LoadedConfig:
         self.initialize()
         with self.generation.identity_lifecycle_lock(config_name):
-            return self._load_unlocked(config_name)
+            return self._load_normalized_locked(config_name)
 
     def load_canonical_snapshot(self, config_name: str) -> dict:
         return self.load(config_name).canonical
@@ -271,18 +280,49 @@ class ConfigStore:
         return config_path.stat().st_mtime_ns, hashlib.sha256(raw).hexdigest()
 
     def _load_unlocked(self, config_name: str) -> LoadedConfig:
+        """Pure snapshot: never normalize/write, even for a lock-free CAS reader."""
         record = self.generation.read_active_generation(config_name)
         if record is None or record.state != "active":
             raise ConfigNotFoundError(f"Config not found or not active: {config_name}")
         config_path = self.generation._config_path(config_name)
         if not config_path.exists():
             raise ConfigGenerationError(f"{config_name}: active sidecar but config missing")
-        raw = self.generation._read_raw_json(config_name)
+        # Bind the digest to the exact bytes validated, not a later reread.
+        # Source-login readers may race a writer; commit will reject this digest.
+        raw_bytes = config_path.read_bytes()
+        try:
+            raw = json.loads(raw_bytes.decode('utf-8'))
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise ConfigGenerationError(f'{config_name}: invalid json') from error
+        if not isinstance(raw, dict):
+            raise ConfigGenerationError(f'{config_name}: config root must be an object')
         if raw.get("config_name") != config_name:
             raise ConfigGenerationError(f"{config_name}: config_name mismatch")
         model, canonical = validate_persisted_config(raw, config_name, self.profile)
-        mtime_ns, content_digest = self._file_revision(config_name)
-        return LoadedConfig(model, canonical, record.generation, mtime_ns, content_digest)
+        return LoadedConfig(model, canonical, record.generation,
+                            config_path.stat().st_mtime_ns, hashlib.sha256(raw_bytes).hexdigest())
+
+    @staticmethod
+    def _cancel_midnight(config_name, canonical, normal_round=None):
+        try:
+            return cancel_disabled_midnight_schedule(canonical, normal_round=normal_round)
+        except (TaskPlanError, OSError, UnicodeError) as error:
+            # The helper calculates the complete replacement before mutating.
+            # Keep the original phase and plan; queue/claim guards block only
+            # this forbidden MultiDaily phase until the plan is repaired.
+            logger.error(f'[{config_name}] midnight cancellation failed; automatic phase blocked: {error}')
+            return []
+
+    def _load_normalized_locked(self, config_name: str) -> LoadedConfig:
+        """Caller already holds the identity/lifecycle transaction; never reacquire it."""
+        loaded = self._load_unlocked(config_name)
+        canonical = loaded.canonical
+        if self._cancel_midnight(config_name, canonical):
+            model, canonical = validate_persisted_config(canonical, config_name, self.profile)
+            self._write_config(config_name, canonical)
+            mtime_ns, content_digest = self._file_revision(config_name)
+            return LoadedConfig(model, canonical, loaded.generation, mtime_ns, content_digest)
+        return loaded
 
     def _load_canonical_unlocked(self, config_name: str) -> dict:
         return self._load_unlocked(config_name).canonical
@@ -300,16 +340,28 @@ class ConfigStore:
             return self._patch_user_field_locked(config_name, path, value)
 
     def _patch_user_field_locked(self, config_name: str, path: tuple[str, ...], value: Any) -> PatchResult:
+        manual_multi = ((path[:2] == ('multi_daily_alt_acc', 'multi_daily_alt_acc_config')
+                         and path[-1] in ('total_returngift_enable', 'total_alliedteam_battle_enable')
+                         and value is True)
+                        or path == ('multi_daily_alt_acc', 'scheduler', 'next_run'))
         loaded = self._load_unlocked(config_name)
         new_canonical = set_path(loaded.canonical, path, value)
+        manual_paths = []
+        if manual_multi:
+            manual_path = ('multi_daily_alt_acc', 'multi_daily_alt_acc_config', MANUAL_SCHEDULE_FIELD)
+            new_canonical = set_path(new_canonical, manual_path, True)
+            manual_paths.append(manual_path)
         if new_canonical == loaded.canonical:
             return PatchResult(True, [], loaded.mtime_ns, loaded.generation, "SET")
         _model, canonical = validate_persisted_config(new_canonical, config_name, self.profile)
+        cancelled_paths = self._cancel_midnight(config_name, canonical)
+        if cancelled_paths:
+            _model, canonical = validate_persisted_config(canonical, config_name, self.profile)
         if canonical == loaded.canonical:
             return PatchResult(True, [path], loaded.mtime_ns, loaded.generation, "SET")
         self._write_config(config_name, canonical)
         mtime_ns = os.stat(self.generation._config_path(config_name)).st_mtime_ns
-        result = PatchResult(True, [path], mtime_ns, loaded.generation, "SET")
+        result = PatchResult(True, [path] + manual_paths + cancelled_paths, mtime_ns, loaded.generation, "SET")
         self.last_operation = result
         return result
 
@@ -329,6 +381,7 @@ class ConfigStore:
         self.initialize()
         task_key = convert_to_underscore(task)
         with self.generation.identity_lifecycle_lock(config_name):
+            manual_multi = task_key == 'multi_daily_alt_acc' and action == 'run_now'
             loaded = self._load_unlocked(config_name)
             self._check_scheduler_generation(loaded, expected_generation, runtime)
             scheduler = self._task_scheduler(loaded, task_key)
@@ -336,6 +389,9 @@ class ConfigStore:
                 raise SchedulerActionError('task_running')
             if action == 'run_now' and not scheduler['enable']:
                 raise SchedulerActionError('task_disabled')
+            canonical = copy.deepcopy(loaded.canonical)
+            cancelled_paths = [] if manual_multi else self._cancel_midnight(config_name, canonical)
+            scheduler = get_path(canonical, (task_key, 'scheduler'))
             old = datetime.fromisoformat(str(scheduler['next_run']))
             moment = (now or datetime.now()).replace(microsecond=0)
             if old.tzinfo is not None:
@@ -351,14 +407,18 @@ class ConfigStore:
                 status = 'postponed'
             path = (task_key, 'scheduler', 'next_run')
             value = target.strftime('%Y-%m-%d %H:%M:%S')
-            canonical = loaded.canonical
-            if target != old:
-                _model, canonical = validate_persisted_config(
-                    set_path(canonical, path, value), config_name, self.profile)
+            changed_paths = [path] + cancelled_paths
+            if manual_multi:
+                manual_path = ('multi_daily_alt_acc', 'multi_daily_alt_acc_config', MANUAL_SCHEDULE_FIELD)
+                canonical = set_path(canonical, manual_path, True)
+                changed_paths.append(manual_path)
+            _model, canonical = validate_persisted_config(
+                set_path(canonical, path, value), config_name, self.profile)
+            if canonical != loaded.canonical:
                 self._write_config(config_name, canonical)
             # Include the path for already_due too: the caller still notifies.
             result = SchedulerActionResult(
-                success=True, changed_paths=[path],
+                success=True, changed_paths=changed_paths,
                 mtime_ns=os.stat(self.generation._config_path(config_name)).st_mtime_ns,
                 generation=loaded.generation, operation=action,
                 status=status, task=task, next_run=str(get_path(canonical, path)))
@@ -391,6 +451,10 @@ class ConfigStore:
         with self.generation.identity_lifecycle_lock(config_name):
             loaded = self._load_unlocked(config_name)
             self._check_scheduler_generation(loaded, expected_generation, runtime)
+            loaded = self._load_normalized_locked(config_name)
+            if task_key == 'multi_daily_alt_acc' and is_disabled_automatic_midnight(
+                    loaded.canonical.get(task_key, {})):
+                return False
             scheduler = self._task_scheduler(loaded, task_key)
             if not scheduler['enable']:
                 return False
@@ -628,6 +692,9 @@ class ConfigStore:
             else:
                 new_canonical = set_path(new_canonical, p, v)
         _model, canonical2 = validate_persisted_config(new_canonical, config_name, self.profile)
+        cancelled_paths = self._cancel_midnight(config_name, canonical2)
+        if cancelled_paths:
+            _model, canonical2 = validate_persisted_config(canonical2, config_name, self.profile)
         changed = canonical2 != canonical
         if changed:
             self._write_config(config_name, canonical2)
@@ -636,7 +703,7 @@ class ConfigStore:
             mtime_ns = loaded.mtime_ns
         result = ReplaceResult(
             success=True,
-            changed_paths=sorted(values) if changed else [],
+            changed_paths=sorted(set(values) | set(cancelled_paths)) if changed else [],
             mtime_ns=mtime_ns,
             generation=loaded.generation,
             operation="REPLACE_PATH_SET",
@@ -669,6 +736,9 @@ class ConfigStore:
                 raise ConfigGenerationMismatchError(f"subtree {'/'.join(path)} changed since expected")
             new_canonical = set_path(loaded.canonical, path, value)
             _model, canonical = validate_persisted_config(new_canonical, config_name, self.profile)
+            cancelled_paths = self._cancel_midnight(config_name, canonical)
+            if cancelled_paths:
+                _model, canonical = validate_persisted_config(canonical, config_name, self.profile)
             changed = canonical != loaded.canonical
             if changed:
                 self._write_config(config_name, canonical)
@@ -677,7 +747,7 @@ class ConfigStore:
                 mtime_ns = loaded.mtime_ns
             result = ReplaceResult(
                 success=True,
-                changed_paths=[path] if changed else [],
+                changed_paths=[path] + cancelled_paths if changed else [],
                 mtime_ns=mtime_ns,
                 generation=loaded.generation,
                 operation="REPLACE_SUBTREE",
@@ -794,10 +864,40 @@ class ConfigStore:
             apply_login_times(merge_result.value, updates)
             apply_login_times(result.base, updates)
             result.login_times = updates
-            if not merge_result.changed and merge_result.value == disk:
-                return result
             # 合并结果严格校验后写盘；校验失败抛 ConfigValidationError，磁盘保持不变
             _model, canonical = validate_persisted_config(merge_result.value, config_name, self.profile)
+            # Preserve a newer writer's normal round. An unchanged old round
+            # may be the very evening currently finishing, not the next run.
+            next_path = ('multi_daily_alt_acc', 'scheduler', 'next_run')
+            newer_normal = (disk.get('multi_daily_alt_acc')
+                            if not _eq(get_path(disk, next_path), get_path(base, next_path)) else None)
+            cancelled_paths = self._cancel_midnight(
+                config_name, canonical, normal_round=newer_normal)
+            if cancelled_paths:
+                _model, canonical = validate_persisted_config(canonical, config_name, self.profile)
+                for path in cancelled_paths:
+                    result.base = set_path(result.base, path, get_path(canonical, path))
+                    if path not in result.applied_paths:
+                        result.applied_paths.append(path)
+            phase_config = canonical.get('multi_daily_alt_acc', {}).get('multi_daily_alt_acc_config', {})
+            if (not phase_config.get('team_battle_midnight_schedule_enable', True)
+                    and not phase_config.get('disable_task_rotation', False)):
+                # Return committed typed values so model/base/disk converge in
+                # place. No full reload: don't absorb unrelated WARM/COLD edits.
+                prefix = ('multi_daily_alt_acc', 'multi_daily_alt_acc_config')
+                phase_paths = [prefix + (name,) for name in (
+                    'team_battle_midnight_schedule_enable', MANUAL_SCHEDULE_FIELD,
+                    'total_returngift_enable', 'total_alliedteam_battle_enable',
+                    *('total_' + key + '_enable' for key in TASK_KEYS))]
+                phase_paths.append(('multi_daily_alt_acc', 'scheduler', 'next_run'))
+                for path in phase_paths:
+                    result.base = set_path(result.base, path, get_path(canonical, path))
+                    value = _model
+                    for part in path:
+                        value = getattr(value, part)
+                    result.normalized_values[path] = copy.deepcopy(value)
+                phase_set = set(phase_paths)
+                result.blocked = [b for b in result.blocked if b.path not in phase_set]
             if canonical != disk:
                 # 多个角色或多个 list 只在实际写入前备份一次完整原文件。
                 if changed_login_times(disk, canonical):
@@ -830,6 +930,8 @@ class ConfigStore:
             path = self.generation._config_path(config_name)
             if hashlib.sha256(path.read_bytes()).hexdigest() != loaded.content_digest:
                 raise ConfigWriteConflictError(f'{config_name}: changed before write')
+            if self._cancel_midnight(config_name, canonical):
+                _model, canonical = validate_persisted_config(canonical, config_name, self.profile)
             if backup:
                 backup_source_config(path)
             self._write_config(config_name, canonical)
@@ -875,6 +977,8 @@ class ConfigStore:
             for path, value in updates.items():
                 new_canonical = set_path(new_canonical, path, value)
             model, canonical = validate_persisted_config(new_canonical, config_name, self.profile)
+            if self._cancel_midnight(config_name, canonical):
+                model, canonical = validate_persisted_config(canonical, config_name, self.profile)
             if canonical != loaded.canonical:
                 self._write_config(config_name, canonical)
             mtime_ns, content_digest = self._file_revision(config_name)
@@ -926,6 +1030,10 @@ class ConfigStore:
                 config_name,
                 self.profile,
             )
+            cancelled_paths = self._cancel_midnight(config_name, canonical)
+            if cancelled_paths:
+                _model, canonical = validate_persisted_config(canonical, config_name, self.profile)
+                changed_paths.extend(cancelled_paths)
             changed = canonical != loaded.canonical
             if changed:
                 self._write_config(config_name, canonical)
@@ -973,6 +1081,8 @@ class ConfigStore:
                 if scheduler.get("enable"):
                     scheduler["next_run"] = target_str
             _model, canonical = validate_persisted_config(new_canonical, config_name, self.profile)
+            if self._cancel_midnight(config_name, canonical):
+                _model, canonical = validate_persisted_config(canonical, config_name, self.profile)
             changed = canonical != loaded.canonical
             if changed:
                 self._write_config(config_name, canonical)
