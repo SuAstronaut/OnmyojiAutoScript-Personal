@@ -189,5 +189,15 @@ class BondlingFairylandAssets:
 	I_BUY_SUB = RuleImage(roi_front=(468,540,43,40), roi_back=(468,540,43,40), threshold=0.8, method="Template matching", file="./tasks/BondlingFairyland/stone/buy_sub.png")
 	# 关闭购买契灵页面 
 	I_STONE_CLOSE = RuleImage(roi_front=(911,56,42,38), roi_back=(888,49,100,100), threshold=0.8, method="Template matching", file="./tasks/BondlingFairyland/stone/stone_stone_close.png")
+	# 契灵战后继续邀请正文，点击按钮前必须命中
+	I_BOND_INVITE_TITLE = RuleImage(roi_front=(472,301,339,31), roi_back=(462,291,359,51), threshold=0.9, method="Template matching", file="./tasks/BondlingFairyland/capture/capture_continue_invite_title.png")
+	# 继续邀请确定，须同帧验证正文与圆圈；复用经真实契灵截图验证的御魂资源
+	I_BOND_INVITE_SURE = RuleImage(roi_front=(670,402,175,60), roi_back=(670,402,175,60), threshold=0.8, method="Template matching", file="./tasks/BondlingFairyland/capture/../../Orochi/o/gi_gi_sure.png")
+	# 继续邀请已勾选圆圈
+	I_BOND_INVITE_DEFAULT = RuleImage(roi_front=(546,346,30,30), roi_back=(541,342,41,39), threshold=0.8, method="Template matching", file="./tasks/BondlingFairyland/capture/../../Orochi/o/gi_i_default.png")
+	# 继续邀请未勾选圆圈
+	I_BOND_INVITE_NO_DEFAULT = RuleImage(roi_front=(546,346,30,30), roi_back=(542,343,36,35), threshold=0.8, method="Template matching", file="./tasks/BondlingFairyland/capture/../../Orochi/o/gi_i_no_default.png")
+	# 已确认继续邀请弹窗后，仅点击黄色确定按钮内部
+	C_BOND_INVITE_SURE = RuleClick(roi_front=(704,422,100,32), roi_back=(0,0,100,100), name="bond_invite_sure")
 
 

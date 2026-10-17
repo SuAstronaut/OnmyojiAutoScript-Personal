@@ -9,6 +9,7 @@ from cached_property import cached_property
 from datetime import timedelta, time
 
 from module.base.timer import Timer
+from module.exception import GamePageUnknownError
 from tasks.base_task import BaseTask
 from tasks.Component.GeneralInvite.assets import GeneralInviteAssets
 from tasks.Component.GeneralInvite.config_invite import InviteConfig, InviteNumber, FindMode
@@ -444,6 +445,9 @@ class GeneralInvite(BaseTask, BondlingFairylandAssets, GeneralInviteAssets):
         :param default_invite:
         :return:
         """
+        if getattr(self.device, 'is_desktop', False):
+            return self._desktop_continue_invite(default_invite)
+
         if not self.appear(self.I_GI_SURE, interval=1.5):
             return False
 
@@ -466,6 +470,54 @@ class GeneralInvite(BaseTask, BondlingFairylandAssets, GeneralInviteAssets):
                 continue
 
         return True
+
+    def _desktop_continue_invite(self, default_invite: bool) -> bool:
+        """只有正文确认的继续邀请弹窗可点击；每次操作后用新帧验证。"""
+        if not self.appear(self.I_BOND_INVITE_TITLE):
+            return False
+
+        deadline = Timer(15).start()
+        click_timer = Timer(2)
+        toggle_clicks = confirm_clicks = room_frames = 0
+        title = sure = checked = unchecked = False
+        while not deadline.reached():
+            self.screenshot()
+            if deadline.reached():
+                break
+            title = self.appear(self.I_BOND_INVITE_TITLE)
+            sure = self.appear(self.I_BOND_INVITE_SURE)
+            if title:
+                room_frames = 0
+                checked = self.appear(self.I_BOND_INVITE_DEFAULT)
+                unchecked = self.appear(self.I_BOND_INVITE_NO_DEFAULT)
+                # 两种圆圈必须互斥，正文、按钮、圆圈必须来自同一帧。
+                if sure and checked != unchecked and click_timer.reached():
+                    if checked == default_invite:
+                        if confirm_clicks < 3 and self.appear_then_click(
+                                self.I_BOND_INVITE_SURE, action=self.C_BOND_INVITE_SURE, interval=2):
+                            confirm_clicks += 1
+                            click_timer.reset()
+                    elif toggle_clicks < 3:
+                        target = self.I_BOND_INVITE_DEFAULT if checked else self.I_BOND_INVITE_NO_DEFAULT
+                        if self.appear_then_click(target, interval=2):
+                            toggle_clicks += 1
+                            click_timer.reset()
+            elif confirm_clicks and not sure and self.appear(self.I_GI_IN_ROOM):
+                room_frames += 1
+                if room_frames >= 2:
+                    logger.info(f'Bondling continue invite verified: default={default_invite}, '
+                                f'toggles={toggle_clicks}, confirms={confirm_clicks}, room=2 frames')
+                    return True
+            else:
+                room_frames = 0
+
+        scores = {rule.name: rule.last_match_score for rule in (
+            self.I_BOND_INVITE_TITLE, self.I_BOND_INVITE_SURE,
+            self.I_BOND_INVITE_DEFAULT, self.I_BOND_INVITE_NO_DEFAULT, self.I_GI_IN_ROOM)}
+        raise GamePageUnknownError(
+            f'Bondling continue invite timeout: default={default_invite}, title={title}, sure={sure}, '
+            f'checked={checked}, unchecked={unchecked}, toggles={toggle_clicks}, '
+            f'confirms={confirm_clicks}, room_frames={room_frames}, scores={scores}')
 
 
 if __name__ == '__main__':

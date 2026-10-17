@@ -142,5 +142,41 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "禁用结契极简模式"
+  },
+  {
+    "itemName": "bond_invite_title",
+    "imageName": "capture_continue_invite_title.png",
+    "roiFront": "472,301,339,31",
+    "roiBack": "462,291,359,51",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "契灵战后继续邀请正文，点击按钮前必须命中"
+  },
+  {
+    "itemName": "bond_invite_sure",
+    "imageName": "../../Orochi/o/gi_gi_sure.png",
+    "roiFront": "670,402,175,60",
+    "roiBack": "670,402,175,60",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "继续邀请确定，须同帧验证正文与圆圈；复用已在真实契灵截图验证的御魂资源"
+  },
+  {
+    "itemName": "bond_invite_default",
+    "imageName": "../../Orochi/o/gi_i_default.png",
+    "roiFront": "546,346,30,30",
+    "roiBack": "541,342,41,39",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "继续邀请已勾选圆圈；复用已在真实契灵截图验证的御魂资源"
+  },
+  {
+    "itemName": "bond_invite_no_default",
+    "imageName": "../../Orochi/o/gi_i_no_default.png",
+    "roiFront": "546,346,30,30",
+    "roiBack": "542,343,36,35",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "继续邀请未勾选圆圈；复用已在真实契灵截图验证的御魂资源"
   }
 ]

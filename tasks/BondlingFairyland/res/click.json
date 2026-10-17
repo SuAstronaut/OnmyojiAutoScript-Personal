@@ -46,5 +46,11 @@
     "roiFront": "628,314,108,137",
     "roiBack": "0,0,100,100",
     "description": "平安京地域"
+  },
+  {
+    "itemName": "bond_invite_sure",
+    "roiFront": "704,422,100,32",
+    "roiBack": "0,0,100,100",
+    "description": "已确认继续邀请弹窗后，仅点击黄色确定按钮内部"
   }
 ]

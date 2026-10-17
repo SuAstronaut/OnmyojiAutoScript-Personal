@@ -101,11 +101,16 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, BondlingBattle, SwitchSoul,
         logger.hr('Start run leader', 2)
         success = True
         is_first = True
+        desktop = getattr(self.device, 'is_desktop', False)
+        default_invite = self.config.bondling_fairyland.invite_config.default_invite if desktop else True
+        post_battle_timer = None
         while 1:
             def create_bond_team():
                 click_count = 0
                 while 1:
                     self.screenshot()
+                    if desktop and self.check_and_invite(default_invite):
+                        continue
                     if self.appear(self.I_GI_IN_ROOM):
                         return True
                     if click_count >= 6:
@@ -116,7 +121,7 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, BondlingBattle, SwitchSoul,
                     # 某些活动的时候出现 “选择共鸣的阴阳师”
                     if self.appear_then_click(self.I_UI_CONFIRM, interval=1):
                         continue
-                    if self.check_and_invite(True):
+                    if not desktop and self.check_and_invite(True):
                         continue
                     if self.appear(self.I_CREATE_TEAM, interval=1):
                         self.ensure_private()
@@ -138,12 +143,30 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, BondlingBattle, SwitchSoul,
 
             self.screenshot()
 
+            if desktop and self.check_and_invite(default_invite):
+                post_battle_timer = None
+                continue
+            # 失败后应回到房间；未知弹窗/正文失配不能无限空转或猜点。
+            if post_battle_timer is not None:
+                has_confirm = self.appear(self.I_BOND_INVITE_SURE)
+                if not has_confirm and self.appear(self.I_GI_IN_ROOM):
+                    post_battle_timer = None
+                elif post_battle_timer.reached():
+                    raise GamePageUnknownError(
+                        'Bondling failed battle did not return to room or a recognized invite dialog (20s): '
+                        f'title_score={self.I_BOND_INVITE_TITLE.last_match_score}, '
+                        f'sure_score={self.I_BOND_INVITE_SURE.last_match_score}, '
+                        f'room_score={self.I_GI_IN_ROOM.last_match_score}')
+                else:
+                    continue
+
             if success:
                 is_first = True
                 if not create_bond_team():
                     return True
 
-            self.check_and_invite(True)
+            if not desktop:
+                self.check_and_invite(True)
 
             if self.current_count >= self.limit_count:
                 if self.appear(self.I_GI_IN_ROOM):
@@ -164,6 +187,8 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, BondlingBattle, SwitchSoul,
                 if not is_first:
                     if self.run_invite(config=self.config.bondling_fairyland.invite_config):
                         success = self.run_battle(self.config.bondling_fairyland.battle_config, limit_count=self.limit_count)
+                        if desktop and not success:
+                            post_battle_timer = Timer(20).start()
                     else:
                         # 邀请失败，退出任务
                         logger.warning('Invite failed and exit this bondling_fairyland task')
@@ -179,6 +204,8 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, BondlingBattle, SwitchSoul,
                     else:
                         is_first = False
                         success = self.run_battle(self.config.bondling_fairyland.battle_config, limit_count=self.limit_count)
+                        if desktop and not success:
+                            post_battle_timer = Timer(20).start()
                         continue
         # 当结束或者是失败退出循环的时候只有两个UI的可能，在房间或者是在组队界面
         # 如果在房间就退出
