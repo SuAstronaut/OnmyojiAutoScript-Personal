@@ -402,18 +402,66 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, BondlingBattle, SwitchSoul,
             self.ui_click_until_disappear(self.I_STONE_CLOSE, interval=1.2)
             logger.warning(f'已经没有鸣契石召唤契灵了')
             return False
+        summon_requested = False
+        confirmed = False
+        response_timer = None
+        ocr_timer = Timer(1)
         while 1:
             self.screenshot()
-            if not self.appear(self.I_STONE_SURE):
+            if response_timer is not None and response_timer.reached():
+                raise GamePageUnknownError('Bondling summon confirmation/transition timeout')
+            # 弹窗遮罩下仍能匹配到背后的数量按钮，必须先处理弹窗。
+            has_confirm = self.appear(self.I_STONE_SUMMON_CONFIRM)
+            has_cancel = self.appear(self.I_STONE_SUMMON_CANCEL)
+            if confirmed:
+                # 本次只确认一次；新截图确认弹窗和召唤页面均已离开。
+                if has_confirm or has_cancel or self.appear(self.I_STONE_SURE):
+                    continue
                 sleep(random.uniform(1.5, 2))  # 等待购买后的动画, 否则已经买了但是下次再点击还会出现该界面
                 return True
-            for i in range(3):
-                if self.appear_then_click(self.I_BUY_PLUS, interval=1):
-                    sleep(0.5)
-            if self.appear_then_click(self.I_GI_SURE, interval=1):
+            if has_confirm or has_cancel:
+                if response_timer is None:
+                    response_timer = Timer(15).start()
+                if (summon_requested and has_confirm and has_cancel
+                        and self.appear(self.I_STONE_SURE) and ocr_timer.reached()):
+                    ocr_timer.reset()
+                    if self._stone_summon_dialog() and not response_timer.reached():
+                        if self.appear_then_click(self.I_STONE_SUMMON_CONFIRM, interval=1):
+                            confirmed = True
+                            response_timer.reset()
                 continue
+            if not self.appear(self.I_STONE_SURE):
+                # 请求后的未知画面不能当作召唤成功，交给超时和现有异常恢复。
+                if summon_requested:
+                    continue
+                sleep(random.uniform(1.5, 2))
+                return True
+            if not summon_requested:
+                for i in range(3):
+                    if self.appear_then_click(self.I_BUY_PLUS, interval=1):
+                        sleep(0.5)
             if self.appear_then_click(self.I_STONE_SURE, interval=1):
+                if not summon_requested:
+                    summon_requested = True
+                    response_timer = Timer(15).start()
                 continue
+
+    def _stone_summon_dialog(self) -> bool:
+        """两枚按钮同属一个弹窗，再用一次 OCR 检查稳定文字，不解析动态数量/名称。"""
+        confirm = self.I_STONE_SUMMON_CONFIRM.roi_front
+        cancel = self.I_STONE_SUMMON_CANCEL.roi_front
+        if not (208 <= confirm[0] - cancel[0] <= 248 and abs(confirm[1] - cancel[1]) <= 10):
+            return False
+        rule = self.O_B_STONE_SUMMON_DIALOG
+        results = rule.detect_and_ocr(self.device.image)
+        # Full.ocr 的通用字符回退匹配过宽；这里明确要求两个完整稳定片段。
+        results = [item for item in results if item.score >= 0.85
+                   and all(0 <= p[0] <= rule.roi[2] and 0 <= p[1] <= rule.roi[3]
+                           for p in item.box)]
+        results.sort(key=lambda item: min(p[0] for p in item.box))
+        text = ''.join(''.join(item.ocr_text.split()) for item in results)
+        prefix = text.find('是否消耗')
+        return prefix >= 0 and text.find('鸣契石召唤', prefix + 4) >= 0
 
     def run_search(self, bondling_config: BondlingConfig, limit_cnt: int = None):
         """

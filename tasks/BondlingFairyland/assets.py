@@ -157,6 +157,8 @@ class BondlingFairylandAssets:
 	O_B_STONE_NUMBER = RuleOcr(roi=(1135,16,78,32), area=(1135,16,78,32), mode="DigitCounter", method="Default", keyword="", name="b_stone_number")
 	# 召唤契灵数量 
 	O_B_SUMMON_BALL_NUMBER = RuleOcr(roi=(546,540,100,45), area=(546,540,100,45), mode="Single", method="Default", keyword="", name="b_summon_ball_number")
+	# 契灵召唤弹窗稳定提示片段，忽略动态数量及名称
+	O_B_STONE_SUMMON_DIALOG = RuleOcr(roi=(390,260,500,110), area=(390,260,500,110), mode="Full", method="Default", keyword="", name="b_stone_summon_dialog")
 	# 抓捕契灵剩余数量 
 	O_B_BALL_NUMBER = RuleOcr(roi=(1186,666,65,26), area=(1186,666,65,26), mode="DigitCounter", method="Default", keyword="", name="b_ball_number")
 	# 好友邀请 
@@ -189,6 +191,10 @@ class BondlingFairylandAssets:
 	I_BUY_SUB = RuleImage(roi_front=(468,540,43,40), roi_back=(468,540,43,40), threshold=0.8, method="Template matching", file="./tasks/BondlingFairyland/stone/buy_sub.png")
 	# 关闭购买契灵页面 
 	I_STONE_CLOSE = RuleImage(roi_front=(911,56,42,38), roi_back=(888,49,100,100), threshold=0.8, method="Template matching", file="./tasks/BondlingFairyland/stone/stone_stone_close.png")
+	# 契灵召唤弹窗确定（需稳定提示文字和取消按钮交叉验证）
+	I_STONE_SUMMON_CONFIRM = RuleImage(roi_front=(720,419,70,39), roi_back=(685,389,140,99), threshold=0.85, method="Template matching", file="./tasks/BondlingFairyland/stone/stone_summon_confirm.png")
+	# 契灵召唤弹窗取消锚点（不点击）
+	I_STONE_SUMMON_CANCEL = RuleImage(roi_front=(493,419,70,39), roi_back=(458,389,140,99), threshold=0.85, method="Template matching", file="./tasks/BondlingFairyland/stone/stone_summon_cancel.png")
 	# 契灵战后继续邀请正文，点击按钮前必须命中
 	I_BOND_INVITE_TITLE = RuleImage(roi_front=(472,301,339,31), roi_back=(462,291,359,51), threshold=0.9, method="Template matching", file="./tasks/BondlingFairyland/capture/capture_continue_invite_title.png")
 	# 继续邀请确定，须同帧验证正文与圆圈；复用经真实契灵截图验证的御魂资源

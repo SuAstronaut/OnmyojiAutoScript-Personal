@@ -52,5 +52,23 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "关闭购买契灵页面"
+  },
+  {
+    "itemName": "stone_summon_confirm",
+    "imageName": "stone_summon_confirm.png",
+    "roiFront": "720,419,70,39",
+    "roiBack": "685,389,140,99",
+    "method": "Template matching",
+    "threshold": 0.85,
+    "description": "契灵召唤弹窗确定（需稳定提示文字和取消按钮交叉验证）"
+  },
+  {
+    "itemName": "stone_summon_cancel",
+    "imageName": "stone_summon_cancel.png",
+    "roiFront": "493,419,70,39",
+    "roiBack": "458,389,140,99",
+    "method": "Template matching",
+    "threshold": 0.85,
+    "description": "契灵召唤弹窗取消锚点（不点击）"
   }
 ]
