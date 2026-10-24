@@ -3,11 +3,12 @@
 # github https://github.com/runhey
 from tasks.GuildActivityMonitor.config import GuildActivityMonitor
 from typing import Dict, Any
+from copy import deepcopy
 
 import re
 import inflection
 
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 from module.config.utils import *
 from module.logger import logger
@@ -286,7 +287,7 @@ class ConfigModel(ConfigBase):
                 results[key] = sch["$defs"][value]
             return results
 
-        def merge_value(groups, jsons, definitions) -> list[dict]:
+        def merge_value(groups, jsons, definitions, model) -> list[dict]:
             # 将 groups的参数，同导出的json一起合并, 用于前端显示
             result = []
             for key, value in groups["properties"].items():
@@ -299,11 +300,43 @@ class ConfigModel(ConfigBase):
                 item["title"] = value["title"] if "title" in value else inflection.underscore(key)
                 if "description" in value:
                     item["description"] = value["description"]
-                item["default"] = value["default"]
-                item["value"] = jsons[key] if key in jsons else value["default"]
-                item["type"] = value["type"] if "type" in value else "enum"
-                if '$ref' in value:  # list
-                    enum_key = re.search(r"/([^/]+)$", value['$ref']).group(1)
+                if "default" in value:
+                    # Preserve explicit Schema defaults, including intentional None.
+                    item["default"] = deepcopy(value["default"])
+                elif isinstance(model, BaseModel):
+                    fields = type(model).model_fields
+                    field = fields.get(key)
+                    if field is not None and not field.is_required():
+                        # Pydantic omits factory defaults from JSON Schema. Use the
+                        # actual field definition, not the user's current value.
+                        previous = {}
+                        for name in fields:
+                            if name == key:
+                                break
+                            previous[name] = getattr(model, name)
+                        default = field.get_default(call_default_factory=True,
+                                                    validated_data=deepcopy(previous))
+                        serialized = model.model_copy(deep=True, update={key: default}).model_dump(
+                            mode='json', include={key})
+                        if key in serialized:
+                            item["default"] = serialized[key]
+                if key in groups.get('required', []):
+                    item["required"] = True
+                if key in jsons:
+                    item["value"] = jsons[key]
+                elif "default" in item:
+                    item["value"] = deepcopy(item["default"])
+                # A required field has no invented default/value. Optional[T]
+                # describes a nullable widget, not a default of None by itself.
+                widget = value
+                choices = value.get('anyOf', [])
+                non_null = [choice for choice in choices if choice.get('type') != 'null']
+                if len(non_null) == 1 and len(non_null) != len(choices):
+                    widget = non_null[0]
+                    item['nullable'] = True
+                item["type"] = widget["type"] if "type" in widget else "enum"
+                if '$ref' in widget:
+                    enum_key = re.search(r"/([^/]+)$", widget['$ref']).group(1)
                     item["enumEnum"] = definitions[enum_key]["enum"]
                 # if 'allOf' in value:
                 #     enum_key = re.search(r"/([^/]+)$", value['allOf'][0]['$ref']).group(1)
@@ -314,6 +347,14 @@ class ConfigModel(ConfigBase):
         schema = task.model_json_schema()
         groups = extract_groups(schema)
         groups_value = groups.copy()
+        group_models = {}
+        for name in groups:
+            model = getattr(task, name, None)
+            if isinstance(model, list):
+                group_models.update({f'{name}_{index}': member
+                                     for index, member in enumerate(model, 1)})
+            else:
+                group_models[name] = model
 
         result: dict[str, list] = {}
         for key, value in task.model_dump(context={'hide': True}).items():
@@ -321,7 +362,7 @@ class ConfigModel(ConfigBase):
                 for group_name in groups.keys():
                     if group_name in key:
                         groups_value[key] = groups[group_name]
-            result[key] = merge_value(groups_value[key], value, schema["$defs"])
+            result[key] = merge_value(groups_value[key], value, schema["$defs"], group_models.get(key))
 
         self._inject_desktop_handle_options(result)
         self._filter_orochi_team_fields(task_name, result)
