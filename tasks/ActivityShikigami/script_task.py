@@ -215,7 +215,11 @@ class ScriptTask(StateMachine, ApGujiMixin, GameUi, BaseActivity, SwitchSoul, Pa
         self._x5_active: bool = False
 
     def run(self) -> None:
-        if 'ap' in self.conf.general_climb.run_sequence_v:
+        if ('ap' in self.conf.general_climb.run_sequence_v
+                or self.conf.general_climb.run_sequence_v == ['boss']):
+            if self.conf.general_climb.run_sequence_v == ['boss']:
+                from tasks.ActivityShikigami.boss_shenmu import run_shenmu_boss
+                return run_shenmu_boss(self)
             return self.run_ap_guji()
         self.limit_time: timedelta = self.conf.general_climb.limit_time_v
         #
