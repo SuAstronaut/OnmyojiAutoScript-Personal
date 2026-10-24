@@ -164,10 +164,27 @@
   {
     "itemName": "mpeacock_skill",
     "imageName": "gate1_mpeacock_skill.png",
-    "roiFront": "219,601,95,43",
-    "roiBack": "167,584,192,86",
+    "roiFront": "1001,601,95,43",
+    "roiBack": "949,584,192,86",
     "method": "Template matching",
     "threshold": 0.8,
-    "description": "选择绽放之舞re"
+    "description": "开局选择右侧祈愿之舞；按钮复用原模板并校验标题",
+    "guard": {
+      "roi_front": [
+        990,
+        436,
+        115,
+        31
+      ],
+      "roi_back": [
+        980,
+        426,
+        135,
+        51
+      ],
+      "method": "Template matching",
+      "threshold": 0.85,
+      "file": "./tasks/SixRealms/gate1/gate1_mpeacock_wish_title.png"
+    }
   }
 ]

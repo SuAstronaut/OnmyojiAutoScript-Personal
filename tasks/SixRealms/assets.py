@@ -115,8 +115,8 @@ class SixRealmsAssets:
 	I_ISLAND_TAG_FLAG = RuleImage(roi_front=(543,601,100,100), roi_back=(543,601,100,100), threshold=0.8, method="Template matching", file="./tasks/SixRealms/gate1/gate1_island_tag_flag.png")
 	# 暂时离开六道之门re 
 	I_EXIT_SIXREALMS = RuleImage(roi_front=(503,306,84,75), roi_back=(494,297,100,90), threshold=0.8, method="Template matching", file="./tasks/SixRealms/gate1/gate1_exit_sixrealms.png")
-	# 选择绽放之舞re 
-	I_MPEACOCK_SKILL = RuleImage(roi_front=(219,601,95,43), roi_back=(167,584,192,86), threshold=0.8, method="Template matching", file="./tasks/SixRealms/gate1/gate1_mpeacock_skill.png")
+	# 开局选择右侧祈愿之舞；按钮复用原模板并校验标题
+	I_MPEACOCK_SKILL = RuleImage(roi_front=(1001,601,95,43), roi_back=(949,584,192,86), threshold=0.8, method="Template matching", file="./tasks/SixRealms/gate1/gate1_mpeacock_skill.png", guard={'roi_front': [990, 436, 115, 31], 'roi_back': [980, 426, 135, 51], 'method': 'Template matching', 'threshold': 0.85, 'file': './tasks/SixRealms/gate1/gate1_mpeacock_wish_title.png'})
 
 
 	# Ocr Rule Assets
