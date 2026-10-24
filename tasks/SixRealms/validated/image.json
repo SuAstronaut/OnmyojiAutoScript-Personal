@@ -196,5 +196,23 @@
     "method": "Template matching",
     "threshold": 0.9,
     "description": "Real summon dialog identity; no full-page OCR"
+  },
+  {
+    "itemName": "six_summon_cancel_desktop",
+    "imageName": "six_summon_cancel_desktop.png",
+    "roiFront": "442,414,168,50",
+    "roiBack": "430,400,196,78",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "Summon cancel only; require I_SIX_SUMMON_CONFIRM_TITLE before input"
+  },
+  {
+    "itemName": "six_summon_cancel",
+    "imageName": "six_summon_cancel.png",
+    "roiFront": "439,408,166,51",
+    "roiBack": "427,396,190,75",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "Summon cancel only; require I_SIX_SUMMON_CONFIRM_TITLE before input"
   }
 ]

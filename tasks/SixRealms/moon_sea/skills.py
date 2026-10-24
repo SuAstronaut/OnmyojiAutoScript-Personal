@@ -6,7 +6,7 @@ from uuid import uuid4
 from cached_property import cached_property
 from module.logger import logger
 from module.base.timer import Timer
-from module.exception import ScriptError
+from module.exception import ScriptError, RequestHumanTakeover
 from tasks.base_task import BaseTask
 from tasks.SixRealms.assets import SixRealmsAssets
 
@@ -113,6 +113,7 @@ class MoonSeaSkills(BaseTask, SixRealmsAssets):
 
     def sixrealms_in_run_scene(self):
         return (self.in_main() or self.detect_enhancement_layout() is not None
+                or self.appear(self.I_SIX_SUMMON_CONFIRM_TITLE)
                 or self.enhancement_reward_popup_visible() or self.appear(self.I_STORE_EXIT)
                 or self.appear(self.I_SKILL_REFRESH) and self.appear(self.I_SELECT_3)
                 or self.appear(self.I_SIX_BOSS_AUTO) and (
@@ -210,6 +211,8 @@ class MoonSeaSkills(BaseTask, SixRealmsAssets):
             match = re.search(r'剩(\d+)次', self.O_SKILL_REFRESH.ocr(self.device.image))
             return bool(match and int(match.group(1)) > 0)
 
+        if self.handle_six_summon_dialog():
+            return True
         # Generic popup is consumed by the outer scan; its changing contents never gate selection.
         if self.enhancement_reward_popup_visible():
             self.appear_then_click(self.I_SIX_ATTRIBUTE_REWARD_TITLE, action=self.C_UI_REWARD, interval=1)
@@ -243,3 +246,57 @@ class MoonSeaSkills(BaseTask, SixRealmsAssets):
         if self.appear_then_click(self.I_COIN, action=self.C_UI_REWARD, interval=1.5):
             return True
         return False
+
+    def stop_six_unknown(self, reason):
+        logger.warning('[SixRealms] safe stop: ' + reason)
+        try:
+            self.device.save_screenshot(genre='sixrealms_safe_stop', interval=0)
+        finally:
+            raise RequestHumanTakeover(reason)
+
+
+    def handle_six_summon_dialog(self):
+        """Specific summon identity must precede any generic confirm/enter action."""
+        if not self.appear(self.I_SIX_SUMMON_CONFIRM_TITLE):
+            return False
+        cancel = next((rule for rule in (
+            self.I_SIX_SUMMON_CANCEL_DESKTOP, self.I_SIX_SUMMON_CANCEL
+        ) if self.appear(rule)), None)
+        if cancel is None:
+            self.stop_six_unknown('Summon title detected but cancel button is unknown; no input sent')
+        logger.info('[SixRealms] summon cancel evidence: before single center input')
+        self.device.save_screenshot(genre='sixrealms_summon_before', interval=0)
+        # A matched artwork rectangle is not a verified full hitbox. Keep the
+        # single input in its center rather than randomly near the border.
+        x, y = cancel.front_center()
+        self.device.click(x, y, control_name=cancel.name)
+        # One cancel only. Never alternate cancel/confirm or click through a transition.
+        stable = 0
+        for probe in range(24):
+            self.screenshot()
+            title = self.appear(self.I_SIX_SUMMON_CONFIRM_TITLE)
+            ready = not title and self.six_summon_cancel_map_ready()
+            if probe == 0:
+                logger.info(f'[SixRealms] summon cancel evidence: first post-input; title={title}, '
+                            f'score={getattr(self.I_SIX_SUMMON_CONFIRM_TITLE, "last_match_score", None)}, '
+                            f'clean_map={ready}')
+                self.device.save_screenshot(genre='sixrealms_summon_first_post', interval=0)
+            stable = stable + 1 if ready else 0
+            if stable >= 2:
+                logger.info('[SixRealms] resource summon cancelled; clean map confirmed in two frames')
+                self.device.save_screenshot(genre='sixrealms_summon_cancelled', interval=0)
+                return True
+        self.stop_six_unknown('Summon cancel outcome not observed; no second input sent')
+
+
+    def six_summon_cancel_map_ready(self):
+        # NCC also matches the map's summon icon behind the dim dialog (0.99
+        # on the real failure). Require both page identity and undimmed color.
+        return (self.in_main() and not self.detect_enhancement_layout()
+                and not self.enhancement_reward_popup_visible()
+                and not any(self.appear(rule) for rule in (
+                    self.I_SIX_SUMMON_CONFIRM_TITLE, self.I_SIX_SUMMON_CANCEL_DESKTOP,
+                    self.I_SIX_SUMMON_CANCEL, self.I_SIX_SUMMON_INSUFFICIENT_TITLE,
+                    self.I_UI_CONFIRM, self.I_UI_CANCEL, self.I_NINGXI_INSUFFICIENT_ENTER,
+                    self.I_SKILL_REFRESH, self.I_STORE_EXIT, self.I_BOSS_FIRE))
+                and any(self.appear_rgb(rule) for rule in (self.I_M_STORE_ACTIVITY, self.I_M_STORE)))
