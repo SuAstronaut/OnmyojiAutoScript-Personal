@@ -270,5 +270,7 @@ class SixRealmsAssets:
 	# Real summon dialog identities; existing confirm/enter buttons are not mutually exclusive.
 	I_SIX_SUMMON_CONFIRM_TITLE = RuleImage(roi_front=(560,302,231,30), roi_back=(556,298,239,38), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/summon_confirm_title.png")
 	I_SIX_SUMMON_INSUFFICIENT_TITLE = RuleImage(roi_front=(429,289,222,28), roi_back=(425,285,230,36), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/summon_insufficient_title.png")
+	I_SIX_SETTLEMENT_REWARD_TITLE = RuleImage(roi_front=(519,118,242,66), roi_back=(509,108,262,132), threshold=0.73, method="Template matching", file="./tasks/SixRealms/validated/settlement_reward_title.png")
+
 	I_SIX_SUMMON_CANCEL_DESKTOP = RuleImage(roi_front=(442, 414, 168, 50), roi_back=(430, 400, 196, 78), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/six_summon_cancel_desktop.png")
 	I_SIX_SUMMON_CANCEL = RuleImage(roi_front=(439, 408, 166, 51), roi_back=(427, 396, 190, 75), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/six_summon_cancel.png")

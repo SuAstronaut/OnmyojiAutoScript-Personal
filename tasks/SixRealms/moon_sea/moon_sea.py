@@ -57,6 +57,9 @@ def mark_with_safe_points(points: tuple[tuple[int, int], ...],
 
 
 class MoonSea(MoonSeaMap, MoonSeaL101, MoonSeaL102, MoonSeaL103, MoonSeaL104, MoonSeaL105):
+    # SixRealms-only reward identity; shared input/timing remains unchanged.
+    I_UI_REWARD = MoonSeaMap.I_SIX_SETTLEMENT_REWARD_TITLE
+
 
     @property
     def _conf(self):
