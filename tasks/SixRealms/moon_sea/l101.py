@@ -15,9 +15,9 @@ class MoonSeaL101(MoonSeaSkills):
         buy_try: int = 0
         while 1:
             self.screenshot()
-            if self.appear_then_click(self.I_UI_CONFIRM_SAMLL, interval=1.5):
+            if self.appear_then_click(self.I_STORE_PURCHASE_CONFIRM_SMALL, interval=1.5):
                 break
-            if self.appear(self.I_UI_CONFIRM):
+            if self.appear(self.I_STORE_PURCHASE_CONFIRM):
                 break
             if buy_try >= 4:
                 logger.warning(f'Buy skill 101 failed')
@@ -27,7 +27,7 @@ class MoonSeaL101(MoonSeaSkills):
                 x -= 60
                 self.device.click(x=x, y=y, )
                 buy_try += 1
-        self.ui_click_until_disappear(self.I_UI_CONFIRM)
+        self.ui_click_until_disappear(self.I_STORE_PURCHASE_CONFIRM)
         if not self.wait_until_appear(self.I_STORE_EXIT):
             return False
         self.confirm_honglei_owned('store_confirm_and_exit')
@@ -67,9 +67,9 @@ class MoonSeaL101(MoonSeaSkills):
         logger.hr('Start l101')
         logger.info('Keep buying skills until you run out of money')
         self.wait_until_appear(self.I_STORE_EXIT)
-        if self.appear(self.I_UI_CANCEL):
+        if self.appear(self.I_STORE_PURCHASE_CANCEL):
             # 有时候点击进入商店太快了，就进入会选随机的一个
-            self.ui_click_until_disappear(self.I_UI_CANCEL, interval=1)
+            self.ui_click_until_disappear(self.I_STORE_PURCHASE_CANCEL, interval=1)
         while 1:
             self.screenshot()
             coin = self.O_COIN_NUM.ocr(self.device.image)
@@ -80,8 +80,8 @@ class MoonSeaL101(MoonSeaSkills):
                 logger.info('SixRealms Honglei already owned')
                 break
 
-            if self.appear(self.I_UI_CONFIRM):
-                self.ui_click_until_disappear(self.I_UI_CONFIRM, interval=1)
+            if self.appear(self.I_STORE_PURCHASE_CONFIRM):
+                self.ui_click_until_disappear(self.I_STORE_PURCHASE_CONFIRM, interval=1)
             if self.appear(self.I_STORE_SKILL_101):
                 if not self.buy_skill_101():
                     break
@@ -95,7 +95,7 @@ class MoonSeaL101(MoonSeaSkills):
             self.screenshot()
             if self.in_main():
                 break
-            if self.appear_then_click(self.I_UI_CONFIRM, interval=1):
+            if self.appear_then_click(self.I_STORE_PURCHASE_CONFIRM, interval=1):
                 continue
             if self.appear_then_click(self.I_STORE_EXIT, interval=1):
                 continue
