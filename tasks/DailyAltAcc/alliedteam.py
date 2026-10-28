@@ -160,14 +160,8 @@ class Alliedteam(GeneralBattle, GeneralRoom, DailyAltAccBase):
                 start_time = time.time()
                 continue
     
-        while 1:
-            self.screenshot()
-            if self.appear(GameUiAssets.I_CHECK_MAIN) or self.appear(self.I_M_MAIN_TO_MAIL):
-                break
-            if self.appear_then_click(self.I_UI_BACK_YELLOW, interval=1):
-                continue
-            if self.appear_then_click(self.I_BACK_BLACK, interval=1):
-                continue
+        self.ui_return_to_main('alliedteam_ap_exit',
+                               extra_back=(self.I_UI_BACK_YELLOW, self.I_BACK_BLACK))
 
     def is_select_level(self):
         if not self.O_SELECT_LEVEL.ocr(self.device.image)=="觉醒业火轮壹层":

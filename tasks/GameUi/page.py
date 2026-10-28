@@ -27,7 +27,8 @@ class PageRegistry:
 
 
 class Page:
-    def __init__(self, check_button, links=None, *, enabled=None, overlay=False):
+    def __init__(self, check_button, links=None, *, enabled=None, overlay=False,
+                 navigation_only=False):
         if links is None:
             links = {}
         self.check_button = check_button
@@ -35,6 +36,8 @@ class Page:
         # 作用域按当前任务判断，不修改共享 Page；覆盖页优先于遮罩下的普通页面。
         self.enabled = enabled
         self.overlay = overlay
+        # 中转节点仍参与寻路和显式到达检查，不参与无上下文的全局页面识别。
+        self.navigation_only = navigation_only
         self.additional: list = None  # 附加按钮或者是ocr检测按钮
         (filename, line_number, function_name, text) = traceback.extract_stack()[-2]
         self.name = text[:text.find('=')].strip()
@@ -98,7 +101,7 @@ page_bind_phone.link(button=RestartAssets.I_LOGIN_LOGIN_CANCEL_BIND_PHONE, desti
 # 所以这条两跳路径照样推进得动（_execute_path 命中它会自己把 ui_current 设成 page_theme）。
 # 第一个 check_button 是卷轴展开图（随卷轴皮肤变，theme_costume_model 换的就是它）；
 # 第二个是卷轴展开后才会出现的式神录按钮，作为卷轴图失效时的兜底判据（不随任何皮肤变）。
-page_theme = Page([RestartAssets.I_LOGIN_SCROOLL_OPEN, G.I_MAIN_GOTO_SHIKIGAMI_RECORDS])
+page_theme = Page([RestartAssets.I_LOGIN_SCROOLL_OPEN, G.I_MAIN_GOTO_SHIKIGAMI_RECORDS], navigation_only=True)
 # 展开态同样要处理这四样：弹窗/邀战都是覆盖层，不随卷轴开合变化，少了这套在 page_theme
 # 上就没人关弹窗，去式神录那一步会被挡住。
 page_theme.additional = [G.I_CHECK_YARD, G.I_AD_CLOSE_RED, G.I_BACK_FRIENDS, RestartAssets.I_CANCEL_BATTLE]

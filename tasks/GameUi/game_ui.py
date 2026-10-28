@@ -29,6 +29,7 @@ from tasks.Restart.assets import RestartAssets
 from tasks.SixRealms.assets import SixRealmsAssets
 from tasks.base_task import BaseTask
 from tasks.ActivityShikigami.assets import ActivityShikigamiAssets
+from tasks.GameUi.return_main import ReturnMainMixin
 
 
 # 判「卷轴是否展开」用的入口：卷轴展开后它们会一起露出来，命中任一即算展开。
@@ -47,7 +48,7 @@ class _NavigationPageChanged(Exception):
     """导航中的覆盖页已变化，放弃旧页面操作并从当前 Page 重新规划。"""
 
 
-class GameUi(BaseTask, GameUiAssets):
+class GameUi(ReturnMainMixin, BaseTask, GameUiAssets):
     ui_current: Page = None
     ui_close = [GeneralInviteAssets.I_GI_EXIT_ENSURE,
                 GameUiAssets.I_BACK_MALL, GeneralBattleAssets.I_CONFIRM,
@@ -177,7 +178,12 @@ class GameUi(BaseTask, GameUiAssets):
         OCR —— 展开后的排版随卷轴皮肤变，没采集过的皮肤上图判据认不出，而入口的文字不随
         皮肤变。图判据放在前面是为了让正常路径零额外成本：OCR 只在它失败后才跑。
         """
-        visible = self.ui_page_appear(page_theme, skip_first_screenshot=False)
+        self.maybe_screenshot(False)
+        # 历史悬赏原图中，背景卷轴能命中而前景面板仍开着。中转到达必须
+        # 同时处于可操作的庭院上下文，不能仅凭透过遮罩的卷轴/底栏 OCR。
+        if not self.ui_main_confirmed():
+            return False
+        visible = self.ui_page_appear(page_theme, skip_first_screenshot=True)
         # 底栏 OCR 也能透过遮罩命中，不能绕过覆盖页的排他判断。
         return visible or (self._current_overlay_page() is None and self._scroll_entries_visible())
 
@@ -236,7 +242,7 @@ class GameUi(BaseTask, GameUiAssets):
             # Known pages
             redetect = False
             for page in self.ui_pages:
-                if not page.check_button:
+                if not page.check_button or getattr(page, 'navigation_only', False):
                     continue
                 if self.ui_page_appear(page=page, interval=None):
                     logger.attr("UI", page.name)
@@ -434,6 +440,10 @@ class GameUi(BaseTask, GameUiAssets):
             # 遍历路径
             found = self._execute_path(path, timeout_timer)
             if not found:
+                # _execute_path 已用新帧重判出有路由的页面：先重规划，不能在
+                # 已到庭院/已知页面上再盲走通用返回（左上角可能已变成头像）。
+                if self.ui_current in path_dict:
+                    continue
                 if close_unknown_timer.reached_and_reset():
                     self.try_close_unknown_page(skip_screenshot=False)
                     self.ui_current = None
@@ -472,6 +482,9 @@ class GameUi(BaseTask, GameUiAssets):
             if getattr(self, '_overlay_navigation_active', False):
                 self.maybe_screenshot(False)
             self.run_additional(current_page, interval=0.6, skip_first_screenshot=False)
+            if current_page == page_main and not self.ui_main_confirmed():
+                self.ui_current = None
+                return False
             # 如果已经是最后一页，不再跳转
             if i == len(path) - 1:
                 if len(path) == 1:
@@ -499,6 +512,15 @@ class GameUi(BaseTask, GameUiAssets):
                         break
                 if self.appear_then_operate(button, interval=0.8, skip_first_screenshot=False):
                     break
+                if next_page == page_main:
+                    # 返回操作没有发出（也可能只是冷却未到）：立即重判本帧，
+                    # 不启动另一轮目标页等待。成功到庭院仍须排除前景遮挡。
+                    self.maybe_screenshot(False)
+                    self.ui_current = self.ui_peek_page()
+                    if self.ui_current == page_main and self.ui_main_confirmed():
+                        return True
+                    self.ui_current = None
+                    return False
                 # 跳转按钮不出现、而目标页已经可见：这一步就没有可操作的对象了，
                 # 直接进入到达判定，省掉最多 6 秒空等。典型是 page_main -> page_theme：
                 # 卷轴已经展开时「收起卷轴」图不匹配，但目标页判据已经命中（page_theme
@@ -539,10 +561,11 @@ class GameUi(BaseTask, GameUiAssets):
                     self._scroll_fallback_used = True
                     logger.info('Scroll images unrecognized, click the fixed expand area')
                     self.click(RestartAssets.C_LOGIN_SCROLL_CLOSE_AREA)
-                self.ui_get_current_page(skip_first_screenshot=False)
-                # 当前页面不是对应路径的页面, 则尝试下一个页面
-                if self.ui_current != current_page:
-                    continue
+                # 没有发出跳转操作：只读核对当前帧并交回重规划，不能再为
+                # 一条未发生的跳转重置一个到达计时器。固定展开兜底也在下一轮确认。
+                self.maybe_screenshot(False)
+                self.ui_current = self.ui_peek_page()
+                return False
             max_wait_timer.reset()
             while not max_wait_timer.reached():
                 if timeout_timer.reached():
@@ -551,12 +574,16 @@ class GameUi(BaseTask, GameUiAssets):
                 # ui_wait_until_appear 内部只认 check_button，所以对它特判；其余页保持
                 # 原来的等待逻辑。特判分支每轮都要重截一帧，OCR 才有新画面可判。
                 if next_page == page_theme:
-                    # 注意参数名是 soft_skip 而不是 skip_first_screenshot：本文件另几处
-                    # 都是位置传参、变量名与形参名对不上，这里显式写关键字，别跟着抄错
-                    self.maybe_screenshot(soft_skip=False)
+                    # _page_theme_appear 自己只取一帧并复用它检查庭院/卷轴，
+                    # 不在调用方重复截图。
                     arrived = self._page_theme_appear()
                 else:
-                    arrived = self.ui_wait_until_appear(next_page, timeout=2.5,
+                    remaining = min(2.5, max(0, 6 - max_wait_timer.current()),
+                                    max(0, timeout_timer.limit - timeout_timer.current()))
+                    if remaining <= 0:
+                        self.ui_current = None
+                        return False
+                    arrived = self.ui_wait_until_appear(next_page, timeout=remaining,
                                                         skip_first_screenshot=False)
                 if arrived:
                     logger.info(f'[{max_wait_timer.current():.1f}s]Page arrived {next_page}')
@@ -564,7 +591,9 @@ class GameUi(BaseTask, GameUiAssets):
                     break
             else:
                 # 重新获取当前页
-                self.ui_get_current_page(skip_first_screenshot=False)
+                self.maybe_screenshot(False)
+                self.ui_current = self.ui_peek_page()
+                return False
         return self.ui_current == path[-1]
 
     def run_additional(self, page: Page, interval: float = None, skip_first_screenshot: bool = True):

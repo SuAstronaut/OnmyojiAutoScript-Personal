@@ -27,6 +27,7 @@ from tasks.MultiDailyAltAcc.progress import (
 )
 from tasks.MultiDailyAltAcc.task_plan import TaskPlan, load_task_plan
 from tasks.GameUi.game_ui import GameUi
+from tasks.GameUi.page import page_theme
 from tasks.Utils.coop_summary import build_summary_content
 from tasks.Utils.coop_records import cooperation_round_id, record_cooperation
 from tasks.Utils.coop_store import CoopStore
@@ -74,6 +75,11 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
             logger.warning("保存错误现场失败，继续设备恢复：%s", error)
 
     def run(self):
+        # 长驻脚本可能仍缓存旧GameUi/Page模块；先拒绝混用版本，不能切完号
+        # 才发现安全返回入口不存在。用户重启OAS脚本进程后再运行即可。
+        if (not callable(getattr(self, 'ui_return_to_main', None))
+                or not getattr(page_theme, 'navigation_only', False)):
+            raise RequestHumanTakeover('Restart OAS script process to load the bounded navigation revision')
         # 恢复后重新调度必须重新登录，不跨运行复用上次的账号身份。
         self._retry_account_identity = None
         import os
@@ -844,6 +850,10 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
         dff._progress = self._progress
         dff._progress_key = self._progress_key_of(source_account_info)
         dff._alliedteam_limit = config.alliedteam_limit_count
+        # 仅当前子实例启用；普通 DailyAltAcc 不改变悬赏与邮件的执行顺序。
+        dff._combine_wanted_checks = True
+        dff._live_enabled_tasks = self._enabled_task_keys(
+            config, self.daily_conf.multi_daily_alt_acc_config.total_consignment_ticket_enable)
         return dff
 
     def _finalize_account_progress(self, account_info, account_config) -> bool:
