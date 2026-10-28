@@ -385,7 +385,7 @@ class DailyAltAccAssets:
 	O_CLICK_SKILL = RuleOcr(roi=(998,617,251,26), area=(0,0,100,100), mode="Single", method="Default", keyword="", name="click_skill")
 
 	# 新版邮件批量奖励固定标题，保留其他奖励模板
-	I_M_BATCH_AWARD = RuleImage(roi_front=(519,116,239,65), roi_back=(511,108,255,81), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/mail/mail_m_batch_award.png")
+	I_M_BATCH_AWARD = RuleImage(roi_front=(519,116,239,65), roi_back=(500,100,280,185), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/mail/mail_m_batch_award.png")
 
 
 	I_SUMMON_UP_COPPER_CARD = RuleImage(roi_front=(331, 203, 139, 43), roi_back=(318, 192, 170, 62), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/summon_up/summon_up_copper_card.png")

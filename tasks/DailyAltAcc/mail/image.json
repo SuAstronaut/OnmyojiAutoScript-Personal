@@ -113,6 +113,6 @@
     "description": "新版邮件批量奖励固定标题，保留其他奖励模板",
     "imageName": "mail_m_batch_award.png",
     "roiFront": "519,116,239,65",
-    "roiBack": "511,108,255,81"
+    "roiBack": "500,100,280,185"
   }
 ]

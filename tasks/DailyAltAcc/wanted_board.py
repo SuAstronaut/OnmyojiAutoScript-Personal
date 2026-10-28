@@ -27,6 +27,9 @@ class WantedBoardV2:
     # cards. This is a loading signal only, never a cooperation/reward type.
     FRAGMENT_LOADED = _board_rule('fragment_loaded', (725, 553, 28, 36),
                                   (135, 530, 80, 78))
+    DETAIL_SELF = _board_rule('detail_self', (646, 166, 111, 31), (635, 155, 140, 55))
+    DETAIL_GOTO = _board_rule('detail_goto', (1056, 283, 94, 40), (1045, 270, 120, 65))
+    DETAIL_CLOSE = _board_rule('detail_close', (1186, 109, 41, 40), (1170, 96, 70, 70))
     # Separate instances: probes must not mutate the old WantedQuests assets.
     # Gold comes last because other cooperation rewards can include gold too.
     TYPE_RULES = {
@@ -54,6 +57,15 @@ class WantedBoardV2:
         return bool(image is not None and getattr(image, 'shape', ()) == (720, 1280, 3)
                     and cls._probe(cls.TITLE, image)
                     and cls._probe(cls.CLOSE, image))
+
+    @classmethod
+    def is_detail(cls, image):
+        # Only the book's own target prefix, location button and close count;
+        # monster names and the visible wanted board behind it are not anchors.
+        return bool(image is not None and getattr(image, 'shape', ()) == (720, 1280, 3)
+                    and cls._probe(cls.DETAIL_SELF, image)
+                    and cls._probe(cls.DETAIL_GOTO, image)
+                    and cls._probe(cls.DETAIL_CLOSE, image))
 
     @classmethod
     def _reward_type(cls, image, slot):

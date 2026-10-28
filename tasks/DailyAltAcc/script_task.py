@@ -420,6 +420,10 @@ class ScriptTask(StatLogMixin, Courtyard, Mail, Donatejade, Cooperation,
             self._wanted_refresh_wait()
         net_normal_flag = False
         retry_count = 0
+        entry_pending_until = 0
+        detail_trace = None
+        detail_dismissals = 0
+        detail_clicked_at = float('-inf')
         while 1:
             self.screenshot()
             captured_at = datetime.now()
@@ -431,6 +435,20 @@ class ScriptTask(StatLogMixin, Courtyard, Mail, Donatejade, Cooperation,
                 self._live_event('network_check', ok=False, retries=retry_count, reason='total_budget')
                 ReturnTrace(self, 'wanted_network').finish('timeout')
                 raise RequestHumanTakeover('Wanted network state remained unknown for 120s')
+            if WantedBoardV2.is_detail(self.device.image):
+                self._live_wanted_open('wanted_v2_detail', captured_at)
+                if detail_trace is None:
+                    detail_trace = ReturnTrace(self, 'wanted_network_detail')
+                    detail_trace.capture('detail_overlay')
+                if time.monotonic() - detail_clicked_at < 1.5:
+                    continue
+                if detail_dismissals >= 2:
+                    detail_trace.finish('not_ready')
+                    raise RequestHumanTakeover('Wanted detail did not close after two inputs')
+                if self.ui_traced_click(WantedBoardV2.DETAIL_CLOSE, 1.5, detail_trace):
+                    detail_dismissals += 1
+                    detail_clicked_at = time.monotonic()
+                continue
             new_board = WantedBoardV2.is_open(self.device.image)
             if new_board:
                 self._live_wanted_open('wanted_v2', captured_at)
@@ -440,6 +458,10 @@ class ScriptTask(StatLogMixin, Courtyard, Mail, Donatejade, Cooperation,
             elif self.appear(self.I_NET_NORMAL_FLAG, interval=1):
                 self._live_wanted_open('network', captured_at)
                 net_normal_flag = True
+                continue
+            # The courtyard entry remains matchable during opening animation.
+            # Its next click would land on the first wanted card, not the entry.
+            if not new_board and not net_normal_flag and time.monotonic() < entry_pending_until:
                 continue
             if not new_board and self.appear_then_click(self.I_NET_CHECK, action=self.C_NET_CLICK, interval=1):
                 self._live_wanted_open('network_blank', captured_at)
@@ -452,6 +474,7 @@ class ScriptTask(StatLogMixin, Courtyard, Mail, Donatejade, Cooperation,
             if (not new_board and (live is None or not live['board_open'])
                     and (self.appear_then_click(WantedQuestsAssets.I_WQ_SEAL, interval=1)
                          or self.appear_then_click(WantedQuestsAssets.I_WQ_DONE, interval=1))):
+                entry_pending_until = time.monotonic() + 5
                 continue
             if self.appear(self.I_UI_BACK_RED):
                 self.device.click_record_clear()
@@ -471,6 +494,8 @@ class ScriptTask(StatLogMixin, Courtyard, Mail, Donatejade, Cooperation,
                     if live is not None:
                         live['network_ok'] = True
                     self._live_event('network_check', ok=True, retries=retry_count)
+                    if detail_trace is not None:
+                        detail_trace.finish('arrived')
                     if keep_open:
                         return
                 if live is not None:

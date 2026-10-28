@@ -468,14 +468,17 @@ class Cooperation(DailyAltAccBase):
         # 几毫秒，恰好跨过 05:00 / 18:00 时同一张协作会被算进两个窗口。
         self._coop_scan_at = datetime.now()
         image = getattr(getattr(self, "device", None), "image", None)
-        if require_ready or WantedBoardV2.is_open(image):
+        if require_ready or WantedBoardV2.is_open(image) or WantedBoardV2.is_detail(image):
             # 合并入口和新版页面都校验当前帧，网络成功的旧帧不能代替扫描帧。
             # 旧版卡片详情只在现有详情模板命中时关闭，不能当成空协作。
             deadline = time.monotonic() + 10
             detail_trace = None
             dismissals = 0
             while True:
-                detail = image is not None and self.appear(WantedQuestsAssets.I_WQ_TRACE_ONE_CHECK_OPENED)
+                new_detail = WantedBoardV2.is_detail(image)
+                detail_rule = (WantedBoardV2.DETAIL_SELF if new_detail
+                               else WantedQuestsAssets.I_WQ_TRACE_ONE_CHECK_OPENED)
+                detail = new_detail or (image is not None and self.appear(detail_rule))
                 new_board = WantedBoardV2.is_open(image)
                 ready = False
                 if not detail and image is not None:
@@ -497,11 +500,12 @@ class Cooperation(DailyAltAccBase):
                 if detail and dismissals < 2:
                     if detail_trace is None:
                         detail_trace = ReturnTrace(self, 'cooperation_snapshot')
-                        detail_trace.note('detail_detected', template=WantedQuestsAssets.I_WQ_TRACE_ONE_CHECK_OPENED.name,
-                                          score=getattr(WantedQuestsAssets.I_WQ_TRACE_ONE_CHECK_OPENED, 'last_match_score', None))
+                        detail_trace.note('detail_detected', template=detail_rule.name,
+                                          score=getattr(detail_rule, 'last_match_score', None))
                         detail_trace.capture('detail_overlay')
                     # 复用 WantedQuests.trace_one 已有关闭空白区域；不点追踪/前往按钮。
-                    if self.ui_traced_click(WantedQuestsAssets.C_WQ_TRACE_ONE_CLOSE, 1.5, detail_trace):
+                    target = WantedBoardV2.DETAIL_CLOSE if new_detail else WantedQuestsAssets.C_WQ_TRACE_ONE_CLOSE
+                    if self.ui_traced_click(target, 1.5, detail_trace):
                         dismissals += 1
                 self.screenshot()
                 self._coop_scan_at = datetime.now()
