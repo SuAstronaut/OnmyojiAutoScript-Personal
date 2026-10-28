@@ -79,5 +79,14 @@
     "method": "Default",
     "keyword": "",
     "description": "跨区邀请"
+  },
+  {
+    "itemName": "b_stone_summon_dialog",
+    "roiFront": "390,260,500,110",
+    "roiBack": "390,260,500,110",
+    "mode": "Full",
+    "method": "Default",
+    "keyword": "",
+    "description": "契灵召唤弹窗稳定提示片段，忽略动态数量及名称"
   }
 ]

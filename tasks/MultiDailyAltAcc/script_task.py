@@ -27,6 +27,7 @@ from tasks.MultiDailyAltAcc.progress import (
 )
 from tasks.MultiDailyAltAcc.task_plan import TaskPlan, load_task_plan
 from tasks.GameUi.game_ui import GameUi
+from tasks.GameUi.page import page_theme
 from tasks.Utils.coop_summary import build_summary_content
 from tasks.Utils.coop_records import cooperation_round_id, record_cooperation
 from tasks.Utils.coop_store import CoopStore
@@ -39,6 +40,8 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
     daily_conf: MultiDailyAltAcc = None
     _task_plan: TaskPlan | None = None
     _normal_plan_phase: str | None = None
+    # Capture the executing phase's origin before HOT/WARM updates change flags.
+    _automatic_midnight_phase: bool | None = None
     # 子任务进度存储，run() 中按配置实例创建
     _progress: ProgressStore = None
     # 协作跨轮次持久化；逐卡轮次快照与记录在同一文件原子保存。
@@ -72,6 +75,11 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
             logger.warning("保存错误现场失败，继续设备恢复：%s", error)
 
     def run(self):
+        # 长驻脚本可能仍缓存旧GameUi/Page模块；先拒绝混用版本，不能切完号
+        # 才发现安全返回入口不存在。用户重启OAS脚本进程后再运行即可。
+        if (not callable(getattr(self, 'ui_return_to_main', None))
+                or not getattr(page_theme, 'navigation_only', False)):
+            raise RequestHumanTakeover('Restart OAS script process to load the bounded navigation revision')
         # 恢复后重新调度必须重新登录，不跨运行复用上次的账号身份。
         self._retry_account_identity = None
         import os
@@ -88,6 +96,7 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
             # 加载配置，获取returngift_enable状态
             self.daily_conf = self.config.multi_daily_alt_acc
             base_config = self.daily_conf.multi_daily_alt_acc_config
+            self._automatic_midnight_phase = self._is_automatic_midnight_phase()
             # 关闭自动轮转时不依赖 task_plan.json（任务集与运行时间都由手动开关
             # 和通用调度器决定），因此不读取——plan 文件损坏也不影响该模式
             self._task_plan = None if self._task_rotation_disabled() else load_task_plan()
@@ -841,6 +850,10 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
         dff._progress = self._progress
         dff._progress_key = self._progress_key_of(source_account_info)
         dff._alliedteam_limit = config.alliedteam_limit_count
+        # 仅当前子实例启用；普通 DailyAltAcc 不改变悬赏与邮件的执行顺序。
+        dff._combine_wanted_checks = True
+        dff._live_enabled_tasks = self._enabled_task_keys(
+            config, self.daily_conf.multi_daily_alt_acc_config.total_consignment_ticket_enable)
         return dff
 
     def _finalize_account_progress(self, account_info, account_config) -> bool:
@@ -1175,6 +1188,8 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
     def next_run(self, task: str, finish: bool = False,
                  success: bool = None, server: bool = True, target: datetime = None) -> None:
         """设置下一次运行时间"""
+        if self._cancel_disabled_automatic_midnight():
+            return
         start_time = self.start_time  # 使用任务开始时间而不是当前时间
         if success:
             if self._task_rotation_disabled():
@@ -1199,7 +1214,40 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
                 self.set_next_run(task, target=start_time.replace(hour=6, minute=5) + timedelta(days=1))
         else:
             # 失败情况：3分钟后重试
-            self.set_next_run(task, target=datetime.now() + timedelta(minutes=3))
+            if self._automatic_midnight_phase:
+                self.set_next_run(task, target=datetime.now() + timedelta(minutes=3), persist=False)
+                self.daily_conf = self.config.model.multi_daily_alt_acc
+                if self._cancel_disabled_automatic_midnight(refresh=False):
+                    return
+                self.save_config()
+            else:
+                self.set_next_run(task, target=datetime.now() + timedelta(minutes=3))
+
+    def _is_automatic_midnight_phase(self):
+        config = self.daily_conf.multi_daily_alt_acc_config
+        return (not self._task_rotation_disabled()
+                and not getattr(config, 'single_purpose_schedule_manual', False)
+                and (config.total_returngift_enable or config.total_alliedteam_battle_enable))
+
+    def _cancel_disabled_automatic_midnight(self, refresh=True):
+        if self._automatic_midnight_phase is None:
+            self._automatic_midnight_phase = self._is_automatic_midnight_phase()
+        if not self._automatic_midnight_phase:
+            return False
+        # Store reload cancels under the existing lock. If another writer has
+        # already installed a normal/manual round, retain that round, including
+        # an overdue morning, rather than queue it twice or postpone it.
+        reload = getattr(self.config, 'reload', None)
+        if refresh and reload is not None:
+            reload()
+            self.daily_conf = self.config.model.multi_daily_alt_acc
+        config = self.daily_conf.multi_daily_alt_acc_config
+        cancelled = (not self._task_rotation_disabled()
+                     and not getattr(config, 'team_battle_midnight_schedule_enable', True))
+        if cancelled and not refresh and reload is not None:
+            reload()  # Discard the provisional retry/continuation timestamp.
+            self.daily_conf = self.config.model.multi_daily_alt_acc
+        return cancelled
 
     def _reset_one_shot_flags(self):
         """重置单次运行标志（只由用户手动开启，运行一次后自动关闭）"""
@@ -1239,6 +1287,7 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
         self.daily_conf.multi_daily_alt_acc_config.total_alliedteam_battle_enable = False
         # normal 阶段各任务开关由 _schedule_plan_phase 物化 plan 的 afternoon 勾选
         self.daily_conf.multi_daily_alt_acc_config.total_returngift_enable = False
+        self.daily_conf.multi_daily_alt_acc_config.single_purpose_schedule_manual = False
         self._reset_one_shot_flags()
         self.config.model.multi_daily_alt_acc = self.daily_conf
         self.save_config()
@@ -1252,6 +1301,8 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
         # task_delay 会先 reload；必须先保存 next_run，再基于重载后的模型修改阶段开关。
         self._schedule_plan_phase("morning", start_time)
         self.daily_conf = self.config.model.multi_daily_alt_acc
+        self.daily_conf.multi_daily_alt_acc_config.total_returngift_enable = False
+        self.daily_conf.multi_daily_alt_acc_config.single_purpose_schedule_manual = False
 
         # 如果开启了同心战斗，则调整设置
         if self.daily_conf.multi_daily_alt_acc_config.total_alliedteam_battle_enable:
@@ -1265,8 +1316,14 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
         self.save_config()
 
     def _schedule_alliedteam_after_returngift(self):
+        if self._cancel_disabled_automatic_midnight():
+            return
+        manual = not self._automatic_midnight_phase
         self.set_next_run("MultiDailyAltAcc", target=datetime.now() + timedelta(minutes=3), persist=False)
         self.daily_conf = self.config.model.multi_daily_alt_acc
+        if not manual and self._cancel_disabled_automatic_midnight(refresh=False):
+            return
+        self.daily_conf.multi_daily_alt_acc_config.single_purpose_schedule_manual = manual
         self.daily_conf.multi_daily_alt_acc_config.total_alliedteam_battle_enable = True
         self.daily_conf.multi_daily_alt_acc_config.total_alliedteam_ap_enable = False
         self.daily_conf.multi_daily_alt_acc_config.total_returngift_enable = False
@@ -1285,9 +1342,16 @@ class ScriptTask(StatLogMixin, GameUi, MultiDailyAltAccAssets):
 
     def _schedule_evening(self, start_time: datetime):
         """安排晚上的运行时间（排次日 00:20 回礼轮）"""
+        if not getattr(self.daily_conf.multi_daily_alt_acc_config, 'team_battle_midnight_schedule_enable', True):
+            return self._schedule_after_midnight(start_time + timedelta(days=1))
         self.set_next_run("MultiDailyAltAcc", target=start_time.replace(hour=0, minute=20) + timedelta(days=1),
                           persist=False)
         self.daily_conf = self.config.model.multi_daily_alt_acc
+        # set_next_run reloads disk; a switch changed since the first check
+        # must not be overwritten by the old phase's save below.
+        if not getattr(self.daily_conf.multi_daily_alt_acc_config, 'team_battle_midnight_schedule_enable', True):
+            return self._schedule_after_midnight(start_time + timedelta(days=1))
+        self.daily_conf.multi_daily_alt_acc_config.single_purpose_schedule_manual = False
         self.daily_conf.multi_daily_alt_acc_config.total_weekaward_enable = False
         self.daily_conf.multi_daily_alt_acc_config.total_consignment_ticket_enable = False
         # 回礼轮附加任务（勾协/神秘商店）的决策时刻都提前一晚：晚轮完成排程时

@@ -34,5 +34,83 @@
     "method": "Template matching",
     "threshold": 0.8,
     "description": "稳定标志"
+  },
+  {
+    "itemName": "store_purchase_confirm",
+    "imageName": "l101_store_purchase_confirm.png",
+    "roiFront": "667,398,179,66",
+    "roiBack": "667,398,179,66",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "宁息购买专用：原按钮点击区域不变，是否购买标题校验",
+    "guard": {
+      "roi_front": [
+        520,
+        302,
+        106,
+        28
+      ],
+      "roi_back": [
+        420,
+        296,
+        380,
+        44
+      ],
+      "threshold": 0.9,
+      "method": "Template matching",
+      "file": "./tasks/SixRealms/l101/l101_store_purchase_title.png"
+    }
+  },
+  {
+    "itemName": "store_purchase_confirm_small",
+    "imageName": "l101_store_purchase_confirm_small.png",
+    "roiFront": "681,392,130,62",
+    "roiBack": "558,380,265,99",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "宁息购买专用：原按钮点击区域不变，是否购买标题校验",
+    "guard": {
+      "roi_front": [
+        520,
+        302,
+        106,
+        28
+      ],
+      "roi_back": [
+        420,
+        296,
+        380,
+        44
+      ],
+      "threshold": 0.9,
+      "method": "Template matching",
+      "file": "./tasks/SixRealms/l101/l101_store_purchase_title.png"
+    }
+  },
+  {
+    "itemName": "store_purchase_cancel",
+    "imageName": "l101_store_purchase_cancel.png",
+    "roiFront": "432,403,177,62",
+    "roiBack": "432,403,177,62",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "宁息购买专用：原按钮点击区域不变，是否购买标题校验",
+    "guard": {
+      "roi_front": [
+        520,
+        302,
+        106,
+        28
+      ],
+      "roi_back": [
+        420,
+        296,
+        380,
+        44
+      ],
+      "threshold": 0.9,
+      "method": "Template matching",
+      "file": "./tasks/SixRealms/l101/l101_store_purchase_title.png"
+    }
   }
 ]

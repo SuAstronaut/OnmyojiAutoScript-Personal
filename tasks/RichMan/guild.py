@@ -12,18 +12,28 @@ from tasks.GameUi.game_ui import GameUi
 from tasks.Component.Buy.buy import Buy
 from tasks.RichMan.assets import RichManAssets
 from tasks.RichMan.config import GuildStore
+from tasks.Component.Buy.guild_shop import GuildShopSafety, ShopState
 
 
 class ButtonException(Exception):
     pass
 
 
-class Guild(Buy, GameUi, RichManAssets):
+class Guild(GuildShopSafety, Buy, GameUi, RichManAssets):
 
     def execute_guild(self, con: GuildStore=None):
 
         if not con.enable:
             return
+        # MultiDaily weekly blue-ticket path only. Other RichMan configurations
+        # retain their existing black-fragment / skin-ticket behavior.
+        if con.mystery_amulet and not con.black_daruma_scrap and not con.skin_ticket:
+            state = self._shop_purchase('blue')
+            self._shop_leave()
+            self._shop_back_to_guild()
+            if state == ShopState.UNKNOWN:
+                self._shop_fail('Blue-ticket weekly progress remains unknown')
+            return state
         logger.hr('Start guild', 1)
         self.ui_get_current_page()
         self.ui_goto(page_guild)

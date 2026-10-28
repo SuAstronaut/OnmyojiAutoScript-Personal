@@ -40,6 +40,9 @@ class MultiDailyAltAccConfig(ConfigBase):
     # 阶段切换全部停用），下面的 total_* 开关只按用户手动勾选执行，下次运行时间
     # 沿用通用调度器的成功间隔。默认关闭＝维持原有的时间轮转行为。
     disable_task_rotation: bool = Field(default=False, description='关闭任务自动轮转：勾选后不随时间轮转任务，总开关只按手动勾选执行，运行时间沿用调度器设置')
+    team_battle_midnight_schedule_enable: bool = Field(default=True, description='team_battle_midnight_schedule_enable_help')
+    # Persisted provenance, hidden from WebUI; old rotating phases are automatic.
+    single_purpose_schedule_manual: bool = Field(default=False)
     total_alliedteam_battle_enable: bool = Field(default=False, description='同心寮三十,建议单独开启（单独开启）')
     total_alliedteam_ap_enable: bool = Field(default=True, description='补充同心体力')
     total_donatejade_enable: bool = Field(default=True, description='捐勾')
@@ -116,13 +119,17 @@ class MultiDailyAltAcc(ConfigBase):
         return v
 
     @model_serializer()
-    def serializer_model(self, value: Any) -> Dict[str, Any]:
+    def serializer_model(self, info: Any) -> Dict[str, Any]:
         properties = self.__dict__
         data = {}
 
         def v_dump(v):
             try:
-                return v.model_dump()
+                dumped = v.model_dump()
+                if (isinstance(v, MultiDailyAltAccConfig)
+                        and info.context and info.context.get('hide', False)):
+                    dumped['single_purpose_schedule_manual'] = 0xABCDEF
+                return dumped
             except AttributeError as e:
                 logger.error(e)
                 return v

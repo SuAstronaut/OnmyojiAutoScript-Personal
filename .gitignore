@@ -298,3 +298,4 @@ tasks/ReturnGift/sr_count.json
 # 严禁 git clean -fdx（会把未跟踪的 tests/ 整个删掉）；克隆/换机后 tests/ 不随仓库恢复
 /tests/
 .*/
+dev_tools/test_android_package_resolution.py

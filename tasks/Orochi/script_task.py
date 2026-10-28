@@ -2,6 +2,7 @@
 # @author runhey
 # github https://github.com/runhey
 from time import sleep, monotonic
+from logging import DEBUG
 from datetime import time, datetime, timedelta
 
 from tasks.Component.GeneralBattle.general_battle import GeneralBattle
@@ -33,6 +34,11 @@ from module.exception import TaskEnd
 
 
 class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi, SwitchSoul, OrochiAssets):
+
+    # Bind current Orochi popup assets without changing shared invite behavior.
+    I_I_DEFAULT = OrochiAssets.I_I_DEFAULT
+    I_I_NO_DEFAULT = OrochiAssets.I_I_NO_DEFAULT
+    I_GI_SURE = OrochiAssets.I_GI_SURE
 
     def reward_avoid(self) -> tuple:
         """御魂本组队时是两人，胜利画面上多出一块队友战绩框，落点回避它。
@@ -634,12 +640,46 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
         """
         logger.info('Check lock: %s', lock)
         if lock:
-            while 1:
-                self.screenshot()
-                if self.appear(self.I_OROCHI_LOCK):
-                    return True
-                if self.appear_then_click(self.I_OROCHI_UNLOCK, interval=1):
-                    continue
+            # Temporary diagnosis: this child emits DEBUG through the existing
+            # handlers without enabling DEBUG for the rest of OAS.
+            diagnostic_logger = logger.getChild('orochi_lock_diag')
+            previous_level = diagnostic_logger.level
+            diagnostic_logger.setLevel(DEBUG)
+            loop = 0
+
+            def log_diagnostic(event):
+                lock_score = self.I_OROCHI_LOCK.last_match_score
+                unlock_score = self.I_OROCHI_UNLOCK.last_match_score
+                diagnostic_logger.debug(
+                    '[OROCHI_LOCK_DIAG] loop=%d now=%s LOCK=%s UNLOCK=%s event=%s',
+                    loop, datetime.now().isoformat(timespec='milliseconds'),
+                    'N/A' if lock_score is None else f'{lock_score:.6f}',
+                    'N/A' if unlock_score is None else f'{unlock_score:.6f}', event,
+                )
+
+            try:
+                while 1:
+                    loop += 1
+                    # Reset observation only: skipped matches must not reuse
+                    # scores from another frame, and must not be evaluated again.
+                    self.I_OROCHI_LOCK.last_match_score = None
+                    self.I_OROCHI_UNLOCK.last_match_score = None
+                    log_diagnostic('screenshot_begin')
+                    self.screenshot()
+                    log_diagnostic('screenshot_ready')
+                    if self.appear(self.I_OROCHI_LOCK):
+                        log_diagnostic('LOCK_success_return;UNLOCK_not_checked')
+                        return True
+                    log_diagnostic('LOCK_failed;UNLOCK_not_checked')
+                    if self.appear_then_click(self.I_OROCHI_UNLOCK, interval=1):
+                        log_diagnostic('UNLOCK_click_returned')
+                        continue
+                    log_diagnostic(
+                        'UNLOCK_interval_skip' if self.I_OROCHI_UNLOCK.last_match_score is None
+                        else 'UNLOCK_failed'
+                    )
+            finally:
+                diagnostic_logger.setLevel(previous_level)
         else:
             while 1:
                 self.screenshot()

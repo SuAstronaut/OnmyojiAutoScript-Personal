@@ -1,0 +1,300 @@
+{
+  "resolution": [
+    1280,
+    720
+  ],
+  "source_sha256": {
+    "challenge": {
+      "filename": "desktop_client_20261020_203509_160682.png",
+      "sha256": "2726aa7b5b6a4b6e29534844bd85c2735e30b46d0e7ebf82c0e26c9487fec7b0"
+    },
+    "battle": {
+      "filename": "desktop_client_20261020_203718_425111.png",
+      "sha256": "80c0483214f9f564c9859dc938768c7dbf598a3f4c95855c691f217d2b2baa46"
+    },
+    "confirm": {
+      "filename": "desktop_client_20261020_204021_960835.png",
+      "sha256": "b09a7b541525c63a72f0add8002e6338cc5d9c13dbdd1c142e65ada1eb4baa43"
+    },
+    "daruma": {
+      "filename": "desktop_client_20261020_204026_945593.png",
+      "sha256": "b2854433a660f0259d6a4923d61e6c744492e5f5a0d06d3d6413e6b1900ee5be"
+    },
+    "reward": {
+      "filename": "desktop_client_20261020_204029_738942.png",
+      "sha256": "7fe25b1df9ea45c265f5779f9e31bbb1b932a242c45c1de38ea5c388ca8a2459"
+    }
+  },
+  "templates": {
+    "page_title": {
+      "roi": [
+        154,
+        19,
+        124,
+        36
+      ],
+      "threshold": 0.88,
+      "source": "challenge",
+      "search_roi": [
+        150,
+        15,
+        132,
+        44
+      ]
+    },
+    "boss_name": {
+      "roi": [
+        400,
+        138,
+        35,
+        177
+      ],
+      "threshold": 0.88,
+      "source": "challenge",
+      "search_roi": [
+        396,
+        134,
+        43,
+        185
+      ]
+    },
+    "fire": {
+      "roi": [
+        1131,
+        594,
+        92,
+        49
+      ],
+      "threshold": 0.88,
+      "source": "challenge",
+      "search_roi": [
+        1127,
+        590,
+        100,
+        57
+      ]
+    },
+    "cost": {
+      "roi": [
+        1140,
+        641,
+        70,
+        24
+      ],
+      "threshold": 0.88,
+      "source": "challenge"
+    },
+    "score_label": {
+      "roi": [
+        67,
+        95,
+        86,
+        17
+      ],
+      "threshold": 0.88,
+      "source": "battle",
+      "search_roi": [
+        63,
+        91,
+        94,
+        25
+      ]
+    },
+    "exit": {
+      "roi": [
+        17,
+        15,
+        39,
+        33
+      ],
+      "threshold": 0.88,
+      "source": "battle",
+      "search_roi": [
+        13,
+        11,
+        47,
+        41
+      ]
+    },
+    "clock": {
+      "roi": [
+        1143,
+        50,
+        23,
+        25
+      ],
+      "threshold": 0.88,
+      "source": "battle",
+      "search_roi": [
+        1139,
+        46,
+        31,
+        33
+      ]
+    },
+    "confirm_title": {
+      "roi": [
+        537,
+        300,
+        210,
+        33
+      ],
+      "threshold": 0.88,
+      "source": "confirm",
+      "search_roi": [
+        533,
+        296,
+        218,
+        41
+      ]
+    },
+    "confirm_button": {
+      "roi": [
+        680,
+        419,
+        146,
+        40
+      ],
+      "threshold": 0.88,
+      "source": "confirm",
+      "search_roi": [
+        676,
+        411,
+        154,
+        56
+      ]
+    },
+    "daruma": {
+      "roi": [
+        550,
+        278,
+        169,
+        175
+      ],
+      "threshold": 0.88,
+      "source": "daruma",
+      "search_roi": [
+        546,
+        274,
+        177,
+        183
+      ]
+    },
+    "continue": {
+      "roi": [
+        554,
+        680,
+        176,
+        31
+      ],
+      "threshold": 0.88,
+      "source": "daruma",
+      "search_roi": [
+        550,
+        676,
+        184,
+        39
+      ]
+    },
+    "reward_bag": {
+      "roi": [
+        565,
+        492,
+        145,
+        101
+      ],
+      "threshold": 0.88,
+      "source": "reward",
+      "search_roi": [
+        561,
+        488,
+        153,
+        109
+      ]
+    },
+    "reward_neck": {
+      "roi": [
+        600,
+        443,
+        85,
+        39
+      ],
+      "threshold": 0.88,
+      "source": "reward",
+      "search_roi": [
+        596,
+        439,
+        93,
+        47
+      ]
+    },
+    "confirm_score_label": {
+      "roi": [
+        67,
+        95,
+        86,
+        17
+      ],
+      "threshold": 0.88,
+      "source": "confirm",
+      "search_roi": [
+        63,
+        91,
+        94,
+        25
+      ]
+    },
+    "settlement_background": {
+      "roi": [
+        65,
+        180,
+        155,
+        100
+      ],
+      "threshold": 0.88,
+      "source": "reward",
+      "search_roi": [
+        61,
+        176,
+        163,
+        108
+      ]
+    },
+    "daruma_background": {
+      "roi": [
+        65,
+        180,
+        155,
+        100
+      ],
+      "threshold": 0.88,
+      "source": "daruma",
+      "search_roi": [
+        61,
+        176,
+        163,
+        108
+      ]
+    }
+  },
+  "ocr": {
+    "score": [
+      65,
+      111,
+      290,
+      48
+    ],
+    "tickets": [
+      1150,
+      20,
+      65,
+      32
+    ],
+    "cost": [
+      1160,
+      637,
+      55,
+      29
+    ]
+  }
+}

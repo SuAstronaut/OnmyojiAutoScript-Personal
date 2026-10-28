@@ -292,8 +292,6 @@ class DailyAltAccAssets:
 	# description 
 	I_SUMMON_UP_BACK_RED = RuleImage(roi_front=(1139,200,38,43), roi_back=(653,120,612,293), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/summon_up/summon_up_back_red.png")
 	# description 
-	I_SUMMON_UP_TO_SHARE = RuleImage(roi_front=(1137,532,124,47), roi_back=(746,361,534,332), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/summon_up/summon_up_to_share.png")
-	# description 
 	I_SUMMON_UP_TO_SHARE_2 = RuleImage(roi_front=(1187,617,45,39), roi_back=(1041,581,224,123), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/summon_up/summon_up_to_share_2.png")
 	# description 
 	I_SUMMON_UP_WECHAT_SHARE = RuleImage(roi_front=(328,645,49,47), roi_back=(217,623,872,91), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/summon_up/summon_up_wechat_share.png")
@@ -389,3 +387,11 @@ class DailyAltAccAssets:
 	# 新版邮件批量奖励固定标题，保留其他奖励模板
 	I_M_BATCH_AWARD = RuleImage(roi_front=(519,116,239,65), roi_back=(511,108,255,81), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/mail/mail_m_batch_award.png")
 
+
+	I_SUMMON_UP_COPPER_CARD = RuleImage(roi_front=(331, 203, 139, 43), roi_back=(318, 192, 170, 62), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/summon_up/summon_up_copper_card.png")
+
+	I_SUMMON_UP_COPPER_DETAIL = RuleImage(roi_front=(373, 195, 108, 36), roi_back=(350, 178, 150, 66), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/summon_up/summon_up_copper_detail.png")
+
+	I_SUMMON_UP_PURCHASE_SUCCESS = RuleImage(roi_front=(520, 211, 241, 60), roi_back=(495, 195, 300, 90), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/summon_up/summon_up_purchase_success.png")
+
+	I_SUMMON_UP_EXPERIENCE_TITLE = RuleImage(roi_front=(359, 485, 508, 71), roi_back=(353, 478, 520, 82), threshold=0.8, method="Template matching", file="./tasks/DailyAltAcc/summon_up/summon_up_experience_title.png")

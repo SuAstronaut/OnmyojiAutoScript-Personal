@@ -526,6 +526,8 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
                     self.I_NORMAL_BATTLE_BUTTON.roi_front = roi_front
                     logger.info(f"Target locked: sword at {roi_front} (aligned with UP icon)")
                     return self.I_NORMAL_BATTLE_BUTTON
+                # UP 已确认但攻击入口未确认，本帧交回外层搜索，不降级为普通匹配。
+                return None
             else:
                 # 没找到 UP 图标，返回 None 让外层逻辑去处理(滑动或退出)
                 return None
@@ -536,16 +538,85 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
             
         return None
 
+    def _log_realm_raid_skip(self, scene: Scene, reason: str) -> None:
+        key = (scene, reason)
+        if getattr(self, '_realm_raid_skip_reason', None) != key:
+            logger.info(f'RealmRaid ticket check skipped: scene={scene.name}, reason={reason}')
+            self._realm_raid_skip_reason = key
+
+    def _realm_raid_ticket_rule(self, scene: Scene):
+        """Select a visible ticket layout; never read the map's mochi counter."""
+        if scene not in (Scene.WORLD, Scene.ENTRANCE):
+            self._log_realm_raid_skip(scene, 'tickets are not visible in this scene')
+            return None
+        # Settlement/overlays can coexist with underlying scene anchors.
+        if (self.is_in_prepare(False) or self.is_in_battle(False)
+                or self.win_appear() or self.reward_grid_appear()
+                or any(self.appear(rule) for rule in (
+                    self.I_FALSE, self.I_REWARD, self.I_REWARD_GOLD,
+                    self.I_EXTRA_INFO, self.I_STATISTICS, self.I_E_EXIT_CONFIRM))
+                or any(self.appear(rule) for rule in (
+                    self.I_E_SETTINGS_BUTTON, self.I_E_AUTO_ROTATE_ON,
+                    self.I_E_AUTO_ROTATE_OFF, self.I_E_MAIN_FLAG))):
+            self._log_realm_raid_skip(scene, 'battle, settlement or map overlay is visible')
+            return None
+        if scene == Scene.WORLD:
+            visible = self.appear(self.I_CHECK_EXPLORATION)
+            icon = self.I_E_REALM_RAID_TICKET_WORLD
+            rule = self.O_REALM_RAID_NUMBER
+        else:
+            visible = (self.appear(self.I_E_ENTRANCE)
+                       and self.appear(self.I_E_EXPLORATION_CLICK)
+                       and self.appear(self.I_EXP_CREATE_TEAM))
+            icon = self.I_E_REALM_RAID_TICKET_ENTRANCE
+            rule = self.O_REALM_RAID_NUMBER1
+        if not visible or not self.appear(icon):
+            self._log_realm_raid_skip(scene, 'ticket layout or blue ticket icon is unconfirmed')
+            return None
+        return rule
+
     def activate_realm_raid(self, con_scrolls, con) -> None:
         # 判断是否开启突破票检测
         if not con_scrolls.scrolls_enable:
             return
-        if self.appear(self.I_E_EXPLORATION_CLICK) and self.appear(self.I_EXP_CREATE_TEAM):
-            cu, res, total = self.O_REALM_RAID_NUMBER1.ocr(self.device.image)
-        else:
-            cu, res, total = self.O_REALM_RAID_NUMBER.ocr(self.device.image)
+        scene = self.get_current_scene()
+        rule = self._realm_raid_ticket_rule(scene)
+        if rule is None:
+            return
+        # Confirm on a fresh frame without navigating or forcing a chapter exit.
+        self.screenshot()
+        confirmed_scene = self.get_current_scene()
+        if confirmed_scene != scene:
+            self._log_realm_raid_skip(confirmed_scene, 'scene changed before ticket OCR')
+            return
+        rule = self._realm_raid_ticket_rule(confirmed_scene)
+        if rule is None:
+            return
+        if not con_scrolls.scrolls_enable:
+            return  # Existing HOT config refresh may have disabled it during screenshot.
+        try:
+            result = rule.ocr(self.device.image)
+        except (RequestHumanTakeover, TaskEnd, GameStuckError):
+            raise
+        except Exception as exc:
+            self._log_realm_raid_skip(scene, f'OCR failed ({type(exc).__name__})')
+            return
+        if (not isinstance(result, (tuple, list)) or len(result) != 3
+                or any(type(value) is not int for value in result)):
+            self._log_realm_raid_skip(scene, f'invalid OCR result {result!r}')
+            return
+        cu, res, total = result
+        if (total != 30 or not 0 <= cu <= 30 or not 0 <= res <= 30
+                or cu + res != 30):
+            self._log_realm_raid_skip(scene, f'invalid ticket count {result!r}; expected capacity 30')
+            return
+        threshold = getattr(con_scrolls, 'scrolls_threshold', None)
+        if type(threshold) is not int:
+            self._log_realm_raid_skip(scene, f'invalid configured scrolls_threshold {threshold!r}')
+            return
+        self._realm_raid_skip_reason = None
         # 判断突破票数量
-        if cu < con_scrolls.scrolls_threshold:
+        if cu < threshold:
             return
 
         # 关闭加成
@@ -555,7 +626,8 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
             self.ui_click_until_disappear(self.I_UI_CANCEL)
         if self.appear(self.I_UI_CANCEL_SAMLL):
             self.ui_click_until_disappear(self.I_UI_CANCEL_SAMLL)
-        self.ui_goto(page_main)
+        if not self.ui_goto(page_main):
+            raise GameStuckError('Exploration ticket linkage could not reach page_main; scheduling aborted')
         if con.buff_gold_50_click or con.buff_gold_100_click or con.buff_exp_50_click or con.buff_exp_100_click:
             self.open_buff()
             self.gold_50(is_open=False)
@@ -584,7 +656,11 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
         self.activate_realm_raid(self._config.scrolls, self._config.exploration_config)
         return False
 
-    def quit_explore(self):
+    def quit_explore(self, skip_battle_reward: bool = False, *, safe_solo: bool = False):
+        if skip_battle_reward:
+            return self._quit_explore_after_boss()
+        if safe_solo:
+            return self._quit_solo_explore()
         logger.info('Quit explore')
         boss_timer = Timer(15)
         boss_timer.start()
@@ -622,6 +698,114 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
             if self.appear_then_click(self.I_UI_BACK_YELLOW, interval=3.5):
                 continue
 
+    def _quit_explore_after_boss(self) -> None:
+        """Solo boss exit: wait for the map, skip paper dolls and verify departure."""
+        return self._quit_solo_explore(skip_battle_reward=True)
+
+    def _log_solo_exit_state(self, phase: str, scene=None, save: bool = False) -> None:
+        markers = {name: self.appear(rule) for name, rule in (
+            ('entrance', self.I_E_ENTRANCE), ('enter_button', self.I_E_EXPLORATION_CLICK),
+            ('world', self.I_CHECK_EXPLORATION), ('main_flag', self.I_E_MAIN_FLAG),
+            ('settings', self.I_E_SETTINGS_BUTTON), ('confirm', self.I_E_EXIT_CONFIRM),
+            ('page_back', self.I_BACK_YOLLOW), ('yellow_back', self.I_UI_BACK_YELLOW))}
+        logger.info(f'Solo exploration exit: phase={phase}, '
+                    f'scene={scene.name if scene is not None else "UNCHECKED"}, markers={markers}')
+        if save and self.config.script.error.save_error:
+            # Persist action/terminal frames even when the exit eventually succeeds.
+            self.device.save_screenshot(genre='exploration_exit', interval=0)
+
+    def _quit_solo_explore(self, skip_battle_reward: bool = False) -> None:
+        """One map-back request, then wait for verified departure without backing again."""
+        logger.info(f'Quit solo explore, skip paper doll chest={skip_battle_reward}')
+        timeout = Timer(20).start()
+        exit_clicked = False
+        confirmation_clicked = False
+        outside_scene = None
+        outside_frames = 0
+        last_state = None
+        heartbeat = Timer(3).start()
+        polls = 0
+        phase = 'starting'
+        while not timeout.reached():
+            self.screenshot()
+            polls += 1
+            if heartbeat.reached():
+                logger.info(f'Solo exploration exit polling: elapsed={timeout.current():.1f}s, '
+                            f'polls={polls}, phase={phase}, back_requested={exit_clicked}, '
+                            f'confirmation_clicked={confirmation_clicked}')
+                heartbeat.reset()
+            if timeout.reached():
+                break
+            # This specific exit dialog outranks its MAIN background and any
+            # spurious reward-grid detection. It may already exist on entry.
+            if self.appear(self.I_E_EXIT_CONFIRM):
+                outside_scene = None
+                outside_frames = 0
+                exit_clicked = True  # An existing dialog needs no map-back click.
+                phase = 'wait_exit_confirmation'
+                if not confirmation_clicked:
+                    self._log_solo_exit_state('before_confirm', save=True)
+                if self.appear_then_click(self.I_E_EXIT_CONFIRM, interval=0.8):
+                    confirmation_clicked = True
+                    logger.info('Solo exploration exit: phase=confirm_clicked')
+                continue
+            # Without an exit dialog, settlement still blocks all map actions.
+            blocker = next((name for name, check in (
+                ('prepare', lambda: self.is_in_prepare(False)),
+                ('battle', lambda: self.is_in_battle(False)),
+                ('win', self.win_appear), ('defeat', lambda: self.appear(self.I_FALSE)),
+                ('reward', lambda: self.appear(self.I_REWARD)),
+                ('reward_gold', lambda: self.appear(self.I_REWARD_GOLD)),
+                ('extra_info', lambda: self.appear(self.I_EXTRA_INFO)),
+                ('statistics', lambda: self.appear(self.I_STATISTICS)),
+                ('reward_grid', self.reward_grid_appear),
+            ) if check()), None)
+            if blocker is not None:
+                phase = f'wait_settlement:{blocker}'
+                if last_state != phase:
+                    self._log_solo_exit_state(phase)
+                    last_state = phase
+                outside_scene = None
+                outside_frames = 0
+                continue
+            phase = 'wait_departure' if exit_clicked else 'before_back'
+            scene = self.get_current_scene()
+            if timeout.reached():
+                break
+            state = (scene, exit_clicked, confirmation_clicked)
+            if state != last_state:
+                self._log_solo_exit_state(phase, scene)
+                last_state = state
+            if scene in (Scene.ENTRANCE, Scene.WORLD):
+                outside_frames = outside_frames + 1 if scene == outside_scene else 1
+                outside_scene = scene
+                if outside_frames >= 2:
+                    self._log_solo_exit_state('departure_confirmed', scene, save=True)
+                    return
+                continue
+            outside_scene = None
+            outside_frames = 0
+            # A delayed MAIN marker or a lone yellow arrow during transition is
+            # never permission to dismiss the chapter entrance with another back.
+            if scene != Scene.MAIN or exit_clicked:
+                continue
+            if (not skip_battle_reward
+                    and self.appear_then_click(self.I_BATTLE_REWARD, interval=1.5)):
+                logger.info('Found battle reward during solo exit, picking it up.')
+                continue
+            # Reuse the existing upper-left image resources, never force a click.
+            for back in (self.I_BACK_YOLLOW, self.I_UI_BACK_YELLOW, self.I_UI_BACK_BLUE):
+                if not self.appear(back):
+                    continue
+                self._log_solo_exit_state('request_map_exit', scene, save=True)
+                if self.appear_then_click(back, interval=3.5):
+                    exit_clicked = True
+                    break
+        logger.warning(f'Solo exploration exit timeout: elapsed={timeout.current():.1f}s, '
+                       f'polls={polls}, last_phase={phase}')
+        self._log_solo_exit_state('timeout', save=True)
+        raise GameStuckError('Solo exploration exit timed out before confirmed departure')
+
     def _hook_special_reward(self) -> bool:
         if self.appear(self.I_STATISTICS) and not self.appear(self.I_REWARD) and not self.appear(self.I_WIN):
             if self.appear_then_click(self.I_CONFIRM_CLOSE_DIFF_SOUL):
@@ -629,8 +813,10 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
             self.click(self.C_RANDOM_CLICK, interval=1.5)
         return False
 
-    def fire(self, button) -> bool:
-        self.appear_then_click(button, interval=3)
+    def fire(self, button, require_win: bool = False) -> bool:
+        clicked = self.appear_then_click(button, interval=3)
+        if require_win and not clicked:
+            return False
         # 短暂等待场景切换，避免截图过早导致误判仍在探索场景
         time.sleep(1.0)
         self.screenshot()
@@ -642,9 +828,9 @@ class BaseExploration(GameUi, GeneralBattle, GeneralRoom, GeneralInvite, Replace
             # 如果还在探索说明，这个是显示滑动导致挑战按钮不在范围内
             logger.warning('Fire button disappear, but still in exploration')
             return False
-        self.run_general_battle(self._config.general_battle_config)
+        win = self.run_general_battle(self._config.general_battle_config)
         self.minions_cnt += 1
-        return True
+        return bool(win) if require_win else True
 
     def wait_world_stable(self) -> bool:
         """

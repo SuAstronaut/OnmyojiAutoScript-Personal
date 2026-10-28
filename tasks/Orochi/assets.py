@@ -16,15 +16,23 @@ class OrochiAssets:
 	# 组队 
 	I_FORM_TEAM = RuleImage(roi_front=(967,607,83,44), roi_back=(924,554,167,163), threshold=0.8, method="Template matching", file="./tasks/Orochi/o/form_team.png")
 	# description 
-	I_OROCHI_LOCK = RuleImage(roi_front=(683,660,30,22), roi_back=(613,643,293,73), threshold=0.7, method="Template matching", file="./tasks/Orochi/o/orochi_lock.png")
+	I_OROCHI_LOCK = RuleImage(roi_front=(700,658,30,22), roi_back=(613,643,293,73), threshold=0.7, method="Template matching", file="./tasks/Orochi/o/orochi_lock.png")
 	# description 
-	I_OROCHI_UNLOCK = RuleImage(roi_front=(683,660,30,22), roi_back=(628,639,178,73), threshold=0.7, method="Template matching", file="./tasks/Orochi/o/orochi_unlock.png")
+	I_OROCHI_UNLOCK = RuleImage(roi_front=(700,658,30,22), roi_back=(628,639,178,73), threshold=0.7, method="Template matching", file="./tasks/Orochi/o/orochi_unlock.png")
 	# 点击挑战 
 	I_OROCHI_FIRE = RuleImage(roi_front=(1146,594,87,47), roi_back=(1121,578,133,114), threshold=0.6, method="Template matching", file="./tasks/Orochi/o/orochi_fire.png")
 	# 式神录 
 	I_SHI_RECORDS = RuleImage(roi_front=(844,569,39,43), roi_back=(807,539,108,91), threshold=0.8, method="Template matching", file="./tasks/Orochi/o/shi_records.png")
 	# 小小宠物，发现宝藏 
 	I_PET_PRESENT = RuleImage(roi_front=(873,184,62,147), roi_back=(873,184,62,147), threshold=0.8, method="Template matching", file="./tasks/Orochi/o/o_pet_present.png")
+
+
+	# 御魂默认邀请未勾选
+	I_I_NO_DEFAULT = RuleImage(roi_front=(546,346,30,30), roi_back=(542,343,36,35), threshold=0.8, method="Template matching", file="./tasks/Orochi/o/gi_i_no_default.png")
+	# 御魂默认邀请已勾选
+	I_I_DEFAULT = RuleImage(roi_front=(546,346,30,30), roi_back=(541,342,41,39), threshold=0.8, method="Template matching", file="./tasks/Orochi/o/gi_i_default.png")
+	# 御魂继续邀请确定
+	I_GI_SURE = RuleImage(roi_front=(670,402,175,60), roi_back=(670,402,175,60), threshold=0.8, method="Template matching", file="./tasks/Orochi/o/gi_gi_sure.png")
 
 
 	# List Rule Assets

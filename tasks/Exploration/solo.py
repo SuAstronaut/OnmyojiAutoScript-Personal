@@ -41,6 +41,9 @@ class SoloExploration(BaseExploration):
             logger.info(f'[run_solo] Current scene: {scene.name}')  # TODO 2026.06.22 之后删掉这个刷屏的
             #
             if scene == Scene.WORLD:
+                # Natural chapter boundary: check tickets before opening another chapter.
+                if self.check_exit():
+                    break
                 # 打开右边箭头
                 self.ui_click(click=self.I_EXP_ARROW_LEFT, stop=self.I_EXP_ARROW_RIGHT, interval=2, timeout=3)
                 """ if self.appear(self.I_TREASURE_BOX_CLICK):
@@ -119,7 +122,7 @@ class SoloExploration(BaseExploration):
                     continue
                 # 兜底检查：每次循环都检查是否达到退出条件
                 if self.check_exit():
-                    self.quit_explore()
+                    self.quit_explore(safe_solo=True)
                     break
                 #宝箱
                 if self.appear(self.I_TREASURE_BOX_CLICK):
@@ -138,7 +141,7 @@ class SoloExploration(BaseExploration):
                 #体力不够
                 if self.appear(self.I_E_MAIN_SUSHI):
                     self.ui_click_until_disappear(self.I_UI_BACK_RED)
-                    self.quit_explore()
+                    self.quit_explore(safe_solo=True)
                     raise Exception('Insufficient AP')
                 # 小纸人
                 if self.appear(self.I_BATTLE_REWARD):
@@ -146,10 +149,12 @@ class SoloExploration(BaseExploration):
                         continue
                 # boss
                 if self.appear(self.I_BOSS_BATTLE_BUTTON):
-                    if self.fire(self.I_BOSS_BATTLE_BUTTON):
+                    if self.fire(self.I_BOSS_BATTLE_BUTTON, require_win=True):
                         logger.info(f'Boss battle, minions cnt {self.minions_cnt}')
+                        self.quit_explore(skip_battle_reward=True)
+                        explore_init = False
+                        search_fail_cnt = 0
                         if self.check_exit():
-                            self.quit_explore()
                             break
                     continue
                 # 小怪
@@ -158,7 +163,7 @@ class SoloExploration(BaseExploration):
                     if self.fire(fight_button):
                         logger.info(f'Fight, minions cnt {self.minions_cnt}')
                         if self.check_exit():
-                            self.quit_explore()
+                            self.quit_explore(safe_solo=True)
                             break
                     continue
                 #弹窗
@@ -171,7 +176,7 @@ class SoloExploration(BaseExploration):
                     if (self._config.exploration_config.exploration_level == ExplorationLevel.EXPLORATION_28\
                         and self.appear(self.I_SWIPE_END))\
                             or self._match_end.stable(self.device.image, refresh_after_stable=True):
-                        self.quit_explore()
+                        self.quit_explore(safe_solo=True)
                         continue
                     if self.swipe(self.S_SWIPE_BACKGROUND_RIGHT, interval=3):
                         continue

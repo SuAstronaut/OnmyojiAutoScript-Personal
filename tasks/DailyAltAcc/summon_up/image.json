@@ -18,15 +18,6 @@
     "threshold": 0.8
   },
   {
-    "itemName": "summon_up_to_share",
-    "roiFront": "1137,532,124,47",
-    "roiBack": "746,361,534,332",
-    "description": "description",
-    "imageName": "summon_up_to_share.png",
-    "method": "Template matching",
-    "threshold": 0.8
-  },
-  {
     "itemName": "summon_up_to_share_2",
     "roiFront": "1187,617,45,39",
     "roiBack": "1041,581,224,123",
@@ -167,6 +158,42 @@
     "roiBack": "200,480,925,225",
     "description": "description",
     "imageName": "summon_up_jump.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "summon_up_copper_card",
+    "roiFront": "331,203,139,43",
+    "roiBack": "318,192,170,62",
+    "description": "Copper free gift context, verified from native user screenshot",
+    "imageName": "summon_up_copper_card.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "summon_up_copper_detail",
+    "roiFront": "373,195,108,36",
+    "roiBack": "350,178,150,66",
+    "description": "Copper free gift context, verified from native user screenshot",
+    "imageName": "summon_up_copper_detail.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "summon_up_purchase_success",
+    "roiFront": "520,211,241,60",
+    "roiBack": "495,195,300,90",
+    "description": "Copper free gift context, verified from native user screenshot",
+    "imageName": "summon_up_purchase_success.png",
+    "method": "Template matching",
+    "threshold": 0.8
+  },
+  {
+    "itemName": "summon_up_experience_title",
+    "roiFront": "359,485,508,71",
+    "roiBack": "353,478,520,82",
+    "description": "SSR collection experience card text title from native user PNG; requires existing continue prompt and dark mask",
+    "imageName": "summon_up_experience_title.png",
     "method": "Template matching",
     "threshold": 0.8
   }

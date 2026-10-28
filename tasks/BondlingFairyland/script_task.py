@@ -101,11 +101,16 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, BondlingBattle, SwitchSoul,
         logger.hr('Start run leader', 2)
         success = True
         is_first = True
+        desktop = getattr(self.device, 'is_desktop', False)
+        default_invite = self.config.bondling_fairyland.invite_config.default_invite if desktop else True
+        post_battle_timer = None
         while 1:
             def create_bond_team():
                 click_count = 0
                 while 1:
                     self.screenshot()
+                    if desktop and self.check_and_invite(default_invite):
+                        continue
                     if self.appear(self.I_GI_IN_ROOM):
                         return True
                     if click_count >= 6:
@@ -116,7 +121,7 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, BondlingBattle, SwitchSoul,
                     # 某些活动的时候出现 “选择共鸣的阴阳师”
                     if self.appear_then_click(self.I_UI_CONFIRM, interval=1):
                         continue
-                    if self.check_and_invite(True):
+                    if not desktop and self.check_and_invite(True):
                         continue
                     if self.appear(self.I_CREATE_TEAM, interval=1):
                         self.ensure_private()
@@ -138,12 +143,30 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, BondlingBattle, SwitchSoul,
 
             self.screenshot()
 
+            if desktop and self.check_and_invite(default_invite):
+                post_battle_timer = None
+                continue
+            # 失败后应回到房间；未知弹窗/正文失配不能无限空转或猜点。
+            if post_battle_timer is not None:
+                has_confirm = self.appear(self.I_BOND_INVITE_SURE)
+                if not has_confirm and self.appear(self.I_GI_IN_ROOM):
+                    post_battle_timer = None
+                elif post_battle_timer.reached():
+                    raise GamePageUnknownError(
+                        'Bondling failed battle did not return to room or a recognized invite dialog (20s): '
+                        f'title_score={self.I_BOND_INVITE_TITLE.last_match_score}, '
+                        f'sure_score={self.I_BOND_INVITE_SURE.last_match_score}, '
+                        f'room_score={self.I_GI_IN_ROOM.last_match_score}')
+                else:
+                    continue
+
             if success:
                 is_first = True
                 if not create_bond_team():
                     return True
 
-            self.check_and_invite(True)
+            if not desktop:
+                self.check_and_invite(True)
 
             if self.current_count >= self.limit_count:
                 if self.appear(self.I_GI_IN_ROOM):
@@ -164,6 +187,8 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, BondlingBattle, SwitchSoul,
                 if not is_first:
                     if self.run_invite(config=self.config.bondling_fairyland.invite_config):
                         success = self.run_battle(self.config.bondling_fairyland.battle_config, limit_count=self.limit_count)
+                        if desktop and not success:
+                            post_battle_timer = Timer(20).start()
                     else:
                         # 邀请失败，退出任务
                         logger.warning('Invite failed and exit this bondling_fairyland task')
@@ -179,6 +204,8 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, BondlingBattle, SwitchSoul,
                     else:
                         is_first = False
                         success = self.run_battle(self.config.bondling_fairyland.battle_config, limit_count=self.limit_count)
+                        if desktop and not success:
+                            post_battle_timer = Timer(20).start()
                         continue
         # 当结束或者是失败退出循环的时候只有两个UI的可能，在房间或者是在组队界面
         # 如果在房间就退出
@@ -375,18 +402,66 @@ class ScriptTask(GameUi, GeneralInvite, GeneralRoom, BondlingBattle, SwitchSoul,
             self.ui_click_until_disappear(self.I_STONE_CLOSE, interval=1.2)
             logger.warning(f'已经没有鸣契石召唤契灵了')
             return False
+        summon_requested = False
+        confirmed = False
+        response_timer = None
+        ocr_timer = Timer(1)
         while 1:
             self.screenshot()
-            if not self.appear(self.I_STONE_SURE):
+            if response_timer is not None and response_timer.reached():
+                raise GamePageUnknownError('Bondling summon confirmation/transition timeout')
+            # 弹窗遮罩下仍能匹配到背后的数量按钮，必须先处理弹窗。
+            has_confirm = self.appear(self.I_STONE_SUMMON_CONFIRM)
+            has_cancel = self.appear(self.I_STONE_SUMMON_CANCEL)
+            if confirmed:
+                # 本次只确认一次；新截图确认弹窗和召唤页面均已离开。
+                if has_confirm or has_cancel or self.appear(self.I_STONE_SURE):
+                    continue
                 sleep(random.uniform(1.5, 2))  # 等待购买后的动画, 否则已经买了但是下次再点击还会出现该界面
                 return True
-            for i in range(3):
-                if self.appear_then_click(self.I_BUY_PLUS, interval=1):
-                    sleep(0.5)
-            if self.appear_then_click(self.I_GI_SURE, interval=1):
+            if has_confirm or has_cancel:
+                if response_timer is None:
+                    response_timer = Timer(15).start()
+                if (summon_requested and has_confirm and has_cancel
+                        and self.appear(self.I_STONE_SURE) and ocr_timer.reached()):
+                    ocr_timer.reset()
+                    if self._stone_summon_dialog() and not response_timer.reached():
+                        if self.appear_then_click(self.I_STONE_SUMMON_CONFIRM, interval=1):
+                            confirmed = True
+                            response_timer.reset()
                 continue
+            if not self.appear(self.I_STONE_SURE):
+                # 请求后的未知画面不能当作召唤成功，交给超时和现有异常恢复。
+                if summon_requested:
+                    continue
+                sleep(random.uniform(1.5, 2))
+                return True
+            if not summon_requested:
+                for i in range(3):
+                    if self.appear_then_click(self.I_BUY_PLUS, interval=1):
+                        sleep(0.5)
             if self.appear_then_click(self.I_STONE_SURE, interval=1):
+                if not summon_requested:
+                    summon_requested = True
+                    response_timer = Timer(15).start()
                 continue
+
+    def _stone_summon_dialog(self) -> bool:
+        """两枚按钮同属一个弹窗，再用一次 OCR 检查稳定文字，不解析动态数量/名称。"""
+        confirm = self.I_STONE_SUMMON_CONFIRM.roi_front
+        cancel = self.I_STONE_SUMMON_CANCEL.roi_front
+        if not (208 <= confirm[0] - cancel[0] <= 248 and abs(confirm[1] - cancel[1]) <= 10):
+            return False
+        rule = self.O_B_STONE_SUMMON_DIALOG
+        results = rule.detect_and_ocr(self.device.image)
+        # Full.ocr 的通用字符回退匹配过宽；这里明确要求两个完整稳定片段。
+        results = [item for item in results if item.score >= 0.85
+                   and all(0 <= p[0] <= rule.roi[2] and 0 <= p[1] <= rule.roi[3]
+                           for p in item.box)]
+        results.sort(key=lambda item: min(p[0] for p in item.box))
+        text = ''.join(''.join(item.ocr_text.split()) for item in results)
+        prefix = text.find('是否消耗')
+        return prefix >= 0 and text.find('鸣契石召唤', prefix + 4) >= 0
 
     def run_search(self, bondling_config: BondlingConfig, limit_cnt: int = None):
         """

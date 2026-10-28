@@ -24,6 +24,7 @@ from tasks.Component.GeneralBattle.general_battle import auto_ocr_running
 from tasks.Component.GeneralBattle.reward_frame import (
     weighted_choice, FORBIDDEN_ACTIVITY, HotShape)
 from tasks.ActivityShikigami.assets import ActivityShikigamiAssets
+from tasks.ActivityShikigami.ap_guji import ApGujiMixin, ApSafetyStop
 from tasks.ActivityShikigami.config import SwitchSoulConfig, GeneralBattleConfig, ActivityShikigami
 from tasks.Component.BaseActivity.base_activity import BaseActivity
 from tasks.Component.BaseActivity.config_activity import GeneralClimb
@@ -176,7 +177,7 @@ class StateMachine(BaseTask):
         logger.hr(f'Climb switch to {self.climb_type}', 2)
         return True
 
-class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, PassMonopolyMixin, SeasonBossMixin, ActivityShikigamiAssets):
+class ScriptTask(StateMachine, ApGujiMixin, GameUi, BaseActivity, SwitchSoul, PassMonopolyMixin, SeasonBossMixin, ActivityShikigamiAssets):
     """
     更新前请先看 ./README.md
     """
@@ -214,6 +215,12 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, PassMonopolyMix
         self._x5_active: bool = False
 
     def run(self) -> None:
+        if ('ap' in self.conf.general_climb.run_sequence_v
+                or self.conf.general_climb.run_sequence_v == ['boss']):
+            if self.conf.general_climb.run_sequence_v == ['boss']:
+                from tasks.ActivityShikigami.boss_shenmu import run_shenmu_boss
+                return run_shenmu_boss(self)
+            return self.run_ap_guji()
         self.limit_time: timedelta = self.conf.general_climb.limit_time_v
         #
         for climb_type in self.conf.general_climb.run_sequence_v:
@@ -242,6 +249,41 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, PassMonopolyMix
         if self.conf.general_climb.active_souls_clean:
             self.set_next_run(task='SoulsTidy', success=False, finish=False, target=datetime.now())
         self.set_next_run(task="ActivityShikigami", success=True)
+        raise TaskEnd('ActivityShikigami')
+
+    def run_ap_guji(self):
+        """Current AP activity only; mixed sequences fail before any input."""
+        self._ap_guji_active = True
+        self._auto_seg = None
+        self.run_idx = 0
+        self.limit_time = self.conf.general_climb.limit_time_v
+        success = False
+        try:
+            if self.conf.general_climb.run_sequence_v != ['ap']:
+                raise ApSafetyStop('古迹演武 requires run_sequence=ap; other modes will not run')
+            if self.conf.general_climb.five_times_enable:
+                raise ApSafetyStop('古迹演武 first acceptance requires five_times_enable=False')
+            if self.conf.switch_soul_config.enable_switch_ap:
+                self.screenshot()
+                self.ap_return_home()
+                from time import monotonic
+                self._ap_guard_deadline = monotonic() + 45
+                try:
+                    self.switch_soul()
+                finally:
+                    self._ap_guard_deadline = None
+            self._run_ap()
+            self.ap_return_home()
+            success = True
+        except ApSafetyStop as exc:
+            logger.error(f'古迹演武 AP safe stop: {exc}')
+            self.ap_snapshot(str(exc))
+        finally:
+            self._ap_guard_deadline = None
+            self._ap_guji_active = False
+        if success and self.conf.general_climb.active_souls_clean:
+            self.set_next_run(task='SoulsTidy', success=False, finish=False, target=datetime.now())
+        self.set_next_run(task='ActivityShikigami', success=success)
         raise TaskEnd('ActivityShikigami')
 
     def _run_pass(self):
@@ -284,38 +326,8 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, PassMonopolyMix
         self.ui_click(self.I_UI_BACK_YELLOW, stop=self.I_TO_BATTLE_MAIN, interval=1)
 
     def _run_ap(self):
-        """
-            更新前请先看 ./README.md
-        """
-        logger.hr(f'Start run climb type AP')
-        self.ui_click(self.I_TO_BATTLE_MAIN, stop=self.I_TO_BATTLE_MAIN_2, interval=1)
-        self.ui_click(self.I_TO_BATTLE_MAIN_2, stop=self.I_CHECK_BATTLE_MAIN, interval=1)
-        self.switch_climb_mode_in_game('ap')
-        # 进入 ap 模式, 重置五倍状态, 由首次 check_tickets_enough 的 OCR 重新判断
-        self._x5_active = False
-
-        ocr_limit_timer = Timer(1).start()
-        while 1:
-            self.screenshot()
-            self.put_status()
-            # --------------------------------------------------------------
-            if not ocr_limit_timer.reached():
-                continue
-            ocr_limit_timer.reset()
-            if not self.ocr_appear(self.O_FIRE):
-                self.appear_then_click(self.I_CHECK_BATTLE_MAIN, interval=4)
-                continue
-            #  --------------------------------------------------------------
-            self.lock_team(self.conf.general_battle)
-            if not self.check_tickets_enough():
-                logger.warning(f'No tickets left, wait for next time')
-                break
-            if self.conf.general_climb.random_sleep:
-                random_sleep(probability=0.2)
-            if self.start_battle():
-                continue
-
-        self.ui_click(self.I_UI_BACK_YELLOW, stop=self.I_TO_BATTLE_MAIN, interval=1)
+        logger.hr('Start 古迹演武 AP (single consumption)')
+        return self.ap_loop()
     def _run_boss(self):
         def start_battle() -> bool:
             """尝试进入并打完一场 boss 战。
@@ -522,6 +534,8 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, PassMonopolyMix
         self.run_general_battle(config=self.get_general_battle_conf())
 
     def start_battle(self):
+        if getattr(self, '_ap_guji_active', False):
+            return self.ap_start_battle()
         click_times, max_times = 0, random.randint(2, 4)
         while 1:
             self.screenshot()
@@ -622,6 +636,8 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, PassMonopolyMix
         logger.warning('Quit boss battle timeout, hand back to battle_wait')
 
     def battle_wait(self, random_click_swipt_enable: bool) -> bool:
+        if getattr(self, '_ap_guji_active', False):
+            return self.ap_battle_wait()
         # 通用战斗结束判断
         self.device.stuck_record_add("BATTLE_STATUS_S")
         self.device.click_record_clear()
@@ -856,6 +872,8 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, PassMonopolyMix
         self.ui_click(self.I_LOCK, stop=self.I_UNLOCK, interval=1.5)
 
     def check_tickets_enough(self) -> bool:
+        if getattr(self, '_ap_guji_active', False):
+            return self.ap_check_resources()
         """
         判断当前爬塔门票是否足够
         :return: True 可以运行 or False
@@ -998,6 +1016,12 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, PassMonopolyMix
         执行，本重写只注入 remaining，爬塔无御魂式的场后结算（五倍门票扣减走
         check_tickets_enough 的缓存预估，段内由 auto_battle_count_hook 同步递减）。
         """
+        if getattr(self, '_ap_guji_active', False):
+            config = config or self.get_general_battle_conf()
+            config.random_click_swipt_enable = False
+            config.auto_battle_enable = False
+            config.green_enable = False
+            return super().run_general_battle(config=config, buff=buff, remaining_count=None)
         remaining = self._auto_seg_remaining()
         return super().run_general_battle(config=config, buff=buff,
                                           remaining_count=remaining)

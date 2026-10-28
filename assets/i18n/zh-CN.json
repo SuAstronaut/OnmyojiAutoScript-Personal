@@ -812,5 +812,7 @@
   "auto_reconnect_delay_minutes": "全局重连等待（分钟）",
   "auto_reconnect_delay_minutes_help": "从两帧确认被顶号时开始计时，范围 1～1440 分钟；默认 30 分钟。等待期间其他到期任务也不会操作游戏。",
   "foster_reconnect_delay_minutes": "寄养重连等待（分钟，0 为继承）",
-  "foster_reconnect_delay_minutes_help": "0 表示继承 Restart 中的全局等待；1～1440 表示寄养独立等待。仅在单账号寄养且自动重连已开启时生效。"
+  "foster_reconnect_delay_minutes_help": "0 表示继承 Restart 中的全局等待；1～1440 表示寄养独立等待。仅在单账号寄养且自动重连已开启时生效。",
+  "team_battle_midnight_schedule_enable": "启用凌晨回礼及同心队战斗",
+  "team_battle_midnight_schedule_enable_help": "开启时保留 00:20 自动回礼及后续自动同心队战斗；关闭时取消这些阶段及其延迟、重试，保留下一正常早晚轮次。显式手动调用不受影响；关闭任务自动轮转时不生效。"
 }

@@ -61,6 +61,51 @@ class ActivityShikigamiAssets:
 
 
 	# Image Rule Assets
+	# 古迹演武 ap entry; 来源图1 crop=(1188, 222, 38, 39)
+	I_AP_GUJI_ENTRY = RuleImage(roi_front=(1188,222,38,39), roi_back=(1120,135,150,500), threshold=0.9, method="Template matching", file="./tasks/ActivityShikigami/as/ap_guji_entry.png")
+	# 古迹演武 ap home; 来源图2 crop=(151, 20, 128, 37)
+	I_AP_GUJI_HOME = RuleImage(roi_front=(151,20,128,37), roi_back=(140,12,155,53), threshold=0.9, method="Template matching", file="./tasks/ActivityShikigami/as/ap_guji_home.png")
+	# 古迹演武 ap route; 来源图2 crop=(222, 256, 97, 49)
+	I_AP_GUJI_ROUTE = RuleImage(roi_front=(222,256,97,49), roi_back=(210,246,125,69), threshold=0.9, method="Template matching", file="./tasks/ActivityShikigami/as/ap_guji_route.png")
+	# 古迹演武 ap challenge; 来源图3 crop=(151, 20, 125, 37)
+	I_AP_GUJI_CHALLENGE = RuleImage(roi_front=(151,20,125,37), roi_back=(140,12,155,53), threshold=0.9, method="Template matching", file="./tasks/ActivityShikigami/as/ap_guji_challenge.png")
+	# 古迹演武 ap fire; 来源图3 crop=(1129, 597, 88, 49)
+	I_AP_GUJI_FIRE = RuleImage(roi_front=(1129,597,88,49), roi_back=(1110,576,123,80), threshold=0.9, method="Template matching", file="./tasks/ActivityShikigami/as/ap_guji_fire.png")
+	# 古迹演武 ap activity_top; 来源图3 crop=(706, 17, 33, 31)
+	I_AP_GUJI_ACTIVITY_TOP = RuleImage(roi_front=(706,17,33,31), roi_back=(695,5,55,53), threshold=0.88, method="Template matching", file="./tasks/ActivityShikigami/as/ap_guji_activity_top.png")
+	# 古迹演武 ap activity_cost; 来源图3 crop=(1160, 666, 27, 25)
+	I_AP_GUJI_ACTIVITY_COST = RuleImage(roi_front=(1160,666,27,25), roi_back=(1154,660,37,36), threshold=0.88, method="Template matching", file="./tasks/ActivityShikigami/as/ap_guji_activity_cost.png")
+	# 古迹演武 ap ap_cost; 来源图3 crop=(1090, 664, 25, 25)
+	I_AP_GUJI_AP_COST = RuleImage(roi_front=(1090,664,25,25), roi_back=(1084,658,34,39), threshold=0.88, method="Template matching", file="./tasks/ActivityShikigami/as/ap_guji_ap_cost.png")
+	# 古迹演武 ap auto_idle; 来源图3 crop=(940, 645, 40, 50)
+	I_AP_GUJI_AUTO_IDLE = RuleImage(roi_front=(940,645,40,50), roi_back=(934,638,53,65), threshold=0.9, method="Template matching", file="./tasks/ActivityShikigami/as/ap_guji_auto_idle.png")
+	# 古迹演武 ap victory; 来源图4 crop=(716, 110, 285, 146)
+	I_AP_GUJI_VICTORY = RuleImage(roi_front=(716,110,285,146), roi_back=(695,85,333,188), threshold=0.88, method="Template matching", file="./tasks/ActivityShikigami/as/ap_guji_victory.png")
+	# 古迹演武 ap reward; 来源图5 crop=(574, 510, 109, 75)
+	I_AP_GUJI_REWARD = RuleImage(roi_front=(574,510,109,75), roi_back=(540,474,162,147), threshold=0.88, method="Template matching", file="./tasks/ActivityShikigami/as/ap_guji_reward.png")
+	# 古迹演武 ap continue; 来源图4 crop=(557, 681, 167, 28)
+	I_AP_GUJI_CONTINUE = RuleImage(roi_front=(557,681,167,28), roi_back=(533,670,217,45), threshold=0.88, method="Template matching", file="./tasks/ActivityShikigami/as/ap_guji_continue.png")
+	# 古迹演武 ap back; 来源图3 crop=(22, 19, 38, 38)
+	I_AP_GUJI_BACK = RuleImage(roi_front=(22,19,38,38), roi_back=(10,8,70,60), threshold=0.88, method="Template matching", file="./tasks/ActivityShikigami/as/ap_guji_back.png")
+	# 古迹演武 ap 复用现有素材，独立 ROI: ap_top
+	I_AP_GUJI_AP_TOP = RuleImage(roi_front=(1060,0,45,43), roi_back=(1060,0,220,80), threshold=0.9, method="Template matching", file="./tasks/ActivityShikigami/as/../..//RichMan/mall/navbar/navbar_mall_resource_ap.png")
+	# 古迹演武 ap 复用现有素材，独立 ROI: refresh
+	I_AP_GUJI_REFRESH = RuleImage(roi_front=(1120,120,21,23), roi_back=(1120,120,160,585), threshold=0.9, method="Template matching", file="./tasks/ActivityShikigami/as/../../Component/RightActivity/ra/as_toggle_button.png")
+	# 古迹演武 ap 复用现有素材，独立 ROI: x5_off
+	I_AP_GUJI_X5_OFF = RuleImage(roi_front=(852,640,25,21), roi_back=(852,640,75,60), threshold=0.88, method="Template matching", file="./tasks/ActivityShikigami/as/as_off_x5.png")
+	# 古迹演武 ap 复用现有素材，独立 ROI: x5_on
+	I_AP_GUJI_X5_ON = RuleImage(roi_front=(852,640,25,21), roi_back=(852,640,75,60), threshold=0.88, method="Template matching", file="./tasks/ActivityShikigami/as/as_on_x5.png")
+	# 古迹演武 ap 复用现有素材，独立 ROI: lock
+	I_AP_GUJI_LOCK = RuleImage(roi_front=(782,636,28,25), roi_back=(782,636,68,66), threshold=0.88, method="Template matching", file="./tasks/ActivityShikigami/as/as_lock.png")
+	# 古迹演武 ap 复用现有素材，独立 ROI: unlock
+	I_AP_GUJI_UNLOCK = RuleImage(roi_front=(782,636,28,25), roi_back=(782,636,68,66), threshold=0.8, method="Template matching", file="./tasks/ActivityShikigami/as/as_unlock.png")
+	# 古迹演武奖励页继续; 来源图5 crop=(557,681,167,28)
+	I_AP_GUJI_CONTINUE_REWARD = RuleImage(roi_front=(557,681,167,28), roi_back=(533,670,217,45), threshold=0.88, method="Template matching", file="./tasks/ActivityShikigami/as/ap_guji_continue_reward.png")
+	# 古迹演武琥珀卷轴不足; 原图184954_677576 crop=(553,225,176,31); 模板候选后同帧精确OCR确认
+	I_AP_GUJI_INSUFFICIENT = RuleImage(roi_front=(553,225,176,31), roi_back=(410,190,460,120), threshold=0.92, method="Template matching", file="./tasks/ActivityShikigami/as/ap_guji_insufficient.png")
+
+
+	# Image Rule Assets
 	# 上锁图标 
 	I_LOCK = RuleImage(roi_front=(825,657,28,25), roi_back=(739,613,276,85), threshold=0.6, method="Template matching", file="./tasks/ActivityShikigami/as/as_lock.png")
 	# 还未上锁图片 
@@ -104,6 +149,21 @@ class ActivityShikigamiAssets:
 	I_BATTLE_MAIN_TO_RECORDS = RuleImage(roi_front=(1016,557,37,45), roi_back=(976,539,146,100), threshold=0.8, method="Template matching", file="./tasks/ActivityShikigami/as/battle_main_to_records.png")
 	# 前往主页 
 	I_TO_BATTLE_MAIN_2 = RuleImage(roi_front=(62,93,119,39), roi_back=(6,84,253,89), threshold=0.7, method="Template matching", file="./tasks/ActivityShikigami/as/as_to_battle_main_2.png")
+
+
+	# Ocr Rule Assets
+	# 古迹演武原始文本，严格解析: ap
+	O_AP_GUJI_AP = RuleOcr(roi=(1136,12,104,35), area=(1136,12,104,35), mode="Single", method="Default", keyword="", name="ap_guji_ap")
+	# 古迹演武原始文本，严格解析: activity
+	O_AP_GUJI_ACTIVITY = RuleOcr(roi=(772,12,86,35), area=(772,12,86,35), mode="Single", method="Default", keyword="", name="ap_guji_activity")
+	# 古迹演武原始文本，严格解析: x5
+	O_AP_GUJI_X5 = RuleOcr(roi=(968,12,70,35), area=(968,12,70,35), mode="Single", method="Default", keyword="", name="ap_guji_x5")
+	# 古迹演武原始文本，严格解析: ap_cost
+	O_AP_GUJI_AP_COST = RuleOcr(roi=(1118,663,42,30), area=(1118,663,42,30), mode="Single", method="Default", keyword="", name="ap_guji_ap_cost")
+	# 古迹演武原始文本，严格解析: activity_cost
+	O_AP_GUJI_ACTIVITY_COST = RuleOcr(roi=(1190,663,40,30), area=(1190,663,40,30), mode="Single", method="Default", keyword="", name="ap_guji_activity_cost")
+	# 琥珀卷轴不足候选的同帧原始文本，必须完整精确相等
+	O_AP_GUJI_INSUFFICIENT = RuleOcr(roi=(553,225,176,31), area=(553,225,176,31), mode="Single", method="Default", keyword="", name="ap_guji_insufficient")
 
 
 	# Image Rule Assets

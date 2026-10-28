@@ -17,6 +17,8 @@ class MoonSeaMap(MoonSeaSkills):
     
     def enter_island(self):
         self.screenshot()
+        if self.handle_six_summon_dialog():
+            return True
         logger.info(f'Entering island self.cnt_skill101={self.cnt_skill101}, self.cnt_skillpower={self.cnt_skillpower}')
         # 万相铃不足：点击宁息之屿后弹出「是否仍要进入宁息之屿？」确认框（左取消/右进入）。
         # 必须点右侧「进入」——用 SixRealms 专用模板 I_NINGXI_INSUFFICIENT_ENTER 识别，
@@ -79,4 +81,3 @@ if __name__ == '__main__':
     # if match:
     #     isl_num = int(match.group())
     #     print(isl_num)
-

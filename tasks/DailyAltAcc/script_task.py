@@ -2,9 +2,14 @@
 # @author runhey
 # github https://github.com/runhey
 import time
+import json
+import uuid
+from datetime import datetime
 
 from module.logger import logger
 from tasks.Utils.coop_store import CoopStoreWriteError
+from tasks.Utils.coop_store import next_refresh_point
+from tasks.GameUi.return_main import ReturnTrace
 from module.exception import (
     EmulatorNotRunningError,
     GameBugError,
@@ -37,6 +42,7 @@ from tasks.DailyAltAcc.courtyard import Courtyard
 from tasks.DailyAltAcc.mail import Mail
 from tasks.DailyAltAcc.donatejade import Donatejade
 from tasks.DailyAltAcc.cooperation import Cooperation
+from tasks.DailyAltAcc.wanted_board import WantedBoardV2
 from tasks.DailyAltAcc.returngift import Returngift
 from tasks.DailyAltAcc.alliedteam import Alliedteam
 from tasks.DailyAltAcc.mshop import Mshop
@@ -95,7 +101,7 @@ class ScriptTask(StatLogMixin, Courtyard, Mail, Donatejade, Cooperation,
             logger.exception('写子任务进度失败')
             return False
 
-    def _mark_progress_false(self, task_key: str) -> None:
+    def _mark_progress_false(self, task_key: str, **extra) -> None:
         """记录一次显式返回 False；达到上限迁移 skipped 时记一条 warning。
 
         skipped 不发通知——它不是异常，而是「多次尝试后判定本阶段无事可做」，
@@ -106,6 +112,13 @@ class ScriptTask(StatLogMixin, Courtyard, Mail, Donatejade, Cooperation,
         try:
             if self._progress.mark_task_false(self._progress_key, task_key):
                 logger.warning(f'子任务 {task_key} 连续多次未完成，本阶段不再重试（skipped）')
+                if task_key == 'summon_up':
+                    logger.warning('[summon_up] skipped 不代表成功领取；请查看最终状态和原因')
+            if extra:
+                # Keep the existing pending/skipped status and false_count.
+                status = self._progress.get_task(self._progress_key, task_key).get('status')
+                if status:
+                    self._mark_progress(task_key, status, **extra)
         except Exception:
             logger.exception('写子任务 False 计数失败')
 
@@ -191,18 +204,28 @@ class ScriptTask(StatLogMixin, Courtyard, Mail, Donatejade, Cooperation,
         # 同心战斗进入前的场次基线，异常时用来判断本轮有无实质进展
         battle_before = self._battle_count_now() if task_key == 'alliedteam' else 0
         self.emit_stat(StatEvent.TASK_START, task=task_key)
+        if task_key == 'summon_up':
+            # The instance is reused across accounts; never retain old evidence.
+            self._summon_up_result = dict(outcome='FAILED', reason='NO_RESULT_EVIDENCE')
         try:
             result = func(*args, **kwargs)
         except TaskEnd:
-            # TaskEnd 是部分子任务的正常结束信号，算完成，交给原有外层逻辑处理。
-            self._mark_progress(task_key, STATUS_DONE)
-            self.emit_stat(
-                StatEvent.TASK_END,
-                task=task_key,
-                ok=True,
-                dur=round(time.time() - start_time, 3),
-            )
-            raise
+            if task_key == 'summon_up':
+                self._summon_up_result.update(outcome='FAILED', reason='TASK_END_WITHOUT_EVIDENCE')
+                logger.warning('[summon_up] FAILED reason=TASK_END_WITHOUT_EVIDENCE')
+                result = False
+            else:
+                # Preserve other tasks' normal termination contract.
+                self._mark_progress(task_key, STATUS_DONE)
+                self.emit_stat(
+                    StatEvent.TASK_END,
+                    task=task_key,
+                    ok=True,
+                    dur=round(time.time() - start_time, 3),
+                )
+                if getattr(self, '_live_trace', None) is not None:
+                    self._live_task_status(task_key, 'executed_success', 'normal_task_end')
+                raise
         except self._DEVICE_LEVEL_ERRORS as e:
             # 异常标记只在新一轮 run 开始时重置，后续子任务成功不能覆盖它。
             self._subtask_error_occurred = True
@@ -225,6 +248,8 @@ class ScriptTask(StatLogMixin, Courtyard, Mail, Donatejade, Cooperation,
                 ok=False,
                 dur=round(time.time() - start_time, 3),
             )
+            if getattr(self, '_live_trace', None) is not None:
+                self._live_task_status(task_key, 'failed', type(e).__name__)
             # 同心打到一半被打断时保持 pending，下轮接续剩余场次；不发「已跳过」
             # 通知——那条内容会误报成放弃，且设备级异常本身已由 script.py 通知
             if self._should_resume_instead_of_fail(task_key, battle_before):
@@ -253,6 +278,8 @@ class ScriptTask(StatLogMixin, Courtyard, Mail, Donatejade, Cooperation,
                 ok=False,
                 dur=round(time.time() - start_time, 3),
             )
+            if getattr(self, '_live_trace', None) is not None:
+                self._live_task_status(task_key, 'failed', type(e).__name__)
             if isinstance(e, CoopStoreWriteError):
                 # 协作未保存不能标 failed 后跳过；保持待重试，由父任务保留本轮进度。
                 raise
@@ -276,16 +303,30 @@ class ScriptTask(StatLogMixin, Courtyard, Mail, Donatejade, Cooperation,
         # 显式返回 False 表示业务上未完成（如 courtyard 进入超时）：不标 done
         # （否则接续时被跳过导致漏领奖励），交给 False 计数决定保持 pending
         # 重跑一次，还是达到上限迁移 skipped（避免无奖可领时账号永远无法收尾）。
+        summon_result = {}
+        if task_key == 'summon_up':
+            # Defensive adapter: legacy None must never turn into a successful claim.
+            summon_result = dict(getattr(self, '_summon_up_result', {}))
+            verified = summon_result.get('outcome') in ('SUCCESS', 'ALREADY_CLAIMED') and \
+                summon_result.get('return_main') is True
+            if result is True and not verified:
+                summon_result.update(outcome='FAILED', reason='TRUE_WITHOUT_RESULT_EVIDENCE')
+                logger.warning('[summon_up] FAILED reason=TRUE_WITHOUT_RESULT_EVIDENCE')
+            result = result is True and verified
         if result is not False:
-            self._mark_progress(task_key, STATUS_DONE)
+            self._mark_progress(task_key, STATUS_DONE, **summon_result)
         else:
-            self._mark_progress_false(task_key)
+            self._mark_progress_false(task_key, **summon_result)
         self.emit_stat(
             StatEvent.TASK_END,
             task=task_key,
             ok=result is not False,
             dur=round(time.time() - start_time, 3),
+            **summon_result,
         )
+        if getattr(self, '_live_trace', None) is not None:
+            self._live_task_status(task_key, 'not_covered' if result is False else 'executed_success',
+                                   'returned_false' if result is False else '')
         return result
 
     def _create_nested_task(self, task_cls):
@@ -297,40 +338,191 @@ class ScriptTask(StatLogMixin, Courtyard, Mail, Donatejade, Cooperation,
         """
         return task_cls(self.config, self.device)
 
+    def _live_event(self, ev, **fields):
+        trace = getattr(self, '_live_trace', None)
+        if trace is None:
+            return
+        payload = dict(v=1, instance=self.config.config_name,
+                       char=(getattr(self, '_stat_ctx', None) or {}).get('char', ''),
+                       attempt_id=trace['attempt_id'], ev=ev,
+                       elapsed_s=round(time.monotonic() - trace['started'], 3))
+        payload.update(fields)
+        # 复用文件日志已有的 STAT 单行通道；普通 Rich 定宽渲染会丢失长JSON的断点字符。
+        # 独立事件类型不会进入原有账号/任务/协作统计，data 中保留 v1 验收协议。
+        logger.info('[STAT] ' + json.dumps(dict(ev='multidaily_live', data=payload),
+                                          ensure_ascii=False, separators=(',', ':')))
+
+    def _live_begin(self):
+        self._live_trace = None
+        if not getattr(self, '_combine_wanted_checks', False):
+            return
+        enabled = list(getattr(self, '_live_enabled_tasks', ()))
+        skipped = [task for task in enabled if self._should_skip(task)]
+        self._live_trace = dict(attempt_id=uuid.uuid4().hex[:16], started=time.monotonic(),
+                                wanted_entries=0, wanted_exits=0, scans=0,
+                                board_open=False, network_ok=False, statuses={}, enabled_tasks=enabled,
+                                merge_enabled='cooperation' in enabled and 'cooperation' not in skipped)
+        self._live_event('role_plan', enabled_tasks=enabled, skipped_tasks=skipped,
+                         merge_enabled=self._live_trace['merge_enabled'],
+                         phase_id=getattr(self, '_coop_round_id', None))
+        for task in ('courtyard', 'mail', 'cooperation', 'donatejade', 'mysteryshop',
+                     'returngift', 'weekaward', 'consignment_ticket', 'tree', 'trialbattle',
+                     'summon_up', 'publish_sr', 'kekkaiActivation', 'KekkaiUtilize', 'alliedteam'):
+            if task not in enabled or task in skipped:
+                self._live_task_status(task, 'skipped',
+                                       'disabled' if task not in enabled else 'progress_finished')
+
+    def _live_task_status(self, task, status, reason=''):
+        if getattr(self, '_live_trace', None) is not None:
+            self._live_trace['statuses'][task] = status
+            self._live_event('task_status', task=task, status=status, reason=reason)
+
+    def _live_wanted_open(self, source, captured_at=None):
+        trace = getattr(self, '_live_trace', None)
+        if trace is not None and not trace['board_open']:
+            trace['wanted_entries'] += 1
+            trace['board_open'] = True
+            trace['visit_window'] = next_refresh_point(captured_at or datetime.now()).isoformat()
+            self._live_event('wanted_open', source=source, visit=trace['wanted_entries'])
+
+    def _close_wanted(self, stage):
+        started = time.monotonic()
+        trace = getattr(self, '_live_trace', None)
+        try:
+            if not self.ui_return_to_main(stage):
+                raise RequestHumanTakeover('Wanted exit did not confirm courtyard')
+        except Exception:
+            self._live_event('wanted_exit', ok=False, dur_s=round(time.monotonic()-started, 3),
+                             visit=trace['wanted_entries'] if trace else 0)
+            raise
+        if trace is not None:
+            if trace['board_open']:
+                trace['wanted_exits'] += 1
+            trace['board_open'] = False
+            self._live_event('wanted_exit', ok=True, dur_s=round(time.monotonic()-started, 3),
+                             visit=trace['wanted_entries'])
+
+    def _wanted_refresh_wait(self):
+        """在刷新点前30秒推迟首次打开；不把旧页面按新窗口归档。"""
+        now = datetime.now()
+        point = next_refresh_point(now)
+        seconds = (point - now).total_seconds()
+        if 0 < seconds <= 30:
+            self._live_event('refresh_boundary', action='wait_before_open', seconds=round(seconds+1, 3),
+                             window_id=point.isoformat())
+            time.sleep(seconds + 1)
+
+    def _check_wanted_network(self, keep_open=False):
+        # 网络门禁始终在 cooperation 的统计包装之外。
+        live = getattr(self, '_live_trace', None)
+        deadline = time.monotonic() + 120 if live is not None else None
+        if live is not None and keep_open:
+            self._wanted_refresh_wait()
+        net_normal_flag = False
+        retry_count = 0
+        while 1:
+            self.screenshot()
+            captured_at = datetime.now()
+            if retry_count >= 5:
+                self._live_event('network_check', ok=False, retries=retry_count)
+                self.msg.append([MSGType.neterror, '网络错误'])
+                raise TaskEnd(self.msg)
+            if deadline is not None and time.monotonic() >= deadline:
+                self._live_event('network_check', ok=False, retries=retry_count, reason='total_budget')
+                ReturnTrace(self, 'wanted_network').finish('timeout')
+                raise RequestHumanTakeover('Wanted network state remained unknown for 120s')
+            new_board = WantedBoardV2.is_open(self.device.image)
+            if new_board:
+                self._live_wanted_open('wanted_v2', captured_at)
+                net_normal_flag = WantedBoardV2.ready(self.device.image)
+                if not net_normal_flag:
+                    continue
+            elif self.appear(self.I_NET_NORMAL_FLAG, interval=1):
+                self._live_wanted_open('network', captured_at)
+                net_normal_flag = True
+                continue
+            if not new_board and self.appear_then_click(self.I_NET_CHECK, action=self.C_NET_CLICK, interval=1):
+                self._live_wanted_open('network_blank', captured_at)
+                time.sleep(7)
+                retry_count += 1
+                self._live_event('network_retry', retry=retry_count)
+                self.screenshot()
+                captured_at = datetime.now()
+            # 已有悬赏证据后不再匹配庭院入口，避免在打开中的面板上重复导航。
+            if (not new_board and (live is None or not live['board_open'])
+                    and (self.appear_then_click(WantedQuestsAssets.I_WQ_SEAL, interval=1)
+                         or self.appear_then_click(WantedQuestsAssets.I_WQ_DONE, interval=1))):
+                continue
+            if self.appear(self.I_UI_BACK_RED):
+                self.device.click_record_clear()
+                if live is not None and keep_open and net_normal_flag:
+                    now = datetime.now()
+                    window = next_refresh_point(now)
+                    crossed = live.get('visit_window') != window.isoformat()
+                    near_refresh = 0 < (window - now).total_seconds() <= 30
+                    if crossed or near_refresh:
+                        self._live_event('refresh_boundary', action='reopen',
+                                         window_id=window.isoformat(), crossed=crossed)
+                        self._close_wanted('network_refresh_exit')
+                        self._wanted_refresh_wait()
+                        net_normal_flag = False
+                        continue
+                if net_normal_flag:
+                    if live is not None:
+                        live['network_ok'] = True
+                    self._live_event('network_check', ok=True, retries=retry_count)
+                    if keep_open:
+                        return
+                if live is not None:
+                    self._close_wanted('network_check_exit')
+                else:
+                    self.ui_click_until_disappear(self.I_UI_BACK_RED, interval=4)
+                if net_normal_flag:
+                    return
+
     def run(self):
+        self._live_begin()
+        status = 'failed'
+        try:
+            return self._run_daily()
+        except TaskEnd:
+            trace = getattr(self, '_live_trace', None)
+            status = 'completed' if trace is None or trace['network_ok'] else 'network_failed'
+            raise
+        finally:
+            trace = getattr(self, '_live_trace', None)
+            if trace is not None:
+                for task in trace['enabled_tasks']:
+                    if task not in trace['statuses']:
+                        self._live_task_status(task, 'not_covered', 'run_ended_before_task')
+                if status == 'completed' and any(value in ('failed', 'not_covered')
+                                                 for value in trace['statuses'].values()):
+                    status = 'failed'
+                self._live_event('role_summary', wanted_entries=trace['wanted_entries'],
+                                 wanted_exits=trace['wanted_exits'], scans=trace['scans'],
+                                 network_ok=trace['network_ok'], merge_enabled=trace['merge_enabled'], status=status)
+
+    def _run_daily(self):
         # 记录本轮全部子任务是否发生异常，不把上一轮的结果带入新运行。
         self._subtask_error_occurred = False
         con = self.get_config()
         self.msg = []
-        net_normal_flag = False
-        retry_count = 0
-        while 1:    
-            self.screenshot()
-            if  retry_count >=5:
-                self.msg.append([MSGType.neterror, "网络错误"])
-                raise TaskEnd(self.msg)
-            if self.appear(self.I_NET_NORMAL_FLAG,interval=1):
-                net_normal_flag = True
-                continue
-
-            if self.appear_then_click(self.I_NET_CHECK,action=self.C_NET_CLICK,interval=1):
-                time.sleep(7)
-                retry_count += 1
-                self.screenshot()
-
-            if self.appear_then_click(WantedQuestsAssets.I_WQ_SEAL,interval=1) or self.appear_then_click(WantedQuestsAssets.I_WQ_DONE,interval=1):
-                continue
-
-            if self.appear(self.I_UI_BACK_RED):
-                self.device.click_record_clear()
-                self.ui_click_until_disappear(self.I_UI_BACK_RED,interval=4)
-                if net_normal_flag:
-                    break
-                continue
+        combine = (getattr(self, '_combine_wanted_checks', False)
+                   and con.daily_alt_acc_config.cooperation_enable
+                   and not self._should_skip('cooperation'))
+        self._check_wanted_network(keep_open=combine)
         # 子任务段起点：回礼需要距本账号任务开始至少间隔 RETURNGIFT_MIN_INTERVAL
         # （原 delay_time 静态估算语义），改用真实计时——前置任务实际跑多久就
         # 吃掉多久等待，轮到回礼时只补足差额
         phase_start = time.time()
+        cooperation_attempted = False
+        if combine:
+            # 本次运行局部标记也覆盖无持久进度对象的情况，防止后面再次扫描。
+            cooperation_attempted = True
+            self._run_with_stat('cooperation', self.run_cooperation, board_already_open=True)
+            if getattr(self, '_live_trace', None) is not None and self._live_trace['board_open']:
+                # 普通识别异常可能由原包装标失败后继续；先安全清理再运行独立任务。
+                self._close_wanted('cooperation_failed_cleanup')
         self.screenshot()
         if self.ui_get_current_page() != page_main:
             self.ui_goto(page_main)
@@ -355,7 +547,8 @@ class ScriptTask(StatLogMixin, Courtyard, Mail, Donatejade, Cooperation,
                 
         if con.daily_alt_acc_config.mail_enable and not self._should_skip("mail"):
             self._run_with_stat("mail", self.run_mail)
-        if con.daily_alt_acc_config.cooperation_enable and not self._should_skip("cooperation"):
+        if (not cooperation_attempted and con.daily_alt_acc_config.cooperation_enable
+                and not self._should_skip("cooperation")):
             self._run_with_stat("cooperation", self.run_cooperation)
         if con.daily_alt_acc_config.donatejade_enable and not self._should_skip("donatejade"):
             self._run_with_stat("donatejade", self.run_donatejade)

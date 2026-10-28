@@ -1,0 +1,22 @@
+{
+  "roi": [
+    390,
+    210,
+    500,
+    300
+  ],
+  "sources": {
+    "screenshot1": {
+      "source": "D:\\Documents\\MuMu共享文件夹\\Screenshots\\MuMu-20261011-015336-468.png",
+      "source_sha256": "c23c9c59800c5c126a1e6ad60998a7a0c42ba8776e88b2a18fbec5feb7d1cd8c",
+      "state": "unchecked",
+      "fixture_sha256": "cee9b19441fc3aabce364b75f0a28d8530444b4b5d8522b8fe3073075d7c3bb3"
+    },
+    "screenshot2": {
+      "source": "D:\\Documents\\MuMu共享文件夹\\Screenshots\\MuMu-20261011-015343-757.png",
+      "source_sha256": "7097584da9e92c4fa49dc5c1c6aede6471b9280aff9bb6011f99cd75a8ddaa83",
+      "state": "checked",
+      "fixture_sha256": "bf5f3f8ef9b2e54a4603f7874e120289fb6b883963f94750cabbaa3e51c83bd6"
+    }
+  }
+}

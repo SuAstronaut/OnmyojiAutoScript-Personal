@@ -155,6 +155,9 @@ class ExplorationAssets:
 
 
 	# Ocr Rule Assets
+	# Blue ticket icons cropped from real WORLD / ENTRANCE screenshots.
+	I_E_REALM_RAID_TICKET_WORLD = RuleImage(roi_front=(686,10,33,37), roi_back=(676,0,57,59), threshold=0.8, method="Template matching", file="./tasks/Exploration/res/e_realm_raid_ticket_world.png")
+	I_E_REALM_RAID_TICKET_ENTRANCE = RuleImage(roi_front=(900,7,32,37), roi_back=(890,0,49,55), threshold=0.8, method="Template matching", file="./tasks/Exploration/res/e_realm_raid_ticket_entrance.png")
 	# 识别当前显示的章节 
 	O_E_EXPLORATION_LEVEL_NUMBER = RuleOcr(roi=(1065,203,164,348), area=(0,0,100,100), mode="Full", method="Default", keyword="", name="e_exploration_level_number")
 	# 候补出战的数量 

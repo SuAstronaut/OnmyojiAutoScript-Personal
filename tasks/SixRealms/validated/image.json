@@ -196,5 +196,32 @@
     "method": "Template matching",
     "threshold": 0.9,
     "description": "Real summon dialog identity; no full-page OCR"
+  },
+  {
+    "itemName": "six_summon_cancel_desktop",
+    "imageName": "six_summon_cancel_desktop.png",
+    "roiFront": "442,414,168,50",
+    "roiBack": "430,400,196,78",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "Summon cancel only; require I_SIX_SUMMON_CONFIRM_TITLE before input"
+  },
+  {
+    "itemName": "six_summon_cancel",
+    "imageName": "six_summon_cancel.png",
+    "roiFront": "439,408,166,51",
+    "roiBack": "427,396,190,75",
+    "method": "Template matching",
+    "threshold": 0.9,
+    "description": "Summon cancel only; require I_SIX_SUMMON_CONFIRM_TITLE before input"
+  },
+  {
+    "itemName": "six_settlement_reward_title",
+    "imageName": "settlement_reward_title.png",
+    "roiFront": "519,118,242,66",
+    "roiBack": "509,108,262,132",
+    "method": "Template matching",
+    "threshold": 0.73,
+    "description": "六道最终结算获得奖励标题；运行沿用通用助手阈值0.6及原点击逻辑"
   }
 ]

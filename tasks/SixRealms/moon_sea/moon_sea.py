@@ -57,6 +57,9 @@ def mark_with_safe_points(points: tuple[tuple[int, int], ...],
 
 
 class MoonSea(MoonSeaMap, MoonSeaL101, MoonSeaL102, MoonSeaL103, MoonSeaL104, MoonSeaL105):
+    # SixRealms-only reward identity; shared input/timing remains unchanged.
+    I_UI_REWARD = MoonSeaMap.I_SIX_SETTLEMENT_REWARD_TITLE
+
 
     @property
     def _conf(self):
@@ -339,27 +342,21 @@ class MoonSea(MoonSeaMap, MoonSeaL101, MoonSeaL102, MoonSeaL103, MoonSeaL104, Mo
         if not self.appear_then_click(self.I_M_STORE_ACTIVITY, interval=1):
             logger.warning('SixRealms guarantee skipped: summon button unavailable')
             return False
-        answered = entered = False
+        entered = False
         for _ in range(24):
             self.screenshot()
+            if self.handle_six_summon_dialog():
+                return True  # Resource-consuming summons are cancelled, never confirmed.
             if self.appear(self.I_SIX_SUMMON_INSUFFICIENT_TITLE):
                 if not entered:
                     entered = self.appear_then_click(self.I_NINGXI_INSUFFICIENT_ENTER, interval=1)
-                continue
-            if self.appear(self.I_SIX_SUMMON_CONFIRM_TITLE):
-                if not answered:
-                    answered = self.appear_then_click(self.I_UI_CONFIRM, interval=1)
-                continue
-            if answered and not entered and self.appear(self.I_NINGXI):
-                entered = self.appear_then_click(self.I_NINGXI, interval=1)
                 continue
             if entered and self.appear(self.I_STORE_EXIT):
                 self.run_l101()  # Original buying, coin checks, store refresh and exit.
                 if not self.has_honglei:
                     logger.warning('SixRealms final guarantee finished without Honglei; continue run')
                 return True
-        logger.warning('SixRealms final guarantee outcome not observed; return to outer loop, no second summon')
-        return True
+        self.stop_six_unknown('Summon outcome not observed; no confirmation or second summon sent')
 
     def six_real_boss_scene(self):
         return bool(BOSS_REAL_SCENE_RULES) and all(self.appear(rule) for rule in BOSS_REAL_SCENE_RULES)

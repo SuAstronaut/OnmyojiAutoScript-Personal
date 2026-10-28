@@ -138,7 +138,9 @@ class ConfigManager:
 
     @staticmethod
     def _is_model_type(annotation: Any) -> bool:
-        return isinstance(annotation, type) and issubclass(annotation, BaseModel)
+        return (get_origin(annotation) is None
+                and isinstance(annotation, type)
+                and issubclass(annotation, BaseModel))
 
     @staticmethod
     def _list_item_model(annotation: Any) -> type[BaseModel] | None:

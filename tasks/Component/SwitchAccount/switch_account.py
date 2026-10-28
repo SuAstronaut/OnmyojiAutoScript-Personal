@@ -93,12 +93,18 @@ class SwitchAccount(LoginAccount, ExitGame, GameUi, SwitchAccountAssets):
         # 模拟器 Restart 可停在账号选择表单，弹窗可能遮住底层登录页标记。
         account_form = (not self.device.is_desktop and self.appear(self.I_SA_NETEASE_GAME_LOGO)
                         and self.appear(self.I_SA_ACCOUNT_LOGIN_BTN))
-        curPage = page_login if account_form else self.ui_get_current_page(accept_login=True)
-
-        if curPage != page_login and curPage != page_main:
-            self.ui_goto(page_main)
-            curPage = self.ui_get_current_page(accept_login=True)
+        curPage = page_login if account_form else self.ui_peek_page()
+        # 已在可验证的设置/用户中心时直接续走退出阶段，避免先关掉再点头像。
+        exit_panel = (self.appear(self.I_SA_SWITCH_ACCOUNT_BTN)
+                      or (self.appear(self.I_SA_USER_CENTER_PROFILE)
+                          and self.appear(self.I_SA_USER_CENTER)))
+        if curPage != page_login and not exit_panel:
+            self.ui_return_to_main('switch_before_exit', skip_first_screenshot=True,
+                                   accept_login=True)
+            curPage = self.ui_current
         if curPage == page_main:
+            self.exitGame()
+        elif exit_panel and curPage != page_login:
             self.exitGame()
 
         # 处于登录界面

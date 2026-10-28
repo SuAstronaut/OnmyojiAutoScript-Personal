@@ -7,6 +7,7 @@ from typing import List
 from module.atom.image import RuleImage
 from module.atom.ocr import RuleOcr
 from module.logger import logger
+from module.exception import RequestHumanTakeover
 from tasks.GameUi.page import page_main, page_guild
 from tasks.DailyAltAcc.assets import DailyAltAccAssets
 from tasks.DailyAltAcc.utils import DailyAltAccBase
@@ -15,6 +16,9 @@ from tasks.WantedQuests.config import CooperationType
 from tasks.DailyAltAcc.config import MSGType
 from tasks.DailyAltAcc.stat_log import StatEvent
 from tasks.Utils.coop_records import record_cooperation
+from tasks.Utils.coop_store import coop_expires_at
+from tasks.GameUi.return_main import ReturnTrace
+from tasks.DailyAltAcc.wanted_board import WantedBoardV2
 
 
 # 协作时间戳格式。刻意与另一处协作记录的时间字段逐字一致，让两类来源里的时间长得
@@ -321,43 +325,50 @@ class Cooperation(DailyAltAccBase):
         )
         return {"monster_text": monster} if monster else {}
 
-    def run_cooperation(self):   
+    def run_cooperation(self, board_already_open=False):
         #self.account_info =[] #self.get_account_info()
         # 打开悬赏封印 界面
-        self.screenshot()
-        if self.ui_get_current_page() != page_main:
-            self.ui_goto(page_main)
-        self.screenshot()
-        retry_count = 0
-        while 1:    
+        if not board_already_open:
             self.screenshot()
-            if  retry_count >3:
+            if not WantedBoardV2.is_open(self.device.image) and self.ui_get_current_page() != page_main:
+                self.ui_goto(page_main)
+            self.screenshot()
+            retry_count = 0
+            while 1:
                 self.screenshot()
-                self.ui_goto(page_guild)
+                if WantedBoardV2.is_open(self.device.image):
+                    break
+                if retry_count > 3:
+                    self.screenshot()
+                    self.ui_goto(page_guild)
+                    time.sleep(1)
+                    self.screenshot()
+                    if self.ui_get_current_page() != page_main:
+                        self.ui_goto(page_main)
+                if self.appear(WantedQuestsAssets.I_WQ_SEAL, interval=1) or self.appear(WantedQuestsAssets.I_WQ_DONE, interval=1):
+                    break
+                retry_count += 1
                 time.sleep(1)
+            while 1:
                 self.screenshot()
-                if self.ui_get_current_page() != page_main:
-                    self.ui_goto(page_main)
-            if self.appear(WantedQuestsAssets.I_WQ_SEAL,interval=1) or self.appear(WantedQuestsAssets.I_WQ_DONE,interval=1):
-                break
-            retry_count += 1
-            time.sleep(1)
-        while 1:
-            self.screenshot()
-            if self.appear(WantedQuestsAssets.I_TRACE_ENABLE) or self.appear(WantedQuestsAssets.I_TRACE_DISABLE) or self.appear(self.I_UI_BACK_RED):
-                break
-            if self.appear_then_click(WantedQuestsAssets.I_WQ_SEAL, interval=1):
-                continue
-            if self.appear_then_click(WantedQuestsAssets.I_WQ_DONE, interval=1):
-                continue
-        self.get_cooperation_info()
-        self.screenshot()
-        if self.appear(self.I_UI_BACK_RED):
-            self.click(self.I_UI_BACK_RED)
-            time.sleep(1)
-        self.screenshot()
-        if self.ui_get_current_page() != page_main:
-            self.ui_goto(page_main)
+                if (WantedBoardV2.is_open(self.device.image)
+                        or self.appear(WantedQuestsAssets.I_TRACE_ENABLE)
+                        or self.appear(WantedQuestsAssets.I_TRACE_DISABLE) or self.appear(self.I_UI_BACK_RED)):
+                    break
+                if self.appear_then_click(WantedQuestsAssets.I_WQ_SEAL, interval=1):
+                    continue
+                if self.appear_then_click(WantedQuestsAssets.I_WQ_DONE, interval=1):
+                    continue
+        info = (self.get_cooperation_info(require_ready=True) if board_already_open
+                else self.get_cooperation_info())
+        trace = getattr(self, '_live_trace', None)
+        if trace is not None:
+            self._live_event('coop_scan', status='success' if info else 'empty', count=len(info),
+                             found_at=self._coop_found_at(),
+                             window_id=coop_expires_at(self._coop_scan_at).isoformat())
+            self._close_wanted('cooperation_exit')
+        else:
+            self.ui_return_to_main('cooperation_exit')
 
     def get_account_info(self):
         self.screenshot()
@@ -445,7 +456,7 @@ class Cooperation(DailyAltAccBase):
         if spec['notify']:
             self.push_notify(content=f"    发现{label}", title="协作任务提醒")
 
-    def get_cooperation_info(self) -> List:
+    def get_cooperation_info(self, *, require_ready=False) -> List:
         """
             获取协作任务详情
         @return: 协作任务类型与邀请按钮
@@ -457,11 +468,65 @@ class Cooperation(DailyAltAccBase):
         # 几毫秒，恰好跨过 05:00 / 18:00 时同一张协作会被算进两个窗口。
         self._coop_scan_at = datetime.now()
         image = getattr(getattr(self, "device", None), "image", None)
+        if require_ready or WantedBoardV2.is_open(image):
+            # 合并入口和新版页面都校验当前帧，网络成功的旧帧不能代替扫描帧。
+            # 旧版卡片详情只在现有详情模板命中时关闭，不能当成空协作。
+            deadline = time.monotonic() + 10
+            detail_trace = None
+            dismissals = 0
+            while True:
+                detail = image is not None and self.appear(WantedQuestsAssets.I_WQ_TRACE_ONE_CHECK_OPENED)
+                new_board = WantedBoardV2.is_open(image)
+                ready = False
+                if not detail and image is not None:
+                    ready = (WantedBoardV2.ready(image) if new_board else
+                             (self.appear(self.I_NET_NORMAL_FLAG)
+                              and (self.appear(WantedQuestsAssets.I_TRACE_ENABLE)
+                                   or self.appear(WantedQuestsAssets.I_TRACE_DISABLE))
+                              and not self.appear(self.I_NET_CHECK)))
+                if ready:
+                    if detail_trace is not None:
+                        detail_trace.finish('arrived')
+                        self._live_event('wanted_detail_recovery', status='dismissed', attempts=dismissals)
+                    break
+                if time.monotonic() >= deadline:
+                    (detail_trace or ReturnTrace(self, 'cooperation_snapshot')).finish('not_ready')
+                    if detail_trace is not None:
+                        self._live_event('wanted_detail_recovery', status='failed', attempts=dismissals)
+                    raise RequestHumanTakeover('Wanted board not ready for cooperation scan')
+                if detail and dismissals < 2:
+                    if detail_trace is None:
+                        detail_trace = ReturnTrace(self, 'cooperation_snapshot')
+                        detail_trace.note('detail_detected', template=WantedQuestsAssets.I_WQ_TRACE_ONE_CHECK_OPENED.name,
+                                          score=getattr(WantedQuestsAssets.I_WQ_TRACE_ONE_CHECK_OPENED, 'last_match_score', None))
+                        detail_trace.capture('detail_overlay')
+                    # 复用 WantedQuests.trace_one 已有关闭空白区域；不点追踪/前往按钮。
+                    if self.ui_traced_click(WantedQuestsAssets.C_WQ_TRACE_ONE_CLOSE, 1.5, detail_trace):
+                        dismissals += 1
+                self.screenshot()
+                self._coop_scan_at = datetime.now()
+                image = getattr(getattr(self, 'device', None), 'image', None)
+        live = getattr(self, '_live_trace', None)
+        if (require_ready and live is not None and live.get('visit_window')
+                and live['visit_window'] != coop_expires_at(self._coop_scan_at).isoformat()):
+            # 网络门禁后若进程暂停跨过刷新点，不能把仍打开的旧板归入新窗口。
+            # 此处已进入协作统计，禁止在里面重新跑会抛TaskEnd的网络门禁。
+            self._live_event('refresh_boundary', action='scan_blocked',
+                             window_id=coop_expires_at(self._coop_scan_at).isoformat())
+            ReturnTrace(self, 'cooperation_refresh').finish('window_changed')
+            raise RequestHumanTakeover('Wanted window changed after network check; fresh visit required')
+        if live is not None:
+            self._live_wanted_open('cooperation', self._coop_scan_at)
+            live['scans'] += 1
+            self._live_event('coop_scan_start', found_at=self._coop_found_at())
         retList = []
         if image is None:
             logger.warning("协作识别取帧失败，本屏按没有协作任务处理")
             logger.info(f"get cooperation size {len(retList)}")
             return retList
+
+        if WantedBoardV2.is_open(image):
+            return self._get_cooperation_info_v2(image)
 
         # ① 8 个模板各在整块协作板区域内匹配一次，一次性拿到全部命中（坐标为绝对值）
         anchor_slots, anchor_hits = self._coop_collect(
@@ -511,6 +576,41 @@ class Cooperation(DailyAltAccBase):
 
         logger.info(f"get cooperation size {len(retList)}")
         return retList
+
+    def _get_cooperation_info_v2(self, image) -> List:
+        cards = WantedBoardV2.scan(image)
+        # Validate the complete frame before emitting any events from it.
+        if any(card['real'] is None or card['type_name'] is None for card in cards):
+            raise RequestHumanTakeover('Wanted v2 cooperation marker/reward is unclassified')
+        result = []
+        for card in cards:
+            slot, real, type_name = card['slot'], card['real'], card['type_name']
+            logger.info(f"[新版协作] slot={slot + 1} flag={'享' if real else '协'} "
+                        f"type={type_name} invite={card['inviteBtn'] is not None}")
+            cooperation = dict(type=self.COOP_TYPE_SPEC[type_name]['type'],
+                               inviteBtn=card['inviteBtn'], real=real, slot=slot)
+            cooperation.update(self._read_cooperation_targets_v2(image, type_name, real, slot))
+            result.append(cooperation)
+            self._coop_emit(type_name, real, cooperation, total=len(cards))
+        logger.info(f"get cooperation size {len(result)} (wanted_v2)")
+        return result
+
+    def _read_cooperation_targets_v2(self, image, type_name, real, slot) -> dict:
+        mode = self.COOP_TARGET_READ.get((type_name, real))
+        if mode is None:
+            return {}
+        rois = WantedBoardV2.target_rois(slot)
+        try:
+            if mode == 'real':
+                monster = _parse_real_cooperation_monster(self._ocr_single(
+                    image, rois['monster'], f'wq_v2_real_monster_slot_{slot + 1}'))
+                return {'monster_text': monster} if monster else {}
+            return self._normal_target_result(
+                self._ocr_single(image, rois['discoverer'], f'wq_v2_discoverer_slot_{slot + 1}'),
+                self._ocr_single(image, rois['friend'], f'wq_v2_friend_slot_{slot + 1}'))
+        except Exception as exc:
+            logger.warning(f"新版协作目标 OCR 失败(slot={slot + 1}): {exc}")
+            return {}
 
 
 if __name__ == "__main__":

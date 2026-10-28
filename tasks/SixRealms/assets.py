@@ -115,8 +115,8 @@ class SixRealmsAssets:
 	I_ISLAND_TAG_FLAG = RuleImage(roi_front=(543,601,100,100), roi_back=(543,601,100,100), threshold=0.8, method="Template matching", file="./tasks/SixRealms/gate1/gate1_island_tag_flag.png")
 	# 暂时离开六道之门re 
 	I_EXIT_SIXREALMS = RuleImage(roi_front=(503,306,84,75), roi_back=(494,297,100,90), threshold=0.8, method="Template matching", file="./tasks/SixRealms/gate1/gate1_exit_sixrealms.png")
-	# 选择绽放之舞re 
-	I_MPEACOCK_SKILL = RuleImage(roi_front=(219,601,95,43), roi_back=(167,584,192,86), threshold=0.8, method="Template matching", file="./tasks/SixRealms/gate1/gate1_mpeacock_skill.png")
+	# 开局选择右侧祈愿之舞；按钮复用原模板并校验标题
+	I_MPEACOCK_SKILL = RuleImage(roi_front=(1001,601,95,43), roi_back=(949,584,192,86), threshold=0.8, method="Template matching", file="./tasks/SixRealms/gate1/gate1_mpeacock_skill.png", guard={'roi_front': [990, 436, 115, 31], 'roi_back': [980, 426, 135, 51], 'method': 'Template matching', 'threshold': 0.85, 'file': './tasks/SixRealms/gate1/gate1_mpeacock_wish_title.png'})
 
 
 	# Ocr Rule Assets
@@ -270,3 +270,13 @@ class SixRealmsAssets:
 	# Real summon dialog identities; existing confirm/enter buttons are not mutually exclusive.
 	I_SIX_SUMMON_CONFIRM_TITLE = RuleImage(roi_front=(560,302,231,30), roi_back=(556,298,239,38), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/summon_confirm_title.png")
 	I_SIX_SUMMON_INSUFFICIENT_TITLE = RuleImage(roi_front=(429,289,222,28), roi_back=(425,285,230,36), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/summon_insufficient_title.png")
+	I_SIX_SETTLEMENT_REWARD_TITLE = RuleImage(roi_front=(519,118,242,66), roi_back=(509,108,262,132), threshold=0.73, method="Template matching", file="./tasks/SixRealms/validated/settlement_reward_title.png")
+
+	I_STORE_PURCHASE_CONFIRM = RuleImage(roi_front=(667,398,179,66), roi_back=(667,398,179,66), threshold=0.8, method="Template matching", file="./tasks/SixRealms/l101/l101_store_purchase_confirm.png", guard={'roi_front': [520, 302, 106, 28], 'roi_back': [420, 296, 380, 44], 'threshold': 0.9, 'method': 'Template matching', 'file': './tasks/SixRealms/l101/l101_store_purchase_title.png'})
+
+	I_STORE_PURCHASE_CONFIRM_SMALL = RuleImage(roi_front=(681,392,130,62), roi_back=(558,380,265,99), threshold=0.8, method="Template matching", file="./tasks/SixRealms/l101/l101_store_purchase_confirm_small.png", guard={'roi_front': [520, 302, 106, 28], 'roi_back': [420, 296, 380, 44], 'threshold': 0.9, 'method': 'Template matching', 'file': './tasks/SixRealms/l101/l101_store_purchase_title.png'})
+
+	I_STORE_PURCHASE_CANCEL = RuleImage(roi_front=(432,403,177,62), roi_back=(432,403,177,62), threshold=0.8, method="Template matching", file="./tasks/SixRealms/l101/l101_store_purchase_cancel.png", guard={'roi_front': [520, 302, 106, 28], 'roi_back': [420, 296, 380, 44], 'threshold': 0.9, 'method': 'Template matching', 'file': './tasks/SixRealms/l101/l101_store_purchase_title.png'})
+
+	I_SIX_SUMMON_CANCEL_DESKTOP = RuleImage(roi_front=(442, 414, 168, 50), roi_back=(430, 400, 196, 78), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/six_summon_cancel_desktop.png")
+	I_SIX_SUMMON_CANCEL = RuleImage(roi_front=(439, 408, 166, 51), roi_back=(427, 396, 190, 75), threshold=0.9, method="Template matching", file="./tasks/SixRealms/validated/six_summon_cancel.png")
