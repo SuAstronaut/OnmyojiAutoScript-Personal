@@ -16,6 +16,7 @@ def _board_rule(name, front, back, threshold=0.85):
 
 class WantedBoardV2:
     CARD_X = (90, 373, 655, 938)
+    MARKER_OFFSET = (198, 106, 62, 65)
     TITLE = _board_rule('title', (572, 35, 145, 43), (563, 28, 165, 58), 0.9)
     CLOSE = _board_rule('close', (1218, 72, 36, 38), (1203, 56, 67, 72))
     REFRESH = _board_rule('refresh', (552, 651, 105, 26), (542, 643, 125, 42))
@@ -54,6 +55,8 @@ class WantedBoardV2:
 
     @classmethod
     def is_open(cls, image):
+        if cls is WantedBoardV2 and WantedBoardDesktop.is_open(image):
+            return True
         return bool(image is not None and getattr(image, 'shape', ()) == (720, 1280, 3)
                     and cls._probe(cls.TITLE, image)
                     and cls._probe(cls.CLOSE, image))
@@ -78,13 +81,16 @@ class WantedBoardV2:
 
     @classmethod
     def ready(cls, image):
+        if cls is WantedBoardV2 and WantedBoardDesktop.is_open(image):
+            return WantedBoardDesktop.ready(image)
         # The board loads atomically (confirmed by the user): one cooperation
         # marker proves it is loaded. Without cooperation, any rendered reward
         # suffices. A title/footer around four blank cards is still not ready.
         if not cls.is_open(image) or not cls._probe(cls.REFRESH, image):
             return False
         for slot, left in enumerate(cls.CARD_X):
-            marker_roi = (left + 198, 106, 62, 65)
+            x, y, width, height = cls.MARKER_OFFSET
+            marker_roi = (left + x, y, width, height)
             if (cls._probe(cls.NORMAL, image, marker_roi)
                     or cls._probe(cls.REAL, image, marker_roi)
                     or cls._card_loaded(image, slot)):
@@ -106,11 +112,14 @@ class WantedBoardV2:
         Missing/conflicting markers stay None so callers cannot archive them as
         ordinary cooperation or silently report an empty board.
         """
+        if cls is WantedBoardV2 and WantedBoardDesktop.is_open(image):
+            return WantedBoardDesktop.scan(image)
         if not cls.ready(image):
             raise ValueError('Wanted v2 board is not ready')
         cards = []
         for slot, left in enumerate(cls.CARD_X):
-            marker_roi = (left + 198, 106, 62, 65)
+            x, y, width, height = cls.MARKER_OFFSET
+            marker_roi = (left + x, y, width, height)
             normal = cls._probe(cls.NORMAL, image, marker_roi)
             real = cls._probe(cls.REAL, image, marker_roi)
             invite = cls._probe(cls.INVITE, image, (left + 40, 388, 190, 58))
@@ -122,7 +131,40 @@ class WantedBoardV2:
         return cards
 
     @classmethod
-    def target_rois(cls, slot):
+    def target_rois(cls, slot, image=None):
+        if cls is WantedBoardV2 and WantedBoardDesktop.is_open(image):
+            return WantedBoardDesktop.target_rois(slot)
         left = cls.CARD_X[slot] + 20
         return dict(discoverer=(left, 438, 225, 25),
                     friend=(left, 487, 225, 25), monster=(left, 460, 225, 25))
+
+
+class WantedBoardDesktop(WantedBoardV2):
+    """Desktop layout captured 2026-11-04; markers sit beside the character.
+
+    Reward taxonomy and slot ownership are shared with the earlier board.
+    Only fixed artwork is sampled; character art and friend identity are not.
+    """
+    CARD_X = (110, 378, 646, 914)
+    MARKER_OFFSET = (10, 294, 55, 58)
+    TITLE = _board_rule('desktop_title', (579, 54, 129, 34), (569, 44, 149, 54), 0.9)
+    CLOSE = _board_rule('desktop_close', (1195, 87, 36, 38), (1182, 74, 62, 64))
+    REFRESH = _board_rule('desktop_refresh', (549, 635, 107, 24), (539, 625, 127, 44))
+    NORMAL = _board_rule('desktop_normal', (135, 307, 24, 31), (120, 294, 55, 58))
+    REAL = _board_rule('desktop_real', (135, 307, 24, 31), (120, 294, 55, 58))
+    INVITE = _board_rule('desktop_invite', (192, 400, 99, 30), (150, 388, 190, 58), 0.82)
+    # Reward artwork is 95% of the earlier board size. Keep its original
+    # priority and threshold; food cards also contain a gold reward.
+    TYPE_RULES = {
+        name: _board_rule(f'desktop_reward_{name}', (0, 0, width, height),
+                          (130, 526, 225, 83), 0.8)
+        for name, width, height in (
+            ('jade', 69, 49), ('dog_food', 57, 48), ('cat_food', 65, 54),
+            ('sushi', 66, 48), ('gold', 68, 48))
+    }
+
+    @classmethod
+    def target_rois(cls, slot, image=None):
+        left = cls.CARD_X[slot] + 20
+        return dict(discoverer=(left, 432, 225, 25),
+                    friend=(left, 477, 225, 25), monster=(left, 453, 225, 25))

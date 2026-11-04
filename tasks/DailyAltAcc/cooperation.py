@@ -603,7 +603,7 @@ class Cooperation(DailyAltAccBase):
         mode = self.COOP_TARGET_READ.get((type_name, real))
         if mode is None:
             return {}
-        rois = WantedBoardV2.target_rois(slot)
+        rois = WantedBoardV2.target_rois(slot, image=image)
         try:
             if mode == 'real':
                 monster = _parse_real_cooperation_monster(self._ocr_single(

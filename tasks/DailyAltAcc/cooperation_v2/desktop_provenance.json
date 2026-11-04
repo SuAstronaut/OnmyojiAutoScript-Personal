@@ -1,0 +1,112 @@
+{
+  "resolution": [
+    1280,
+    720
+  ],
+  "date": "2026-11-04",
+  "crops": {
+    "desktop_title": {
+      "source": "screenshots\\desktop_capture\\desktop_client_20261104_092104_236872.png",
+      "source_sha256": "29101f4002c62e239c8afabbc30c82ae051fda5a50cb1b064c083d401d275ac4",
+      "roi": [
+        579,
+        54,
+        129,
+        34
+      ],
+      "date": "2026-11-04"
+    },
+    "desktop_close": {
+      "source": "screenshots\\desktop_capture\\desktop_client_20261104_092104_236872.png",
+      "source_sha256": "29101f4002c62e239c8afabbc30c82ae051fda5a50cb1b064c083d401d275ac4",
+      "roi": [
+        1195,
+        87,
+        36,
+        38
+      ],
+      "date": "2026-11-04"
+    },
+    "desktop_refresh": {
+      "source": "screenshots\\desktop_capture\\desktop_client_20261104_092104_236872.png",
+      "source_sha256": "29101f4002c62e239c8afabbc30c82ae051fda5a50cb1b064c083d401d275ac4",
+      "roi": [
+        549,
+        635,
+        107,
+        24
+      ],
+      "date": "2026-11-04"
+    },
+    "desktop_real": {
+      "source": "screenshots\\desktop_capture\\desktop_client_20261104_092104_236872.png",
+      "source_sha256": "29101f4002c62e239c8afabbc30c82ae051fda5a50cb1b064c083d401d275ac4",
+      "roi": [
+        135,
+        307,
+        24,
+        31
+      ],
+      "date": "2026-11-04"
+    },
+    "desktop_normal": {
+      "source": "screenshots\\desktop_capture\\desktop_client_20261104_092221_467554.png",
+      "source_sha256": "93ba3dd6985b05297d6156a8ea324c2accdd55910fc4e3eb6ed197a666b6ca17",
+      "roi": [
+        135,
+        307,
+        24,
+        31
+      ],
+      "date": "2026-11-04"
+    },
+    "desktop_invite": {
+      "source": "screenshots\\desktop_capture\\desktop_client_20261104_092104_236872.png",
+      "source_sha256": "29101f4002c62e239c8afabbc30c82ae051fda5a50cb1b064c083d401d275ac4",
+      "roi": [
+        192,
+        400,
+        99,
+        30
+      ],
+      "date": "2026-11-04"
+    }
+  },
+  "desktop_reward_derivation": {
+    "jade": {
+      "source": "tasks/WantedQuests/invite/wq_cooperation_type_jade.png",
+      "source_sha256": "9b869302c8524624498ccb5d9ea393c547c0d19f51e892284257499820924159",
+      "scale": 0.95,
+      "interpolation": "cv2.INTER_LINEAR",
+      "output": "desktop_reward_jade.png"
+    },
+    "dog_food": {
+      "source": "tasks/WantedQuests/invite/wq_cooperation_type_dog_food.png",
+      "source_sha256": "5bc2bf0891f54df6a27a0d0830d79cc6562da3186e803e3f9f6648af89f7e65a",
+      "scale": 0.95,
+      "interpolation": "cv2.INTER_LINEAR",
+      "output": "desktop_reward_dog_food.png"
+    },
+    "cat_food": {
+      "source": "tasks/WantedQuests/invite/wq_cooperation_type_cat_food.png",
+      "source_sha256": "59eeda25897cfed1c97b796296126df9485d70d9382745896c8ed0dc09ba2531",
+      "scale": 0.95,
+      "interpolation": "cv2.INTER_LINEAR",
+      "output": "desktop_reward_cat_food.png"
+    },
+    "sushi": {
+      "source": "tasks/WantedQuests/invite/wq_cooperation_type_sushi.png",
+      "source_sha256": "0827c3a9e27ff913adb840e15f782859e41a91bcd989975a573f0cad56df5a24",
+      "scale": 0.95,
+      "interpolation": "cv2.INTER_LINEAR",
+      "output": "desktop_reward_sushi.png"
+    },
+    "gold": {
+      "source": "tasks/WantedQuests/invite/wq_cooperation_type_gold.png",
+      "source_sha256": "4cb534b74450cbd006bdddd3175eceba708b5d30883408925659f6a2ac1a7a12",
+      "scale": 0.95,
+      "interpolation": "cv2.INTER_LINEAR",
+      "output": "desktop_reward_gold.png"
+    }
+  }
+}

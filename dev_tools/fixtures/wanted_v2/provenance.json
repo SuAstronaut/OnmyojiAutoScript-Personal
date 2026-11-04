@@ -1,0 +1,78 @@
+[
+  {
+    "file": "real_cooperation.png",
+    "source": "D:\\Documents\\leidian9\\Pictures\\Screenshots\\Screenshot_20261028-091735.png",
+    "source_sha256": "efcab1f6fca8b16613dc5829ad8bea873084881abf7627f7e9f8801ba6d24c62",
+    "redaction_roi": [
+      0,
+      0,
+      400,
+      40
+    ],
+    "synthetic": false
+  },
+  {
+    "file": "double_cooperation.png",
+    "source": "C:\\Users\\Lenovo\\Downloads\\微信图片_20261028092156_56_125.png",
+    "source_sha256": "e40a3215e9978cc4518055448acb9743f58c18308171d3d1a5de7903a8d51659",
+    "redaction_roi": [
+      0,
+      0,
+      400,
+      40
+    ],
+    "original_size": [
+      1280,
+      720
+    ],
+    "synthetic": false
+  },
+  {
+    "file": "jade_with_mystery.png",
+    "source": "D:\\Documents\\leidian9\\Pictures\\Screenshots\\Screenshot_20261028-094009.png",
+    "source_sha256": "7fc657cd773eaaaac959c0b45c68f008fe6bef9739a013128d14de0a9b857925",
+    "redaction_roi": [
+      0,
+      0,
+      400,
+      40
+    ],
+    "synthetic": false
+  },
+  {
+    "file": "desktop_real_gold.png",
+    "source": "D:\\Entertainment\\Tool\\OAS\\screenshots\\desktop_capture\\desktop_client_20261104_092104_236872.png",
+    "source_sha256": "29101f4002c62e239c8afabbc30c82ae051fda5a50cb1b064c083d401d275ac4",
+    "redaction_roi": [
+      0,
+      0,
+      410,
+      55
+    ],
+    "synthetic": false
+  },
+  {
+    "file": "desktop_normal_sushi.png",
+    "source": "D:\\Entertainment\\Tool\\OAS\\screenshots\\desktop_capture\\desktop_client_20261104_092221_467554.png",
+    "source_sha256": "93ba3dd6985b05297d6156a8ea324c2accdd55910fc4e3eb6ed197a666b6ca17",
+    "redaction_roi": [
+      0,
+      0,
+      410,
+      55
+    ],
+    "synthetic": false
+  },
+  {
+    "file": "desktop_normal_dog_food.png",
+    "source": "C:\\Users\\Lenovo\\AppData\\Local\\Temp\\codex-clipboard-60e1ec01-fbb4-42a4-b63b-1da42961dac0.png",
+    "source_sha256": "de969e05dfcead5700c5c2c5a8d4743912d5206e8aae3a87a56e42e56f4a93f0",
+    "redaction_roi": [
+      0,
+      0,
+      410,
+      55
+    ],
+    "synthetic": false
+  }
+]
